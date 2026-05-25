@@ -1,47 +1,39 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import * as Blockly from "blockly/core";
-    import "blockly/blocks";
-    import { javascriptGenerator, Order } from "blockly/javascript";
-    import * as En from "blockly/msg/en";
+  import { onMount } from "svelte";
+  import * as Blockly from "blockly/core";
+  import "blockly/blocks";
+  import { javascriptGenerator, Order } from "blockly/javascript";
+  import * as En from "blockly/msg/en";
 
-    import { initAllBlocks, workspaceConfig } from "$lib/config";
+  import { initAllBlocks, workspaceConfig } from "$lib/config";
 
-    let blocklyDiv: HTMLDivElement;
-    let workspace: Blockly.WorkspaceSvg;
+  let blocklyDiv: HTMLDivElement;
+  let workspace: Blockly.WorkspaceSvg;
 
-    onMount(() => {
-        initAllBlocks();
+  onMount(() => {
+    initAllBlocks();
 
-        Blockly.setLocale(En as any);
+    Blockly.setLocale(En as any);
 
-        workspace = Blockly.inject(blocklyDiv, workspaceConfig);
+    workspace = Blockly.inject(blocklyDiv, workspaceConfig);
 
-        const onResize = () => {
-            Blockly.svgResize(workspace);
-        };
-        window.addEventListener("resize", onResize);
+    const onResize = () => {
+      Blockly.svgResize(workspace);
+    };
+    window.addEventListener("resize", onResize);
 
-        return () => {
-            window.removeEventListener("resize", onResize);
-            workspace.dispose();
-        };
-    });
+    return () => {
+      window.removeEventListener("resize", onResize);
+      workspace.dispose();
+    };
+  });
 </script>
 
-<div bind:this={blocklyDiv} class="blockly-container"></div>
+<div class="grid-top">
+  <div bind:this={blocklyDiv} class="blockly-container"></div>
+  <div class="stage">the best thing ever goes here</div>
+</div>
 
 <style>
-    :global(html, body) {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-    }
-
-    .blockly-container {
-        height: 100vh;
-        width: 100vw;
-    }
+  @import "../styles/editor.css";
 </style>

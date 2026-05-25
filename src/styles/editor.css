@@ -1,0 +1,22 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.blockly-container {
+    height: 100vh;
+    width: 100vw;
+}
+
+.grid-top {
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+}
+
+.grid-top > .stage {
+    padding: 10px;
+}
