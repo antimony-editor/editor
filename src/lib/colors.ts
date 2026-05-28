@@ -1,5 +1,11 @@
 export const categoryColours = {
-    // you can use any css colour if you wish
-    // hex if possible though please ☺️
-    test: "#f1af20", // wow
-};
+    test: "#f1af20",
+    timing: "#e53935",
+    motion: "#1e88e5",
+    looks: "#8e24aa",
+    audio: "#00acc1",
+    effects: "#f4511e",
+    control: "#43A047",
+    variables: "#fb8c00",
+    other: "#8f8f8f"
+}
