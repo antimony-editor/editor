@@ -28,8 +28,8 @@ export const toolbox = {
                     kind: "block",
                     type: "logic_compare",
                     inputs: {
-                        A: math_number,
-                        B: math_number,
+                        A: text,
+                        B: text,
                     },
                 },
                 { kind: "block", type: "logic_operation" },
@@ -230,7 +230,6 @@ export const toolbox = {
             name: "Text",
             categorystyle: "text_category",
             contents: [
-                { kind: "block", type: "text" },
                 { kind: "block", type: "text_join" },
                 {
                     kind: "block",

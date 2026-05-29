@@ -1,4 +1,4 @@
-import * as Blockly from "blockly/core";
+import * as Blockly from "blockly";
 import { toolbox } from "./toolbox";
 
 const theme = Blockly.Theme.defineTheme('modern_dark', {
@@ -50,6 +50,37 @@ const theme = Blockly.Theme.defineTheme('modern_dark', {
 
 export function initAllBlocks() {
     import.meta.glob("./blocks/**/*.ts", { eager: true });
+
+    const restrictNumeric = (htmlInput: HTMLInputElement) => {
+        htmlInput.addEventListener('keydown', (e: KeyboardEvent) => {
+            const allowedKeys = ['backspace', 'delete', 'arrowleft', 'arrowright', 'tab', 'enter', 'home', 'end', '.', '-', 'a', 'c', 'v', 'x'];
+            const isDigit = /^\d$/.test(e.key);
+            const isControl = allowedKeys.includes(e.key.toLowerCase()) || e.ctrlKey || e.metaKey;
+            if (!isDigit && !isControl) {
+                e.preventDefault();
+            }
+        });
+    };
+
+    const originalShowEditor = Blockly.FieldTextInput.prototype.showEditor_;
+    Blockly.FieldTextInput.prototype.showEditor_ = function (this: any, ...args: any[]) {
+        originalShowEditor.apply(this, args);
+        const htmlInput = this.htmlInput_ || (Blockly.WidgetDiv as any).getDiv()?.querySelector('input');
+        if (htmlInput && (this instanceof Blockly.FieldNumber || this.name === 'NUM' || this.name?.includes('NUMBER') || this.name?.includes('AT'))) {
+            restrictNumeric(htmlInput);
+        }
+    };
+
+    if (Blockly.FieldNumber) {
+        const originalNumberShowEditor = Blockly.FieldNumber.prototype.showEditor_;
+        Blockly.FieldNumber.prototype.showEditor_ = function (this: any, ...args: any[]) {
+            originalNumberShowEditor.apply(this, args);
+            const htmlInput = this.htmlInput_ || (Blockly.WidgetDiv as any).getDiv()?.querySelector('input');
+            if (htmlInput) {
+                restrictNumeric(htmlInput);
+            }
+        };
+    }
 }
 
 export const workspaceConfig: Blockly.BlocklyOptions = {

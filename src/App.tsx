@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import * as Blockly from 'blockly/core';
+import * as Blockly from 'blockly';
 import 'blockly/blocks';
 import * as En from 'blockly/msg/en';
 import { Stage, Layer, Rect, Text } from 'react-konva';
