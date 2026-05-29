@@ -1,0 +1,157 @@
+<!-- trust me this is for the better... -->
+  <xml xmlns="https://developers.google.com/blockly/xml">
+  <!-- logic -->
+  <category name="Logic" categorystyle="logic_category">
+    <block type="controls_if">
+      <value name="IF0">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="controls_ifelse">
+      <value name="IF0">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+      <value name="IF1">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="logic_compare">
+      <value name="A">
+        <shadow type="math_number"><field name="NUM">0</field></shadow>
+      </value>
+      <value name="B">
+        <shadow type="math_number"><field name="NUM">0</field></shadow>
+      </value>
+    </block>
+    <block type="logic_operation">
+      <value name="A">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+      <value name="B">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="logic_negate">
+      <value name="BOOL">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="checkbox"></block>
+    <block type="logic_null"></block>
+    <block type="logic_ternary">
+      <value name="IF">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+      <value name="THEN"><shadow type="text"><field name="TEXT"></field></shadow></value>
+      <value name="ELSE"><shadow type="text"><field name="TEXT"></field></shadow></value>
+    </block>
+  </category>
+  <!-- loops -->
+  <category name="Loops" categorystyle="loop_category">
+    <block type="controls_repeat_ext">
+      <value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+    </block>
+    <block type="controls_whileUntil">
+      <value name="BOOL">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
+    <block type="controls_for">
+      <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="TO"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+      <value name="BY"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+    </block>
+    <block type="controls_forEach"></block>
+    <block type="controls_flow_statements"></block>
+  </category>
+  <!-- math -->
+  <category name="Math" categorystyle="math_category">
+    <block type="math_number"></block>
+    <block type="math_arithmetic">
+      <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="B"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+    </block>
+    <block type="math_single"><value name="NUM"><shadow type="math_number"><field name="NUM">9</field></shadow></value></block>
+    <block type="math_trig"><value name="NUM"><shadow type="math_number"><field name="NUM">45</field></shadow></value></block>
+    <block type="math_constant"></block>
+    <block type="math_number_property"><value name="NUMBER_TO_CHECK"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="math_round"><value name="NUM"><shadow type="math_number"><field name="NUM">3.1</field></shadow></value></block>
+    <block type="math_on_list"></block>
+    <block type="math_modulo">
+      <value name="DIVIDEND"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
+      <value name="DIVISOR"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+    </block>
+    <block type="math_constrain">
+      <value name="VALUE"><shadow type="math_number"><field name="NUM">50</field></shadow></value>
+      <value name="LOW"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="HIGH"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+    </block>
+    <block type="math_random_int">
+      <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+    </block>
+    <block type="math_random_float"></block>
+  </category>
+  <!-- text -->
+  <category name="Text" categorystyle="text_category">
+    <block type="text"></block>
+    <block type="text_join"></block>
+    <block type="text_append"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_length"><value name="VALUE"><shadow type="text"><field name="TEXT">abc</field></shadow></value></block>
+    <block type="text_isEmpty"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_indexOf"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="FIND"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_charAt"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="AT"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="text_getSubstring"><value name="STRING"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="AT1"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="AT2"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="text_changeCase"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_trim"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_print"><value name="TEXT"><shadow type="text"><field name="TEXT">abc</field></shadow></value></block>
+    <block type="text_prompt_ext"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+  </category>
+  <!-- lists -->
+  <category name="Lists" categorystyle="list_category">
+    <block type="lists_create_with"></block>
+    <block type="lists_repeat"><value name="NUM"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
+    <block type="lists_length"></block>
+    <block type="lists_isEmpty"></block>
+    <block type="lists_indexOf"></block>
+    <block type="lists_getIndex"></block>
+    <block type="lists_setIndex"></block>
+    <block type="lists_getSublist"></block>
+    <block type="lists_split"></block>
+    <block type="lists_sort"></block>
+  </category>
+  <!-- motion -->
+  <category name="Motion" categorystyle="motion_category"></category>
+  <!-- appearance -->
+  <category name="Appearance" categorystyle="appearance_category"></category>
+  <!-- timing -->
+  <category name="Timing" categorystyle="timing_category"></category>
+  <!-- effects -->
+  <category name="Effects" categorystyle="effects_category"></category>
+  <!-- layers -->
+  <category name="Layers" categorystyle="layers_category"></category>
+  <!-- audio -->
+  <category name="Audio" categorystyle="audio_category"></category>
+  <!-- variables -->
+  <category name="Variables" categorystyle="variable_category" custom="VARIABLE"></category>
+  <!-- functions -->
+  <category name="Functions" categorystyle="procedure_category" custom="PROCEDURE"></category>
+  <!-- other -->
+    <category name="Other" categorystyle="other_category"></category>
+</xml>

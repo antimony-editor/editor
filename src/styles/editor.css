@@ -22,7 +22,7 @@ body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    background-color: #1e1e1e;
+    background-color: #4e4e4e;
 }
 
 .blockly-container {
@@ -40,7 +40,7 @@ body {
 }
 
 .blocklyToolboxDiv {
-    background-color: #161616 !important;
+    background-color: #4e4e4e !important;
     color: #E0E0E0 !important;
     border-right: 1px solid #222;
     padding-top: 10px !important;
@@ -87,11 +87,11 @@ body {
 
 .blocklyPath {
     stroke-width: 0.5px !important;
-    stroke: rgba(0,0,0,0.4) !important;
+    stroke: rgba(0, 0, 0, 0.4) !important;
 }
 
 .blocklyEditableText>rect {
-    fill: rgba(0,0,0,0.3) !important;
+    fill: rgba(0, 0, 0, 0.3) !important;
     stroke: none !important;
     rx: 2 !important;
     ry: 2 !important;
@@ -102,5 +102,5 @@ body {
 }
 
 .blocklyBlockCanvas {
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }

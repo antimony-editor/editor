@@ -7,6 +7,26 @@ import { Stage, Layer, Rect, Text } from 'react-konva';
 import { initAllBlocks, workspaceConfig } from './lib/config';
 import './styles/editor.css';
 
+function syncShadowColours(workspace: Blockly.WorkspaceSvg | Blockly.Workspace) {
+	for (const block of workspace.getAllBlocks(false)) {
+		if (!block.isShadow()) {
+			continue;
+		}
+
+		const parent = block.getParent();
+
+		if (!parent) {
+			continue;
+		}
+
+		block.setColour(parent.getColour());
+	}
+}
+
+function getFlyoutWorkspace(workspace: Blockly.WorkspaceSvg) {
+	return workspace.getFlyout()?.getWorkspace() ?? null;
+}
+
 export default function App() {
 	const blocklyDivRef = useRef<HTMLDivElement | null>(null);
 	const stageParentRef = useRef<HTMLDivElement | null>(null);
@@ -26,6 +46,25 @@ export default function App() {
 		Blockly.setLocale(locale);
 
 		const workspace = Blockly.inject(blocklyDiv, workspaceConfig);
+		syncShadowColours(workspace);
+
+		const flyoutWorkspace = getFlyoutWorkspace(workspace);
+
+		if (flyoutWorkspace) {
+			syncShadowColours(flyoutWorkspace);
+		}
+
+		const handleWorkspaceChange = () => {
+			syncShadowColours(workspace);
+			const currentFlyoutWorkspace = getFlyoutWorkspace(workspace);
+
+			if (currentFlyoutWorkspace) {
+				syncShadowColours(currentFlyoutWorkspace);
+			}
+		};
+
+		workspace.addChangeListener(handleWorkspaceChange);
+		flyoutWorkspace?.addChangeListener(handleWorkspaceChange);
 
 		const handleResize = () => {
 			Blockly.svgResize(workspace);
@@ -36,6 +75,8 @@ export default function App() {
 
 		return () => {
 			window.removeEventListener('resize', handleResize);
+			workspace.removeChangeListener(handleWorkspaceChange);
+			flyoutWorkspace?.removeChangeListener(handleWorkspaceChange);
 			workspace.dispose();
 		};
 	}, []);
