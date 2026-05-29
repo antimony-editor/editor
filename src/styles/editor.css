@@ -77,7 +77,7 @@ body {
     stroke: none !important;
 }
 
-.blocklyWidgetDiv, .blocklyTooltipDiv {
+.blocklyTooltipDiv {
     display: none !important;
 }
 
