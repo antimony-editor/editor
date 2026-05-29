@@ -50,7 +50,7 @@ export const workspaceConfig: Blockly.BlocklyOptions = {
     renderer: "zelos",
     theme: theme,
     toolbox: toolbox,
-    trashcan: false,
+    trashcan: true,
     move: {
         scrollbars: {
             horizontal: true,
@@ -60,8 +60,13 @@ export const workspaceConfig: Blockly.BlocklyOptions = {
         wheel: true,
     },
     zoom: {
+        controls: true,
         controls: false,
         wheel: true,
+        startScale: 1.0,
+        maxScale: 3,
+        minScale: 0.3,
+        scaleSpeed: 1.2,
         startScale: 0.9,
         maxScale: 2,
         minScale: 0.4,
