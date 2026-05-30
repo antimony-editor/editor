@@ -1,35 +1,37 @@
 import * as Blockly from "blockly/core";
 import toolboxXml from "./toolbox.xml?raw";
 
+const blockColors = {
+    logic_blocks: '#6f8ff7',
+    loop_blocks: '#6faaf7',
+    math_blocks: '#e4aa2e',
+    text_blocks: '#5dce40',
+    list_blocks: '#eb4e4e',
+    variable_blocks: '#eb8724',
+    procedure_blocks: '#eb458a',
+    other_blocks: '#7a7a7a',
+    motion_blocks: '#4C97FF',
+    appearance_blocks: '#9966FF',
+    timing_blocks: '#FFBF00',
+    effects_blocks: '#FFAB19',
+    layers_blocks: '#4CBFE6',
+    audio_blocks: '#D65CD6',
+};
+
+function mapValues<K extends string, V, R>(
+    obj: Record<K, V>,
+    fn: (value: V, key: K) => R
+): Record<K, R> {
+    return Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [k, fn(v as V, k as K)])
+    ) as Record<K, R>;
+}
+
 const theme = Blockly.Theme.defineTheme('modern_dark', {
     name: 'modern_dark',
     base: Blockly.Themes.Classic,
-    blockStyles: {
-        logic_blocks: { colourPrimary: '#5C5CFF', colourSecondary: '#4747D1', colourTertiary: '#3333A3' },
-        loop_blocks: { colourPrimary: '#00D1D1', colourSecondary: '#00A3A3', colourTertiary: '#007575' },
-        math_blocks: { colourPrimary: '#7A29FF', colourSecondary: '#6121CC', colourTertiary: '#481899' },
-        text_blocks: { colourPrimary: '#FF2970', colourSecondary: '#CC2159', colourTertiary: '#991843' },
-        list_blocks: { colourPrimary: '#FF8000', colourSecondary: '#CC6600', colourTertiary: '#994C00' },
-        variable_blocks: { colourPrimary: '#00FF80', colourSecondary: '#00CC66', colourTertiary: '#00994D' },
-        procedure_blocks: { colourPrimary: '#FFD100', colourSecondary: '#CCA300', colourTertiary: '#997A00' },
-        other_blocks: { colourPrimary: '#7a7a7a', colourSecondary: '#636363', colourTertiary: '#464646' },
-    },
-    categoryStyles: {
-        logic_category: { colour: '#5C5CFF' },
-        loop_category: { colour: '#00D1D1' },
-        math_category: { colour: '#7A29FF' },
-        text_category: { colour: '#FF2970' },
-        list_category: { colour: '#FF8000' },
-        variable_category: { colour: '#00FF80' },
-        procedure_category: { colour: '#FFD100' },
-        motion_category: { colour: '#4C97FF' },
-        appearance_category: { colour: '#9966FF' },
-        timing_category: { colour: '#FFBF00' },
-        effects_category: { colour: '#FFAB19' },
-        layers_category: { colour: '#4CBFE6' },
-        audio_category: { colour: '#D65CD6' },
-        other_category: { colour: '#7a7a7a' },
-    },
+    blockStyles: mapValues(blockColors, (colour) => ({ colourPrimary: colour })),
+    categoryStyles: mapValues(blockColors, (colour) => ({ colour })),
     componentStyles: {
         workspaceBackgroundColour: '#0F0F0F',
         toolboxBackgroundColour: '#161616',
@@ -41,11 +43,6 @@ const theme = Blockly.Theme.defineTheme('modern_dark', {
         scrollbarColour: '#2A2A2A',
         scrollbarOpacity: 0.5,
         cursorColour: '#FFFFFF',
-    },
-    fontStyle: {
-        family: '"Inter", "Inter Variable", sans-serif',
-        weight: '500',
-        size: 11
     },
     startHats: false,
 });

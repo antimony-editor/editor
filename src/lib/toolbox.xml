@@ -1,7 +1,7 @@
 <!-- trust me this is for the better... -->
   <xml xmlns="https://developers.google.com/blockly/xml">
   <!-- logic -->
-  <category name="Logic" categorystyle="logic_category">
+  <category name="Logic" categorystyle="logic_blocks">
     <block type="controls_if">
       <value name="IF0">
         <shadow type="checkbox">
@@ -61,7 +61,7 @@
     </block>
   </category>
   <!-- loops -->
-  <category name="Loops" categorystyle="loop_category">
+  <category name="Loops" categorystyle="loop_blocks">
     <block type="controls_repeat_ext">
       <value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
     </block>
@@ -81,7 +81,7 @@
     <block type="controls_flow_statements"></block>
   </category>
   <!-- math -->
-  <category name="Math" categorystyle="math_category">
+  <category name="Math" categorystyle="math_blocks">
     <block type="math_number"></block>
     <block type="math_arithmetic">
       <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
@@ -109,7 +109,7 @@
     <block type="math_random_float"></block>
   </category>
   <!-- text -->
-  <category name="Text" categorystyle="text_category">
+  <category name="Text" categorystyle="text_blocks">
     <block type="text"></block>
     <block type="text_join"></block>
     <block type="text_append"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
@@ -124,7 +124,7 @@
     <block type="text_prompt_ext"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
   </category>
   <!-- lists -->
-  <category name="Lists" categorystyle="list_category">
+  <category name="Lists" categorystyle="list_blocks">
     <block type="lists_create_with"></block>
     <block type="lists_repeat"><value name="NUM"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
     <block type="lists_length"></block>
@@ -137,21 +137,21 @@
     <block type="lists_sort"></block>
   </category>
   <!-- motion -->
-  <category name="Motion" categorystyle="motion_category"></category>
+  <category name="Motion" categorystyle="motion_blocks"></category>
   <!-- appearance -->
-  <category name="Appearance" categorystyle="appearance_category"></category>
+  <category name="Appearance" categorystyle="appearance_blocks"></category>
   <!-- timing -->
-  <category name="Timing" categorystyle="timing_category"></category>
+  <category name="Timing" categorystyle="timing_blocks"></category>
   <!-- effects -->
-  <category name="Effects" categorystyle="effects_category"></category>
+  <category name="Effects" categorystyle="effects_blocks"></category>
   <!-- layers -->
-  <category name="Layers" categorystyle="layers_category"></category>
+  <category name="Layers" categorystyle="layers_blocks"></category>
   <!-- audio -->
-  <category name="Audio" categorystyle="audio_category"></category>
+  <category name="Audio" categorystyle="audio_blocks"></category>
   <!-- variables -->
-  <category name="Variables" categorystyle="variable_category" custom="VARIABLE"></category>
+  <category name="Variables" categorystyle="variable_blocks" custom="VARIABLE"></category>
   <!-- functions -->
-  <category name="Functions" categorystyle="procedure_category" custom="PROCEDURE"></category>
+  <category name="Functions" categorystyle="procedure_blocks" custom="PROCEDURE"></category>
   <!-- other -->
-    <category name="Other" categorystyle="other_category"></category>
+    <category name="Other" categorystyle="other_blocks"></category>
 </xml>

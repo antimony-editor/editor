@@ -70,11 +70,11 @@ export default function App() {
 			Blockly.svgResize(workspace);
 		};
 
-		window.addEventListener('resize', handleResize);
-		handleResize();
+		const observer = new ResizeObserver(handleResize);
+		observer.observe(blocklyDiv);
 
 		return () => {
-			window.removeEventListener('resize', handleResize);
+			observer.disconnect();
 			workspace.removeChangeListener(handleWorkspaceChange);
 			flyoutWorkspace?.removeChangeListener(handleWorkspaceChange);
 			workspace.dispose();
