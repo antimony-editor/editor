@@ -167,8 +167,7 @@ body {
   grid-area: header;
   position: relative;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-subtle);
-  border-bottom-color: var(--border-default);
+  border-bottom: 2px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
