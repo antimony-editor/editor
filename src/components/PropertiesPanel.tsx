@@ -159,7 +159,7 @@ export default function PropertiesPanel() {
 											disabled={requestingFonts}
 											title="Request permission to access local fonts"
 										>
-											{requestingFonts ? 'Unlocking…' : 'Unlock Fonts'}
+											{requestingFonts ? 'Unlocking...' : 'Unlock Fonts'}
 										</button>
 									)}
 								</div>
