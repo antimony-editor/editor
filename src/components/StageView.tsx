@@ -194,7 +194,7 @@ export default function StageView() {
 
 	return (
 		<div className="stage-area panel">
-			<div className="panel-header" style={{ justifyContent: 'space-between', paddingRight: '8px' }}>
+			<div className="panel-header" style={{ justifyContent: 'space-between' }}>
 				<div className="transport-controls" style={{ background: 'transparent', border: 'none', padding: 0 }}>
 					<button className="transport-btn" title="Rewind">
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 20L9 12l10-8v16zM7 19V5H5v14h2z"/></svg>
@@ -206,9 +206,6 @@ export default function StageView() {
 						<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
 					</button>
 				</div>
-				<span className="stage-resolution" style={{ position: 'static', background: 'transparent', backdropFilter: 'none' }}>
-					{VIRTUAL_WIDTH}×{VIRTUAL_HEIGHT}
-				</span>
 			</div>
 			<div className="panel-body" ref={parentRef}>
 				<div className="stage-container">

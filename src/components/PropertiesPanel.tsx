@@ -4,13 +4,7 @@ export default function PropertiesPanel() {
 	const { state, dispatch } = useSprites();
 	const sprite = state.sprites.find(s => s.id === state.selectedSpriteId);
 
-	if (!sprite) {
-		return (
-			<div className="properties-panel" style={{ flexShrink: 0, borderBottom: '1px solid var(--border-subtle)', padding: 'var(--space-md)' }}>
-				<div className="properties-empty">Select a source</div>
-			</div>
-		);
-	}
+	if (!sprite) return;
 
 	const update = (changes: Record<string, any>) => {
 		dispatch({ type: 'UPDATE_SPRITE', id: sprite.id, changes });

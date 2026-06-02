@@ -6,8 +6,7 @@ export default function HeaderBar() {
 	return (
 		<div className="header-bar">
 			<div className="header-logo">
-				{/* <img src="/static/Logo-Dark.svg" alt="Antimony Logo" style={{ height: '24px', marginRight: '8px' }} /> */}
-				<span>Antimony</span>
+				<img src="/logo.svg" alt="Antimony Logo" />
 			</div>
 			<div className="header-project-name">
 				<input
