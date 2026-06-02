@@ -475,6 +475,7 @@ body {
   backdrop-filter: blur(4px);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  display: none;
 }
 
 .blockly-area {
