@@ -5,26 +5,22 @@ Blockly.Blocks["functions_lambda"] = {
     init: function () {
         this.appendDummyInput()
             .appendField("new lambda")
-            .appendField(new Blockly.FieldTextInput("argument"), "ARG");
+
         this.appendStatementInput("BODY");
         this.setOutput(true, null);
         this.setStyle("procedure_blocks");
-        this.setTooltip("Create a lambda (function) with one argument");
+        this.setTooltip("Create a lambda (function)");
     },
 };
 
 javascriptGenerator.forBlock["functions_lambda"] = function (block: Blockly.Block) {
-    const raw = block.getFieldValue("ARG") || "argument";
-    const arg = String(raw).replace(/[^A-Za-z0-9_\$]/g, '_');
     const body = javascriptGenerator.statementToCode(block, "BODY");
-    return [`(function(${arg}) {\n${body}\n})`, Order.ATOMIC];
+    return [`(function() {\n${body}\n})`, Order.ATOMIC];
 };
 
 Blockly.Blocks["functions_execute"] = {
     init: function () {
         this.appendValueInput("FUNC").setCheck(null).appendField("execute");
-        this.appendDummyInput().appendField("with");
-        this.appendValueInput("ARG").setCheck(null);
         this.setInputsInline(true);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
@@ -43,8 +39,6 @@ javascriptGenerator.forBlock["functions_execute"] = function (block: Blockly.Blo
 Blockly.Blocks["functions_execute_reporter"] = {
     init: function () {
         this.appendValueInput("FUNC").setCheck(null).appendField("execute");
-        this.appendDummyInput().appendField("with");
-        this.appendValueInput("ARG").setCheck(null);
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setStyle("procedure_blocks");

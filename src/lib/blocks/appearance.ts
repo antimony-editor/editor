@@ -45,7 +45,10 @@ Blockly.Blocks["appearance_setSize"] = {
 
 javascriptGenerator.forBlock["appearance_setSize"] = function (block: Blockly.Block) {
   const size = javascriptGenerator.valueToCode(block, "SIZE", Order.ATOMIC) || "100";
-  return `context.sprite.width = (context.sprite.originalWidth ?? context.sprite.width) * (${size} / 100); context.sprite.height = (context.sprite.originalHeight ?? context.sprite.height) * (${size} / 100);\n`;
+  return `context.sprite._originalWidth = context.sprite._originalWidth ?? context.sprite.width;
+context.sprite._originalHeight = context.sprite._originalHeight ?? context.sprite.height;
+context.sprite.width = context.sprite._originalWidth * (${size} / 100);
+context.sprite.height = context.sprite._originalHeight * (${size} / 100);\n`;
 };
 
 Blockly.Blocks["appearance_setOpacity"] = {
@@ -111,7 +114,7 @@ Blockly.Blocks["appearance_getSize"] = {
 };
 
 javascriptGenerator.forBlock["appearance_getSize"] = function () {
-  return ["((context.sprite.width / (context.sprite.originalWidth || context.sprite.width)) * 100)", Order.ATOMIC];
+  return ["(context.sprite._originalWidth ? (context.sprite.width / context.sprite._originalWidth) * 100 : 100)", Order.ATOMIC];
 };
 
 Blockly.Blocks["appearance_getOpacity"] = {

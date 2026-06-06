@@ -14,14 +14,14 @@ export interface BlockVisibilityConfig {
 }
 
 export const blockVisibilityConfig: BlockVisibilityConfig = {
-  motion_moveRight: { visibleFor: ["sprite"] },
-  motion_moveLeft: { visibleFor: ["sprite"] },
-  motion_moveUp: { visibleFor: ["sprite"] },
-  motion_moveDown: { visibleFor: ["sprite"] },
-  motion_rotate: { visibleFor: ["sprite"] },
-  motion_goToPosition: { visibleFor: ["sprite"] },
-  motion_positionX: { visibleFor: ["sprite"] },
-  motion_positionY: { visibleFor: ["sprite"] },
+  motion_moveRight: { visibleFor: ["sprite", "text"] },
+  motion_moveLeft: { visibleFor: ["sprite", "text"] },
+  motion_moveUp: { visibleFor: ["sprite", "text"] },
+  motion_moveDown: { visibleFor: ["sprite", "text"] },
+  motion_rotate: { visibleFor: ["sprite", "text"] },
+  motion_goToPosition: { visibleFor: ["sprite", "text"] },
+  motion_positionX: { visibleFor: ["sprite", "text"] },
+  motion_positionY: { visibleFor: ["sprite", "text"] },
 
   appearance_show: { visibleFor: ["sprite", "text"] },
   appearance_hide: { visibleFor: ["sprite", "text"] },

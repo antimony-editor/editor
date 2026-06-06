@@ -144,7 +144,6 @@
   <!-- motion -->
   <category name="Motion" categorystyle="motion_blocks">
     <block type="motion_moveRight"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
-    <block type="motion_moveLeft"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="motion_moveUp"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="motion_moveDown"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="motion_pointDirection"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>
@@ -163,9 +162,9 @@
     <block type="appearance_show"></block>
     <block type="appearance_hide"></block>
     <block type="appearance_setSize"><value name="SIZE"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
+    <block type="appearance_changeSize"><value name="CHANGE"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="appearance_setOpacity"><value name="OPACITY"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
     <block type="appearance_setColor"></block>
-    <block type="appearance_changeSize"><value name="CHANGE"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="appearance_getSize"></block>
     <block type="appearance_getOpacity"></block>
     <block type="appearance_flip"></block>

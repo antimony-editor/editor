@@ -18,23 +18,6 @@ javascriptGenerator.forBlock["motion_moveRight"] = function (block: Blockly.Bloc
   return `context.sprite.x += ${steps};\n`;
 };
 
-Blockly.Blocks["motion_moveLeft"] = {
-  init: function () {
-    this.appendValueInput("STEPS")
-      .setCheck("Number")
-      .appendField("move left");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("motion_blocks");
-    this.setTooltip("Move the sprite to the left by the specified number of steps");
-  },
-};
-
-javascriptGenerator.forBlock["motion_moveLeft"] = function (block: Blockly.Block) {
-  const steps = javascriptGenerator.valueToCode(block, "STEPS", Order.ATOMIC) || "10";
-  return `context.sprite.x -= ${steps};\n`;
-};
-
 Blockly.Blocks["motion_moveUp"] = {
   init: function () {
     this.appendValueInput("STEPS")
@@ -50,23 +33,6 @@ Blockly.Blocks["motion_moveUp"] = {
 javascriptGenerator.forBlock["motion_moveUp"] = function (block: Blockly.Block) {
   const steps = javascriptGenerator.valueToCode(block, "STEPS", Order.ATOMIC) || "10";
   return `context.sprite.y -= ${steps};\n`;
-};
-
-Blockly.Blocks["motion_moveDown"] = {
-  init: function () {
-    this.appendValueInput("STEPS")
-      .setCheck("Number")
-      .appendField("move down");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("motion_blocks");
-    this.setTooltip("Move the sprite down by the specified number of steps");
-  },
-};
-
-javascriptGenerator.forBlock["motion_moveDown"] = function (block: Blockly.Block) {
-  const steps = javascriptGenerator.valueToCode(block, "STEPS", Order.ATOMIC) || "10";
-  return `context.sprite.y += ${steps};\n`;
 };
 
 Blockly.Blocks["motion_rotate"] = {
@@ -144,12 +110,13 @@ Blockly.Blocks["motion_goToPosition"] = {
   init: function () {
     this.appendValueInput("X")
       .setCheck("Number")
-      .appendField("go to position X:");
+      .appendField("move to X");
     this.appendValueInput("Y")
       .setCheck("Number")
-      .appendField("Y:");
+      .appendField("Y");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
+    this.setInputsInline(true);
     this.setStyle("motion_blocks");
     this.setTooltip("Move the sprite to a specific position");
   },

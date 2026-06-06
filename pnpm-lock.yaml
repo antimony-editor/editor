@@ -8,9 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@blockly/field-colour':
+        specifier: ^6.0.12
+        version: 6.0.12(blockly@12.5.1)
+      '@jaames/iro':
+        specifier: ^5.5.2
+        version: 5.5.2
       blockly:
         specifier: ^12.5.1
         version: 12.5.1
+      blockly-field-color-wheel:
+        specifier: ^1.0.5
+        version: 1.0.5(blockly@12.5.1)
       konva:
         specifier: ^10.3.0
         version: 10.3.0
@@ -149,6 +158,18 @@ packages:
     resolution: {integrity: sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA==}
     engines: {node: '>=6.9.0'}
 
+  '@blockly/field-colour@6.0.12':
+    resolution: {integrity: sha512-sZUlMtn1Bnj3/inayhZAMJ1ZUxFfR8eISBWPgOvWMBlnUIeCWXJDc76a6JVEcZhnjHFjDI+ihOXYdrp5cedShA==}
+    engines: {node: '>=8.0.0'}
+    peerDependencies:
+      blockly: ^12.0.0
+
+  '@blockly/field-grid-dropdown@6.0.10':
+    resolution: {integrity: sha512-b54xLznsFb5OyAfpFYCFX52M7vRc9dITbLzTBIsETuXfVX8R4TFj3z0+QbJ1znlqNhr5+dgrfDfkUEm8+8zbxg==}
+    engines: {node: '>=8.17.0'}
+    peerDependencies:
+      blockly: ^12.0.0
+
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
     engines: {node: '>=18'}
@@ -253,6 +274,12 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@irojs/iro-core@1.2.1':
+    resolution: {integrity: sha512-p2OvsBSSmidsDsTSkID6jEyXDF7lcyxPrkh3qBzasBZFpjkYd6kZ3yMWai3MlAaQ3F7li/Et7rSJVV09Fpei+A==}
+
+  '@jaames/iro@5.5.2':
+    resolution: {integrity: sha512-Fbi5U4Vdkw6UsF+R3oMlPONqkvUDMkwzh+mX718gQsDFt3+1r1jvGsrfCbedmXAAy0WsjDHOrefK0BkDk99TQg==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -515,6 +542,12 @@ packages:
     resolution: {integrity: sha512-bA6+tcSLpz2tIEdDXZPpPTIuxBcC4+w6SieaYyfigIa4h8GlFxbA17v22Vx3JUtuZQj9SgOsnbK+aTBzyDyEuw==}
     engines: {node: '>=6.0.0'}
     hasBin: true
+
+  blockly-field-color-wheel@1.0.5:
+    resolution: {integrity: sha512-W5FZQhpzlI5gas+tBF7Exr5fpg2M95ArRmPWm8M+cKsqSGcY0KskYWM1R/KRh5rPJe7+zUbI+1HkQKwLEqRWNw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      blockly: '>=3'
 
   blockly@12.5.1:
     resolution: {integrity: sha512-etXLpUtEkcRibHGwIJ4BsvnIzMJJs0C0yPIjE/W0NCtj8ACha/a7Q9n7Ib6+j7N4EzQ0p28YPZMnypi5pNIj1g==}
@@ -909,6 +942,9 @@ packages:
     resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
     engines: {node: ^10 || ^12 || >=14}
 
+  preact@10.29.2:
+    resolution: {integrity: sha512-7tNmwg/7mzzAoB/8kSg6Hl37JraAZw3Z3A0JSY7VXlZwo82Xn0G7wKbNNs2qoF4ZEEsQGTwDAroNdqKs1ofJxQ==}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -1262,6 +1298,15 @@ snapshots:
       '@babel/helper-string-parser': 7.29.7
       '@babel/helper-validator-identifier': 7.29.7
 
+  '@blockly/field-colour@6.0.12(blockly@12.5.1)':
+    dependencies:
+      '@blockly/field-grid-dropdown': 6.0.10(blockly@12.5.1)
+      blockly: 12.5.1
+
+  '@blockly/field-grid-dropdown@6.0.10(blockly@12.5.1)':
+    dependencies:
+      blockly: 12.5.1
+
   '@csstools/color-helpers@5.1.0': {}
 
   '@csstools/css-calc@2.1.4(@csstools/css-parser-algorithms@3.0.5(@csstools/css-tokenizer@3.0.4))(@csstools/css-tokenizer@3.0.4)':
@@ -1353,6 +1398,13 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@irojs/iro-core@1.2.1': {}
+
+  '@jaames/iro@5.5.2':
+    dependencies:
+      '@irojs/iro-core': 1.2.1
+      preact: 10.29.2
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -1608,6 +1660,11 @@ snapshots:
   balanced-match@4.0.4: {}
 
   baseline-browser-mapping@2.10.33: {}
+
+  blockly-field-color-wheel@1.0.5(blockly@12.5.1):
+    dependencies:
+      '@jaames/iro': 5.5.2
+      blockly: 12.5.1
 
   blockly@12.5.1:
     dependencies:
@@ -1977,6 +2034,8 @@ snapshots:
       nanoid: 3.3.12
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  preact@10.29.2: {}
 
   prelude-ls@1.2.1: {}
 

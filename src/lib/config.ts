@@ -264,6 +264,9 @@ const toolboxShadowTemplates: Record<string, Record<string, ShadowTemplate>> = {
     layers_setZIndex: {
         Z: { type: "math_number", fields: { NUM: 0 } },
     },
+    timing_wait: {
+        SECONDS: { type: "math_number", fields: { NUM: 1 } },
+    },
 };
 
 function normalizeToolboxXml(toolboxRoot: Element) {
