@@ -40,6 +40,7 @@ Blockly.Blocks["motion_rotate"] = {
     this.appendValueInput("ANGLE")
       .setCheck("Number")
       .appendField("turn");
+    this.appendDummyInput().appendField("degrees");
     this.appendDummyInput()
       .appendField(
         new Blockly.FieldDropdown([
@@ -51,7 +52,8 @@ Blockly.Blocks["motion_rotate"] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("motion_blocks");
-    this.setTooltip("Rotate the sprite by the specified angle");
+    this.setTooltip("Turn the sprite by the specified angle in the chosen direction");
+    this.setInputsInline(true);
   },
 };
 
@@ -77,33 +79,6 @@ Blockly.Blocks["motion_pointDirection"] = {
 javascriptGenerator.forBlock["motion_pointDirection"] = function (block: Blockly.Block) {
   const angle = javascriptGenerator.valueToCode(block, "ANGLE", Order.ATOMIC) || "90";
   return `context.sprite.rotation = (${angle}) % 360;\n`;
-};
-
-Blockly.Blocks["motion_turn"] = {
-  init: function () {
-    this.appendValueInput("ANGLE")
-      .setCheck("Number")
-      .appendField("turn")
-      .appendField(
-        new Blockly.FieldDropdown([
-          ["clockwise", "clockwise"],
-          ["anticlockwise", "anticlockwise"],
-        ]),
-        "DIRECTION"
-      )
-      .appendField("degrees");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("motion_blocks");
-    this.setTooltip("Turn the sprite clockwise or anticlockwise by the given amount");
-  },
-};
-
-javascriptGenerator.forBlock["motion_turn"] = function (block: Blockly.Block) {
-  const angle = javascriptGenerator.valueToCode(block, "ANGLE", Order.ATOMIC) || "15";
-  const direction = block.getFieldValue("DIRECTION");
-  const delta = direction === "clockwise" ? `${angle}` : `-(${angle})`;
-  return `context.sprite.rotation = (context.sprite.rotation + (${delta})) % 360;\n`;
 };
 
 Blockly.Blocks["motion_goToPosition"] = {
