@@ -21,7 +21,7 @@ const blockColors = {
 
 function mapValues<K extends string, V, R>(
     obj: Record<K, V>,
-    fn: (value: V) => R // eslint-disable-line @typescript-eslint/no-unused-vars
+    fn: (value: V) => R
 ): Record<K, R> {
     return Object.fromEntries(
         Object.entries(obj).map(([k, v]) => [k, fn(v as V)])
@@ -60,217 +60,99 @@ type ShadowTemplate = {
     fields?: Record<string, ShadowFieldValue>;
 };
 
-const toolboxShadowTemplates: Record<string, Record<string, ShadowTemplate>> = {
-    controls_if: {
-        IF0: { type: "checkbox", fields: { BOOL: "FALSE" } },
-    },
-    controls_ifelse: {
-        IF0: { type: "checkbox", fields: { BOOL: "FALSE" } },
-        IF1: { type: "checkbox", fields: { BOOL: "FALSE" } },
-    },
-    logic_compare: {
-        A: { type: "math_number", fields: { NUM: 0 } },
-        B: { type: "math_number", fields: { NUM: 0 } },
-    },
-    logic_operation: {
-        A: { type: "checkbox", fields: { BOOL: "FALSE" } },
-        B: { type: "checkbox", fields: { BOOL: "FALSE" } },
-    },
-    logic_negate: {
-        BOOL: { type: "checkbox", fields: { BOOL: "FALSE" } },
-    },
-    logic_ternary: {
-        IF: { type: "checkbox", fields: { BOOL: "FALSE" } },
-        THEN: { type: "text", fields: { TEXT: "" } },
-        ELSE: { type: "text", fields: { TEXT: "" } },
-    },
-    logic_switch: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-    },
-    logic_case: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-    },
-    logic_runNextCaseWhen: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-    },
-    controls_repeat_ext: {
-        TIMES: { type: "math_number", fields: { NUM: 10 } },
-    },
-    controls_whileUntil: {
-        BOOL: { type: "checkbox", fields: { BOOL: "FALSE" } },
-    },
-    controls_for: {
-        FROM: { type: "math_number", fields: { NUM: 1 } },
-        TO: { type: "math_number", fields: { NUM: 10 } },
-        BY: { type: "math_number", fields: { NUM: 1 } },
-    },
-    math_arithmetic: {
-        A: { type: "math_number", fields: { NUM: 1 } },
-        B: { type: "math_number", fields: { NUM: 1 } },
-    },
-    math_single: {
-        NUM: { type: "math_number", fields: { NUM: 9 } },
-    },
-    math_trig: {
-        NUM: { type: "math_number", fields: { NUM: 45 } },
-    },
-    math_number_property: {
-        NUMBER_TO_CHECK: { type: "math_number", fields: { NUM: 0 } },
-    },
-    math_round: {
-        NUM: { type: "math_number", fields: { NUM: 3.1 } },
-    },
-    math_modulo: {
-        DIVIDEND: { type: "math_number", fields: { NUM: 64 } },
-        DIVISOR: { type: "math_number", fields: { NUM: 10 } },
-    },
-    math_constrain: {
-        VALUE: { type: "math_number", fields: { NUM: 50 } },
-        LOW: { type: "math_number", fields: { NUM: 1 } },
-        HIGH: { type: "math_number", fields: { NUM: 100 } },
-    },
-    math_random_int: {
-        FROM: { type: "math_number", fields: { NUM: 1 } },
-        TO: { type: "math_number", fields: { NUM: 100 } },
-    },
-    text_append: {
-        TEXT: { type: "text", fields: { TEXT: "" } },
-    },
-    text_length: {
-        VALUE: { type: "text", fields: { TEXT: "abc" } },
-    },
-    text_isEmpty: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-    },
-    text_indexOf: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-        FIND: { type: "text", fields: { TEXT: "" } },
-    },
-    text_charAt: {
-        VALUE: { type: "text", fields: { TEXT: "" } },
-        AT: { type: "math_number", fields: { NUM: 0 } },
-    },
-    text_getSubstring: {
-        STRING: { type: "text", fields: { TEXT: "" } },
-        AT1: { type: "math_number", fields: { NUM: 0 } },
-        AT2: { type: "math_number", fields: { NUM: 0 } },
-    },
-    text_changeCase: {
-        TEXT: { type: "text", fields: { TEXT: "" } },
-    },
-    text_trim: {
-        TEXT: { type: "text", fields: { TEXT: "" } },
-    },
-    text_print: {
-        TEXT: { type: "text", fields: { TEXT: "abc" } },
-    },
-    text_prompt_ext: {
-        TEXT: { type: "text", fields: { TEXT: "" } },
-    },
-    functions_lambda: {
-        // ARG is a field, BODY has no shadow
-    },
-    functions_execute: {
-        FUNC: { type: "text", fields: { TEXT: "" } },
-        ARG: { type: "text", fields: { TEXT: "" } },
-    },
-    functions_execute_reporter: {
-        FUNC: { type: "text", fields: { TEXT: "" } },
-        ARG: { type: "text", fields: { TEXT: "" } },
-    },
-    functions_return: {
-        VALUE: { type: "math_number", fields: { NUM: 1 } },
-    },
-    wait_seconds: {
-        SECONDS: { type: "math_number", fields: { NUM: 1 } },
-    },
-    lists_repeat: {
-        NUM: { type: "math_number", fields: { NUM: 5 } },
-    },
-    motion_moveRight: {
-        STEPS: { type: "math_number", fields: { NUM: 10 } },
-    },
-    motion_moveLeft: {
-        STEPS: { type: "math_number", fields: { NUM: 10 } },
-    },
-    motion_moveUp: {
-        STEPS: { type: "math_number", fields: { NUM: 10 } },
-    },
-    motion_moveDown: {
-        STEPS: { type: "math_number", fields: { NUM: 10 } },
-    },
-    motion_rotate: {
-        ANGLE: { type: "math_number", fields: { NUM: 15 } },
-    },
-    motion_pointDirection: {
-        ANGLE: { type: "math_number", fields: { NUM: 90 } },
-    },
-    motion_turn: {
-        ANGLE: { type: "math_number", fields: { NUM: 15 } },
-    },
-    motion_goToPosition: {
-        X: { type: "math_number", fields: { NUM: 0 } },
-        Y: { type: "math_number", fields: { NUM: 0 } },
-    },
-    motion_moveBy: {
-        DX: { type: "math_number", fields: { NUM: 10 } },
-        DY: { type: "math_number", fields: { NUM: 0 } },
-    },
-    motion_moveSteps: {
-        STEPS: { type: "math_number", fields: { NUM: 10 } },
-    },
-    motion_setXY: {
-        VALUE: { type: "math_number", fields: { NUM: 0 } },
-    },
-    motion_glideSecsTo: {
-        SECS: { type: "math_number", fields: { NUM: 1 } },
-        X: { type: "math_number", fields: { NUM: 0 } },
-        Y: { type: "math_number", fields: { NUM: 0 } },
-    },
-    appearance_setSize: {
-        SIZE: { type: "math_number", fields: { NUM: 100 } },
-    },
-    appearance_setOpacity: {
-        OPACITY: { type: "math_number", fields: { NUM: 100 } },
-    },
-    appearance_changeSize: {
-        CHANGE: { type: "math_number", fields: { NUM: 10 } },
-    },
-    effects_shake: {
-        INTENSITY: { type: "math_number", fields: { NUM: 5 } },
-    },
-    effects_set_canvas: {
-        VALUE: { type: "math_number", fields: { NUM: 0 } },
-    },
-    effects_get_canvas: {},
-    effects_clear_canvas: {},
-    effects_change_canvas: {
-        DELTA: { type: "math_number", fields: { NUM: 5 } },
-    },
-    effects_spin: {
-        TIMES: { type: "math_number", fields: { NUM: 1 } },
-    },
-    effects_fadeIn: {
-        DURATION: { type: "math_number", fields: { NUM: 1 } },
-    },
-    effects_fadeOut: {
-        DURATION: { type: "math_number", fields: { NUM: 1 } },
-    },
-    effects_scaleAnimation: {
-        SCALE: { type: "math_number", fields: { NUM: 1.5 } },
-        DURATION: { type: "math_number", fields: { NUM: 1 } },
-    },
-    effects_rotateTo: {
-        ANGLE: { type: "math_number", fields: { NUM: 90 } },
-        DURATION: { type: "math_number", fields: { NUM: 1 } },
-    },
-    layers_setZIndex: {
-        Z: { type: "math_number", fields: { NUM: 0 } },
-    },
-    timing_wait: {
-        SECONDS: { type: "math_number", fields: { NUM: 1 } },
-    },
+const shadowDefaultsByType: Record<string, ShadowTemplate> = {
+    Boolean: { type: "checkbox", fields: { BOOL: "FALSE" } },
+    Number: { type: "math_number", fields: { NUM: 0 } },
+    String: { type: "text", fields: { TEXT: "" } },
+    Array: { type: "lists_create_empty" },
+    Colour: { type: "colour_picker", fields: { COLOUR: "#ff0000" } },
 };
+
+const fallbackShadowTemplate: ShadowTemplate = { type: "text", fields: { TEXT: "" } };
+
+function findChildElement(element: Element, selector: string) {
+    return element.querySelector(`:scope > ${selector}`);
+}
+
+function getExistingShadowTemplate(valueElement: Element | null): ShadowTemplate | null {
+    const shadowElement = valueElement ? findChildElement(valueElement, "shadow") : null;
+
+    if (!shadowElement) {
+        return null;
+    }
+
+    const type = shadowElement.getAttribute("type");
+
+    if (!type) {
+        return null;
+    }
+
+    const fields: Record<string, ShadowFieldValue> = {};
+
+    for (const fieldElement of Array.from(shadowElement.querySelectorAll(":scope > field"))) {
+        const fieldName = fieldElement.getAttribute("name");
+
+        if (fieldName) {
+            fields[fieldName] = fieldElement.textContent ?? "";
+        }
+    }
+
+    return Object.keys(fields).length > 0 ? { type, fields } : { type };
+}
+
+function getShadowTemplateForChecks(checks: string[] | null, existing: ShadowTemplate | null) {
+    if (checks) {
+        for (const check of checks) {
+            const template = shadowDefaultsByType[check];
+
+            if (template) {
+                return template;
+            }
+        }
+    }
+
+    return existing ?? fallbackShadowTemplate;
+}
+
+function appendShadowElement(xmlDocument: XMLDocument, namespace: string, valueElement: Element, template: ShadowTemplate) {
+    const shadowElement = xmlDocument.createElementNS(namespace, "shadow");
+    shadowElement.setAttribute("type", template.type);
+
+    for (const [fieldName, fieldValue] of Object.entries(template.fields ?? {})) {
+        const fieldElement = xmlDocument.createElementNS(namespace, "field");
+        fieldElement.setAttribute("name", fieldName);
+        fieldElement.textContent = String(fieldValue);
+        shadowElement.appendChild(fieldElement);
+    }
+
+    while (valueElement.firstChild) {
+        valueElement.removeChild(valueElement.firstChild);
+    }
+
+    valueElement.appendChild(shadowElement);
+}
+
+function getValueInputsForBlock(blockType: string) {
+    if (!Blockly.Blocks[blockType]) {
+        return [];
+    }
+
+    const workspace = new Blockly.Workspace();
+
+    try {
+        const block = workspace.newBlock(blockType);
+        return block.inputList
+            .filter((input) => input.connection?.type === Blockly.ConnectionType.INPUT_VALUE)
+            .map((input) => ({
+                name: input.name,
+                checks: input.connection?.getCheck() ?? null,
+            }));
+    } catch {
+        return [];
+    } finally {
+        workspace.dispose();
+    }
+}
 
 function normalizeToolboxXml(toolboxRoot: Element) {
     const xmlDocument = toolboxRoot.ownerDocument;
@@ -288,34 +170,17 @@ function normalizeToolboxXml(toolboxRoot: Element) {
             continue;
         }
 
-        const shadowTemplates = toolboxShadowTemplates[blockType];
-
-        if (!shadowTemplates) {
-            continue;
-        }
-
-        for (const [inputName, template] of Object.entries(shadowTemplates)) {
-            const valueElement = block.querySelector(`value[name="${inputName}"]`);
+        for (const input of getValueInputsForBlock(blockType)) {
+            let valueElement = findChildElement(block, `value[name="${input.name}"]`);
 
             if (!valueElement) {
-                continue;
+                valueElement = xmlDocument.createElementNS(namespace, "value");
+                valueElement.setAttribute("name", input.name);
+                block.appendChild(valueElement);
             }
 
-            const shadowElement = xmlDocument.createElementNS(namespace, "shadow");
-            shadowElement.setAttribute("type", template.type);
-
-            for (const [fieldName, fieldValue] of Object.entries(template.fields ?? {})) {
-                const fieldElement = xmlDocument.createElementNS(namespace, "field");
-                fieldElement.setAttribute("name", fieldName);
-                fieldElement.textContent = String(fieldValue);
-                shadowElement.appendChild(fieldElement);
-            }
-
-            while (valueElement.firstChild) {
-                valueElement.removeChild(valueElement.firstChild);
-            }
-
-            valueElement.appendChild(shadowElement);
+            const template = getShadowTemplateForChecks(input.checks, getExistingShadowTemplate(valueElement));
+            appendShadowElement(xmlDocument, namespace, valueElement, template);
         }
     }
 
