@@ -92,8 +92,8 @@ Blockly.Blocks["motion_rotate"] = {
 javascriptGenerator.forBlock["motion_rotate"] = function (block: Blockly.Block) {
   const angle = javascriptGenerator.valueToCode(block, "ANGLE", Order.ATOMIC) || "15";
   const direction = block.getFieldValue("DIRECTION");
-  const sign = direction === "clockwise" ? "+" : "-";
-  return `context.sprite.rotation = (context.sprite.rotation ${sign} ${angle}) % 360;\n`;
+  const delta = direction === "clockwise" ? `${angle}` : `-(${angle})`;
+  return `context.sprite.rotation = (context.sprite.rotation + (${delta})) % 360;\n`;
 };
 
 Blockly.Blocks["motion_goToPosition"] = {

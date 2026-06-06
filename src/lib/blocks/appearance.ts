@@ -45,7 +45,7 @@ Blockly.Blocks["appearance_setSize"] = {
 
 javascriptGenerator.forBlock["appearance_setSize"] = function (block: Blockly.Block) {
   const size = javascriptGenerator.valueToCode(block, "SIZE", Order.ATOMIC) || "100";
-  return `context.sprite.width = (context.sprite.width / 100) * ${size}; context.sprite.height = (context.sprite.height / 100) * ${size};\n`;
+  return `context.sprite.width = (context.sprite.originalWidth ?? context.sprite.width) * (${size} / 100); context.sprite.height = (context.sprite.originalHeight ?? context.sprite.height) * (${size} / 100);\n`;
 };
 
 Blockly.Blocks["appearance_setOpacity"] = {
@@ -111,7 +111,7 @@ Blockly.Blocks["appearance_getSize"] = {
 };
 
 javascriptGenerator.forBlock["appearance_getSize"] = function () {
-  return ["(context.sprite.width)", Order.ATOMIC];
+  return ["((context.sprite.width / (context.sprite.originalWidth || context.sprite.width)) * 100)", Order.ATOMIC];
 };
 
 Blockly.Blocks["appearance_getOpacity"] = {
@@ -148,9 +148,9 @@ Blockly.Blocks["appearance_flip"] = {
 javascriptGenerator.forBlock["appearance_flip"] = function (block: Blockly.Block) {
   const direction = block.getFieldValue("DIRECTION");
   if (direction === "x") {
-    return `context.sprite.width *= -1;\n`;
+    return `context.sprite.flipX = !context.sprite.flipX;\n`;
   } else {
-    return `context.sprite.height *= -1;\n`;
+    return `context.sprite.flipY = !context.sprite.flipY;\n`;
   }
 };
 
