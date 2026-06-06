@@ -24,6 +24,7 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       - run: corepack enable
+      - run: corepack prepare pnpm@latest --activate
       - run: pnpm install
       - run: pnpm run build
       - uses: actions/upload-pages-artifact@v3
