@@ -1,5 +1,6 @@
 import * as Blockly from "blockly/core";
 import toolboxXml from "./toolbox.xml?raw";
+import { isBlockVisibleFor, type BlockSourceType } from "./blockVisibility";
 
 const blockColors = {
     logic_blocks: '#6f8ff7',
@@ -20,10 +21,10 @@ const blockColors = {
 
 function mapValues<K extends string, V, R>(
     obj: Record<K, V>,
-    fn: (value: V, key: K) => R
+    fn: (value: V) => R // eslint-disable-line @typescript-eslint/no-unused-vars
 ): Record<K, R> {
     return Object.fromEntries(
-        Object.entries(obj).map(([k, v]) => [k, fn(v as V, k as K)])
+        Object.entries(obj).map(([k, v]) => [k, fn(v as V)])
     ) as Record<K, R>;
 }
 
@@ -160,6 +161,57 @@ const toolboxShadowTemplates: Record<string, Record<string, ShadowTemplate>> = {
     lists_repeat: {
         NUM: { type: "math_number", fields: { NUM: 5 } },
     },
+    motion_moveRight: {
+        STEPS: { type: "math_number", fields: { NUM: 10 } },
+    },
+    motion_moveLeft: {
+        STEPS: { type: "math_number", fields: { NUM: 10 } },
+    },
+    motion_moveUp: {
+        STEPS: { type: "math_number", fields: { NUM: 10 } },
+    },
+    motion_moveDown: {
+        STEPS: { type: "math_number", fields: { NUM: 10 } },
+    },
+    motion_rotate: {
+        ANGLE: { type: "math_number", fields: { NUM: 15 } },
+    },
+    motion_goToPosition: {
+        X: { type: "math_number", fields: { NUM: 0 } },
+        Y: { type: "math_number", fields: { NUM: 0 } },
+    },
+    appearance_setSize: {
+        SIZE: { type: "math_number", fields: { NUM: 100 } },
+    },
+    appearance_setOpacity: {
+        OPACITY: { type: "math_number", fields: { NUM: 100 } },
+    },
+    appearance_changeSize: {
+        CHANGE: { type: "math_number", fields: { NUM: 10 } },
+    },
+    effects_shake: {
+        INTENSITY: { type: "math_number", fields: { NUM: 5 } },
+    },
+    effects_spin: {
+        TIMES: { type: "math_number", fields: { NUM: 1 } },
+    },
+    effects_fadeIn: {
+        DURATION: { type: "math_number", fields: { NUM: 1 } },
+    },
+    effects_fadeOut: {
+        DURATION: { type: "math_number", fields: { NUM: 1 } },
+    },
+    effects_scaleAnimation: {
+        SCALE: { type: "math_number", fields: { NUM: 1.5 } },
+        DURATION: { type: "math_number", fields: { NUM: 1 } },
+    },
+    effects_rotateTo: {
+        ANGLE: { type: "math_number", fields: { NUM: 90 } },
+        DURATION: { type: "math_number", fields: { NUM: 1 } },
+    },
+    layers_setZIndex: {
+        Z: { type: "math_number", fields: { NUM: 0 } },
+    },
 };
 
 function normalizeToolboxXml(toolboxRoot: Element) {
@@ -215,6 +267,19 @@ function normalizeToolboxXml(toolboxRoot: Element) {
 const toolboxDom = normalizeToolboxXml(
     new DOMParser().parseFromString(toolboxXml, "text/xml").documentElement,
 );
+
+export function buildToolboxForSource(sourceType: BlockSourceType): Element {
+    const toolbox = toolboxDom.cloneNode(true) as Element;
+
+    for (const block of Array.from(toolbox.querySelectorAll("block"))) {
+        const blockType = block.getAttribute("type");
+        if (blockType && !isBlockVisibleFor(blockType, sourceType)) {
+            block.remove();
+        }
+    }
+
+    return toolbox;
+}
 
 export const workspaceConfig: Blockly.BlocklyOptions = {
     renderer: "zelos",

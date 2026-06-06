@@ -5,7 +5,7 @@ import { useSprites, isTextData, isShapeData, type Sprite } from '../lib/sprites
 import { buildFontStack } from '../lib/fonts';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
-import runtime from '../lib/runtime';
+import runtime, { type SpriteContext } from '../lib/runtime';
 
 const VIRTUAL_WIDTH = 480;
 const VIRTUAL_HEIGHT = 270;
@@ -204,27 +204,36 @@ export default function StageView() {
 	const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
 	const { state, dispatch } = useSprites();
 	const [isPlaying, setIsPlaying] = useState(false);
+	const spritesRef = useRef(state.sprites);
+	spritesRef.current = state.sprites;
 
 	const scale = stageSize.width / VIRTUAL_WIDTH;
 
 	useEffect(() => {
 		runtime.setCompiler(() => {
-			return state.sprites
-				.map(sprite => {
-					if (!sprite.blocklyXml) return '';
-					const tempWorkspace = new Blockly.Workspace();
-					try {
-						const dom = Blockly.utils.xml.textToDom(sprite.blocklyXml);
-						Blockly.Xml.domToWorkspace(dom, tempWorkspace);
-						return javascriptGenerator.workspaceToCode(tempWorkspace);
-					} catch (e) {
-						console.error(e);
-						return '';
-					} finally {
-						tempWorkspace.dispose();
+			const parts: string[] = [];
+			state.sprites.forEach(sprite => {
+				if (!sprite.blocklyXml) return;
+				const tempWorkspace = new Blockly.Workspace();
+				try {
+					const dom = Blockly.utils.xml.textToDom(sprite.blocklyXml);
+					Blockly.Xml.domToWorkspace(dom, tempWorkspace);
+					const code = javascriptGenerator.workspaceToCode(tempWorkspace);
+					if (code.trim()) {
+						parts.push(`
+// ${sprite.id}
+window.RUNTIME?.setCurrentSprite(${JSON.stringify(sprite.id)});
+${code}
+`);
 					}
-				})
-				.join('\n');
+				} catch (e) {
+					console.error(e);
+				} finally {
+					tempWorkspace.dispose();
+				}
+			});
+
+			return parts.join('\n');
 		});
 		return () => {
 			runtime.setCompiler(null);
@@ -260,12 +269,79 @@ export default function StageView() {
 
 	const handlePlay = async () => {
 		setIsPlaying(true);
+		
+		state.sprites.forEach(sprite => {
+			const spriteData: Record<string, unknown> = {
+				x: sprite.x,
+				y: sprite.y,
+				rotation: sprite.rotation,
+				width: sprite.width,
+				height: sprite.height,
+				opacity: sprite.opacity,
+				visible: sprite.visible,
+				zIndex: sprite.zIndex,
+			};
+
+			if (sprite.type === 'text' && isTextData(sprite.data)) {
+				spriteData.color = sprite.data.color;
+			}
+
+			const spriteProxy = new Proxy(spriteData, {
+				get: (target, property) => {
+					if (property === 'zIndex') {
+						return spritesRef.current.find(s => s.id === sprite.id)?.zIndex ?? target.zIndex;
+					}
+					if (property === 'color') {
+						const current = spritesRef.current.find(s => s.id === sprite.id);
+						if (current && isTextData(current.data)) {
+							return current.data.color;
+						}
+						return target.color;
+					}
+					return target[property as keyof typeof target];
+				},
+				set: (target, property, value) => {
+					if (property === 'color') {
+						const current = spritesRef.current.find(s => s.id === sprite.id);
+						if (current && isTextData(current.data)) {
+							target.color = value;
+							dispatch({
+								type: 'UPDATE_SPRITE',
+								id: sprite.id,
+								changes: {
+									data: { ...current.data, color: value as string },
+								},
+							});
+						}
+						return true;
+					}
+					if (typeof property === 'string' && property in target) {
+						target[property] = value;
+						dispatch({
+							type: 'UPDATE_SPRITE',
+							id: sprite.id,
+							changes: { [property]: value },
+						});
+					}
+					return true;
+				},
+			});
+
+			runtime.registerSprite(sprite.id, {
+				sprite: spriteProxy as SpriteContext['sprite'],
+				spriteId: sprite.id,
+				dispatch,
+				getSprites: () => spritesRef.current,
+			});
+		});
+
 		await runtime.start();
+		setIsPlaying(false);
 	};
 
 	const handleStop = () => {
 		setIsPlaying(false);
-		runtime.clearHandlers();
+		runtime.stop();
 	};
 
 	const sorted = [...state.sprites].sort((a, b) => a.zIndex - b.zIndex);

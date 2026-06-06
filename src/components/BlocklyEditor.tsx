@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import * as Blockly from 'blockly';
 import 'blockly/blocks';
 import * as En from 'blockly/msg/en';
-import { initAllBlocks, workspaceConfig } from '../lib/config';
+import { initAllBlocks, workspaceConfig, buildToolboxForSource } from '../lib/config';
+import { getSourceTypeForSprite } from '../lib/blockVisibility';
 import { useSprites } from '../lib/sprites';
 
 function syncShadowColours(workspace: Blockly.WorkspaceSvg | Blockly.Workspace) {
@@ -39,6 +40,9 @@ export default function BlocklyEditor() {
 
 		const workspace = Blockly.inject(blocklyDiv, workspaceConfig);
 		workspaceRef.current = workspace;
+		if (selectedSprite) {
+			workspace.updateToolbox(buildToolboxForSource(getSourceTypeForSprite(selectedSprite.type)));
+		}
 		syncShadowColours(workspace);
 
 		const flyoutWorkspace = getFlyoutWorkspace(workspace);
@@ -140,6 +144,16 @@ export default function BlocklyEditor() {
 		loadedSpriteIdRef.current = selectedSpriteId;
 		isSwappingRef.current = false;
 	}, [selectedSpriteId]);
+
+	useEffect(() => {
+		const workspace = workspaceRef.current;
+		if (!workspace) return;
+
+		const sourceType = selectedSprite
+			? getSourceTypeForSprite(selectedSprite.type)
+			: 'all';
+		workspace.updateToolbox(buildToolboxForSource(sourceType));
+	}, [selectedSprite?.type, selectedSpriteId]);
 
 	return (
 		<div className="blockly-area panel">

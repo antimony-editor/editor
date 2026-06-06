@@ -173,7 +173,8 @@ export function spriteReducer(state: SpriteState, action: SpriteAction): SpriteS
 			const idx = sprites.findIndex(s => s.id === action.id);
 			if (idx === -1) return state;
 			const [moved] = sprites.splice(idx, 1);
-			sprites.splice(action.newIndex, 0, moved);
+			const newIndex = Math.max(0, Math.min(action.newIndex, sprites.length));
+			sprites.splice(newIndex, 0, moved);
 			return {
 				...state,
 				sprites: sprites.map((s, i) => ({ ...s, zIndex: i })),

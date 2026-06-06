@@ -31,8 +31,9 @@ javascriptGenerator.forBlock["controls_whileUntil"] = function (block: Blockly.B
     return `await (async () => {
   let _whileIterations = 0;
   while (${actualCondition}) {
+    if (window.RUNTIME.isStopped()) break;
     ${statements}
-    if (++_whileIterations % 100 === 0) await new Promise(resolve => setTimeout(resolve, 0));
+    if (++_whileIterations % 100 === 0) await window.RUNTIME.delay(0);
   }
 })();\n`;
 };

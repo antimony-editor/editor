@@ -137,17 +137,51 @@
     <block type="lists_sort"></block>
   </category>
   <!-- motion -->
-  <category name="Motion" categorystyle="motion_blocks"></category>
+  <category name="Motion" categorystyle="motion_blocks">
+    <block type="motion_moveRight"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+    <block type="motion_moveLeft"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+    <block type="motion_moveUp"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+    <block type="motion_moveDown"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+    <block type="motion_rotate"><value name="ANGLE"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
+    <block type="motion_goToPosition"><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="motion_positionX"></block>
+    <block type="motion_positionY"></block>
+  </category>
   <!-- appearance -->
-  <category name="Appearance" categorystyle="appearance_blocks"></category>
+  <category name="Appearance" categorystyle="appearance_blocks">
+    <block type="appearance_show"></block>
+    <block type="appearance_hide"></block>
+    <block type="appearance_setSize"><value name="SIZE"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
+    <block type="appearance_setOpacity"><value name="OPACITY"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
+    <block type="appearance_setColor"></block>
+    <block type="appearance_changeSize"><value name="CHANGE"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+    <block type="appearance_getSize"></block>
+    <block type="appearance_getOpacity"></block>
+    <block type="appearance_flip"></block>
+  </category>
   <!-- timing -->
   <category name="Timing" categorystyle="timing_blocks">
     <block type="on_start"></block>
   </category>
   <!-- effects -->
-  <category name="Effects" categorystyle="effects_blocks"></category>
+  <category name="Effects" categorystyle="effects_blocks">
+    <block type="effects_shake"><value name="INTENSITY"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
+    <block type="effects_spin"><value name="TIMES"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_pulse"></block>
+    <block type="effects_fadeIn"><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_fadeOut"><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_scaleAnimation"><value name="SCALE"><shadow type="math_number"><field name="NUM">1.5</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_rotateTo"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+  </category>
   <!-- layers -->
-  <category name="Layers" categorystyle="layers_blocks"></category>
+  <category name="Layers" categorystyle="layers_blocks">
+    <block type="layers_sendToFront"></block>
+    <block type="layers_sendToBack"></block>
+    <block type="layers_sendForward"></block>
+    <block type="layers_sendBackward"></block>
+    <block type="layers_setZIndex"><value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="layers_getZIndex"></block>
+  </category>
   <!-- audio -->
   <category name="Audio" categorystyle="audio_blocks"></category>
   <!-- variables -->
