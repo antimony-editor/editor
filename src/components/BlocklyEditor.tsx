@@ -68,6 +68,7 @@ export default function BlocklyEditor() {
 	const selectedSprite = state.sprites.find(s => s.id === selectedSpriteId);
 
 	const loadedSpriteIdRef = useRef<string | null>(null);
+	const lastLoadKeyRef = useRef<number>(state.loadKey);
 	const isSwappingRef = useRef(false);
 	const [toolboxWidth, setToolboxWidth] = useState(0);
 
@@ -169,7 +170,7 @@ export default function BlocklyEditor() {
 		const workspace = workspaceRef.current;
 		if (!workspace) return;
 
-		if (selectedSpriteId === loadedSpriteIdRef.current) return;
+		if (selectedSpriteId === loadedSpriteIdRef.current && state.loadKey === lastLoadKeyRef.current) return;
 
 		isSwappingRef.current = true;
 		workspace.clear();
@@ -184,8 +185,9 @@ export default function BlocklyEditor() {
 			}
 		}
 		loadedSpriteIdRef.current = selectedSpriteId;
+		lastLoadKeyRef.current = state.loadKey;
 		isSwappingRef.current = false;
-	}, [selectedSpriteId]);
+	}, [selectedSpriteId, state.loadKey]);
 
 	useEffect(() => {
 		const workspace = workspaceRef.current;

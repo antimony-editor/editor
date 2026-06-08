@@ -1,4 +1,4 @@
-import * as Blockly from "blockly/core";
+import * as Blockly from 'blockly';
 import toolboxXml from "./toolbox.xml?raw";
 import { isBlockVisibleFor, type BlockSourceType } from "./blockVisibility";
 

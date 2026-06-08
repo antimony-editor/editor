@@ -47,11 +47,13 @@ export type SpriteAction =
 	| { type: 'UPDATE_SPRITE'; id: string; changes: Partial<Omit<Sprite, 'id' | 'type'>> }
 	| { type: 'SELECT_SPRITE'; id: string | null }
 	| { type: 'REORDER_SPRITE'; id: string; newIndex: number }
-	| { type: 'DUPLICATE_SPRITE'; id: string };
+	| { type: 'DUPLICATE_SPRITE'; id: string }
+	| { type: 'LOAD_PROJECT'; state: SpriteState };
 
 export interface SpriteState {
 	sprites: Sprite[];
 	selectedSpriteId: string | null;
+	loadKey: number;
 }
 
 let nextId = 1;
@@ -136,6 +138,7 @@ const defaultTextSprite = createTextSprite('Text 1');
 export const initialSpriteState: SpriteState = {
 	sprites: [defaultTextSprite],
 	selectedSpriteId: defaultTextSprite.id,
+	loadKey: 0,
 };
 
 export function spriteReducer(state: SpriteState, action: SpriteAction): SpriteState {
@@ -196,6 +199,12 @@ export function spriteReducer(state: SpriteState, action: SpriteAction): SpriteS
 				...state,
 				sprites: [...state.sprites, dupe],
 				selectedSpriteId: dupe.id,
+			};
+		}
+		case 'LOAD_PROJECT': {
+			return {
+				...action.state,
+				loadKey: state.loadKey + 1,
 			};
 		}
 		default:

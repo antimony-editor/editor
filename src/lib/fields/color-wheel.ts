@@ -1,4 +1,4 @@
-import { DropDownDiv, fieldRegistry, Field } from "blockly/core";
+import { DropDownDiv, fieldRegistry, Field } from 'blockly';
 import iro from "@jaames/iro";
 
 type ColorPickerOptions = Parameters<typeof iro.ColorPicker>[1];

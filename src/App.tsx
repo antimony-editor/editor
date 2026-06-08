@@ -6,6 +6,7 @@ import StageView from './components/StageView';
 import BlocklyEditor from './components/BlocklyEditor';
 import PropertiesPanel from './components/PropertiesPanel';
 import runtime from './lib/runtime';
+import { serializeProject, deserializeProject } from './lib/projectFormat';
 import './styles/editor.css';
 
 import hljs from 'highlight.js/lib/core';
@@ -16,10 +17,49 @@ export default function App() {
 	const [state, dispatch] = useReducer(spriteReducer, initialSpriteState);
 	const [showJS, setShowJS] = useState(false);
 	const [generatedJS, setGeneratedJS] = useState('');
+	const [projectName, setProjectName] = useState('Untitled Project');
 
 	const handleSeeJS = () => {
 		setGeneratedJS(runtime.compile().trim());
 		setShowJS(true);
+	};
+
+	const handleSave = async () => {
+		const buffer = await serializeProject(projectName, state);
+		const blob = new Blob([buffer], { type: 'application/octet-stream' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `${projectName.replace(/\s+/g, '_').toLowerCase()}.antimony`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	};
+
+	const handleLoad = () => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = '.antimony';
+		input.onchange = (e) => {
+			const file = (e.target as HTMLInputElement).files?.[0];
+			if (!file) return;
+
+			const reader = new FileReader();
+			reader.onload = async (re) => {
+				try {
+					const buffer = re.target?.result as ArrayBuffer;
+					const project = await deserializeProject(buffer);
+					setProjectName(project.projectName);
+					dispatch({ type: 'LOAD_PROJECT', state: project.state });
+				} catch (err) {
+					console.error('Failed to load project:', err);
+					alert('Failed to load project file. Invalid format.');
+				}
+			};
+			reader.readAsArrayBuffer(file);
+		};
+		input.click();
 	};
 
 	const highlightedCode = useMemo(() => {
@@ -35,7 +75,13 @@ export default function App() {
 	return (
 		<SpriteContext.Provider value={{ state, dispatch }}>
 			<div className="editor-shell">
-				<HeaderBar onSeeJS={handleSeeJS} />
+				<HeaderBar
+					projectName={projectName}
+					onProjectNameChange={setProjectName}
+					onSeeJS={handleSeeJS}
+					onSave={handleSave}
+					onLoad={handleLoad}
+				/>
 				<BlocklyEditor />
 				<div className="right-column">
 					<StageView />

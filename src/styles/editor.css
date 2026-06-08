@@ -1087,3 +1087,62 @@ body {
   background: var(--bg-surface);
   border-color: var(--border-default);
 }
+
+.file-menu-container {
+  position: absolute;
+  left: 170px;
+}
+
+.file-tab-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  letter-spacing: 0.05em;
+}
+
+.file-tab-btn:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+}
+
+.file-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  z-index: 100;
+  box-shadow: var(--shadow-panel);
+  min-width: 120px;
+}
+
+.file-menu-item {
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.file-menu-item:hover {
+  background: var(--bg-tertiary);
+}

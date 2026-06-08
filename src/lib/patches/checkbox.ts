@@ -1,4 +1,4 @@
-import * as Blockly from "blockly/core";
+import * as Blockly from 'blockly';
 
 interface CheckboxOptions extends Blockly.FieldConfig {
   checked?: boolean;
