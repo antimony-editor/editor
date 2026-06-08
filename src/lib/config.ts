@@ -173,14 +173,8 @@ function getValueInputsForBlock(blockType: string) {
     };
 
     try {
-<<<<<<< HEAD
-        const block = workspace.newBlock(blockType);
-
-        return block.inputList
-=======
         blockDef.init?.call(mockBlock);
         return mockBlock.inputList
->>>>>>> c65b8d62377e350e438eb34b801d76022f53e40c
             .filter((input) => input.connection?.type === Blockly.ConnectionType.INPUT_VALUE)
             .map((input) => ({
                 name: input.name,
