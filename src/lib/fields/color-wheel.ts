@@ -5,6 +5,7 @@ type ColorPickerOptions = Parameters<typeof iro.ColorPicker>[1];
 
 export default class ColorWheelField extends Field {
     static SERIALIZABLE = true;
+    SERIALIZABLE = true;
     private width: number;
     private pickerOptions: ColorPickerOptions;
 
@@ -32,7 +33,6 @@ export default class ColorWheelField extends Field {
             ...this.pickerOptions,
         });
 
-        // type in the hex value instead
         const input = document.createElement("input");
         input.type = "text";
         input.className = "blockly-color-wheel-input";

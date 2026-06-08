@@ -134,25 +134,60 @@ function appendShadowElement(xmlDocument: XMLDocument, namespace: string, valueE
 }
 
 function getValueInputsForBlock(blockType: string) {
-    if (!Blockly.Blocks[blockType]) {
+    const blockDef = Blockly.Blocks[blockType];
+
+    if (!blockDef) {
         return [];
     }
 
-    const workspace = new Blockly.Workspace();
+    const inputs: { name: string; checks: string[] | null }[] = [];
+
+    const mockBlock = {
+        inputList: [] as any[],
+        appendValueInput(name: string) {
+            const conn = {
+                type: Blockly.ConnectionType.INPUT_VALUE,
+                check: null as string[] | null,
+                getCheck() { return this.check; },
+            };
+            const input = {
+                name,
+                connection: conn,
+                setCheck(c: string | string[]) { conn.check = Array.isArray(c) ? c : [c]; return input; },
+                setAlign() { return input; },
+                appendField() { return input; },
+            };
+            this.inputList.push(input);
+            return input;
+        },
+        appendDummyInput() { return { setAlign() { return this; }, appendField() { return this; } }; },
+        appendStatementInput(_name: string) { return { setCheck() { return this; }, appendField() { return this; } }; },
+        setColour() {},
+        setTooltip() {},
+        setHelpUrl() {},
+        setOutput() {},
+        setPreviousStatement() {},
+        setNextStatement() {},
+        appendField() { return this; },
+        interpolate_() {},
+    };
 
     try {
+<<<<<<< HEAD
         const block = workspace.newBlock(blockType);
 
         return block.inputList
+=======
+        blockDef.init?.call(mockBlock);
+        return mockBlock.inputList
+>>>>>>> c65b8d62377e350e438eb34b801d76022f53e40c
             .filter((input) => input.connection?.type === Blockly.ConnectionType.INPUT_VALUE)
             .map((input) => ({
                 name: input.name,
-                checks: input.connection?.getCheck() ?? null,
+                checks: input.connection.getCheck() ?? null,
             }));
     } catch {
         return [];
-    } finally {
-        workspace.dispose();
     }
 }
 
