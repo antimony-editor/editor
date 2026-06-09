@@ -9,8 +9,6 @@ import { useProjectSettings } from '../lib/settings';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import runtime, { type SpriteContext } from '../lib/runtime';
-import * as Muxer from 'mp4-muxer';
-import * as WebMMuxer from 'webm-muxer';
 // @ts-ignore
 import gifshot from 'gifshot';
 import ExportModal, { type ExportOptions } from './ExportModal';
@@ -962,7 +960,7 @@ export default function StageView() {
 						onClick={() => setIsRecordModalOpen(true)}
 						disabled={isRecording}
 					>
-						<Video size={18} />
+						<Video size={20} />
 					</button>
 				</div>
 				<div
