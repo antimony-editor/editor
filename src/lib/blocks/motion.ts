@@ -124,9 +124,9 @@ javascriptGenerator.forBlock["motion_goToPosition"] = function (block: Blockly.B
 
 Blockly.Blocks["motion_goTo"] = {
   init: function () {
-    this.appendDummyInput().appendField("go to x:");
+    this.appendDummyInput().appendField("go to x");
     this.appendValueInput("X").setCheck("Number");
-    this.appendDummyInput().appendField("y:");
+    this.appendDummyInput().appendField("y");
     this.appendValueInput("Y").setCheck("Number");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -194,10 +194,10 @@ Blockly.Blocks["motion_moveBy"] = {
   init: function () {
     this.appendValueInput("DX")
       .setCheck("Number")
-      .appendField("change x by:");
+      .appendField("change x by");
     this.appendValueInput("DY")
       .setCheck("Number")
-      .appendField("y:");
+      .appendField("y");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("motion_blocks");
@@ -242,9 +242,9 @@ javascriptGenerator.forBlock["motion_setXY"] = function (block: Blockly.Block) {
 Blockly.Blocks["motion_glideSecsTo"] = {
   init: function () {
     this.appendValueInput("SECS").setCheck("Number").appendField("glide");
-    this.appendDummyInput().appendField("secs to x:");
+    this.appendDummyInput().appendField("secs to x");
     this.appendValueInput("X").setCheck("Number");
-    this.appendDummyInput().appendField("y:");
+    this.appendDummyInput().appendField("y");
     this.appendValueInput("Y").setCheck("Number");
     this.setInputsInline(true);
     this.setPreviousStatement(true, null);

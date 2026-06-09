@@ -3,9 +3,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["functions_lambda"] = {
     init: function () {
-        this.appendDummyInput()
-            .appendField("new lambda")
-
+        this.appendDummyInput().appendField("new lambda")
         this.appendStatementInput("BODY");
         this.setOutput(true, null);
         this.setStyle("procedure_blocks");
@@ -15,7 +13,7 @@ Blockly.Blocks["functions_lambda"] = {
 
 javascriptGenerator.forBlock["functions_lambda"] = function (block: Blockly.Block) {
     const body = javascriptGenerator.statementToCode(block, "BODY");
-    return [`(function() {\n${body}\n})`, Order.ATOMIC];
+    return [`(() => {\n${body}})`, Order.ATOMIC];
 };
 
 Blockly.Blocks["functions_execute"] = {
@@ -31,25 +29,9 @@ Blockly.Blocks["functions_execute"] = {
 };
 
 javascriptGenerator.forBlock["functions_execute"] = function (block: Blockly.Block) {
-    const fn = javascriptGenerator.valueToCode(block, "FUNC", Order.NONE) || "(function(){})";
-    const arg = javascriptGenerator.valueToCode(block, "ARG", Order.NONE) || "undefined";
-    return `${fn}(${arg});\n`;
-};
-
-Blockly.Blocks["functions_execute_reporter"] = {
-    init: function () {
-        this.appendValueInput("FUNC").setCheck(null).appendField("execute");
-        this.setInputsInline(true);
-        this.setOutput(true, null);
-        this.setStyle("procedure_blocks");
-        this.setTooltip("Call a function value with the given argument and return its result");
-    },
-};
-
-javascriptGenerator.forBlock["functions_execute_reporter"] = function (block: Blockly.Block) {
-    const fn = javascriptGenerator.valueToCode(block, "FUNC", Order.NONE) || "(function(){})";
-    const arg = javascriptGenerator.valueToCode(block, "ARG", Order.NONE) || "undefined";
-    return [`${fn}(${arg})`, Order.ATOMIC];
+    const fn = javascriptGenerator.valueToCode(block, "FUNC", Order.NONE) || "(() => {})";
+    const code = `(${fn})()`;
+    return block.outputConnection?.getSourceBlock() ? [code, Order.FUNCTION_CALL] : code;
 };
 
 Blockly.Blocks["functions_return"] = {
@@ -63,7 +45,7 @@ Blockly.Blocks["functions_return"] = {
 
 javascriptGenerator.forBlock["functions_return"] = function (block: Blockly.Block) {
     const val = javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "undefined";
-    return `return ${val};\n`;
+    return `return (${val});\n`;
 };
 
 export { };

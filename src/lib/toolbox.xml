@@ -1,9 +1,5 @@
   <xml xmlns="https://developers.google.com/blockly/xml">
   <category name="Logic" categorystyle="logic_blocks">
-    <block type="controls_if">
-    </block>
-    <block type="controls_ifelse">
-    </block>
     <block type="logic_compare">
       <value name="A">
         <shadow type="math_number"><field name="NUM">0</field></shadow>
@@ -33,6 +29,11 @@
     </block>
     <block type="checkbox"></block>
     <block type="logic_null"></block>
+    <sep gap="50"></sep>
+    <block type="controls_if">
+    </block>
+    <block type="controls_ifelse">
+    </block>
     <block type="logic_ternary">
       <value name="IF">
         <shadow type="checkbox">
@@ -42,6 +43,7 @@
       <value name="THEN"><shadow type="text"><field name="TEXT"></field></shadow></value>
       <value name="ELSE"><shadow type="text"><field name="TEXT"></field></shadow></value>
     </block>
+    <sep gap="50"></sep>
     <block type="logic_switch"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
     <block type="logic_case"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
     <block type="logic_default"></block>
@@ -49,20 +51,13 @@
     <block type="logic_runNextCaseWhen"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
   </category>
   <category name="Loops" categorystyle="loop_blocks">
+    <block type="controls_repeat_ext">
+      <value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
+    </block>
     <block type="controls_forLoop">
       <value name="VAR"><block type="controls_forLoop_var"></block></value>
       <value name="START"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
       <value name="END"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
-    </block>
-    <block type="controls_repeat_ext">
-      <value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
-    </block>
-    <block type="controls_whileUntil">
-      <value name="BOOL">
-        <shadow type="checkbox">
-          <field name="BOOL">FALSE</field>
-        </shadow>
-      </value>
     </block>
     <block type="controls_for">
       <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
@@ -70,6 +65,14 @@
       <value name="BY"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
     </block>
     <block type="controls_forEach"></block>
+    <sep gap="50"></sep>
+    <block type="controls_whileUntil">
+      <value name="BOOL">
+        <shadow type="checkbox">
+          <field name="BOOL">FALSE</field>
+        </shadow>
+      </value>
+    </block>
     <block type="controls_flow_statements"></block>
   </category>
   <category name="Math" categorystyle="math_blocks">
@@ -78,25 +81,25 @@
       <value name="B"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
     </block>
     <block type="math_single"><value name="NUM"><shadow type="math_number"><field name="NUM">9</field></shadow></value></block>
-    <block type="math_trig"><value name="NUM"><shadow type="math_number"><field name="NUM">45</field></shadow></value></block>
-    <block type="math_constant"></block>
-    <block type="math_number_property"><value name="NUMBER_TO_CHECK"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
-    <block type="math_round"><value name="NUM"><shadow type="math_number"><field name="NUM">3.1</field></shadow></value></block>
-    <block type="math_on_list"></block>
     <block type="math_modulo">
       <value name="DIVIDEND"><shadow type="math_number"><field name="NUM">64</field></shadow></value>
       <value name="DIVISOR"><shadow type="math_number"><field name="NUM">10</field></shadow></value>
     </block>
-    <block type="math_constrain">
-      <value name="VALUE"><shadow type="math_number"><field name="NUM">50</field></shadow></value>
-      <value name="LOW"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
-      <value name="HIGH"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
-    </block>
+    <block type="math_constant"></block>
+    <block type="math_trig"><value name="NUM"><shadow type="math_number"><field name="NUM">45</field></shadow></value></block>
+    <block type="math_round"><value name="NUM"><shadow type="math_number"><field name="NUM">3.1</field></shadow></value></block>
+    <block type="math_number_property"><value name="NUMBER_TO_CHECK"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="math_random_int">
       <value name="FROM"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
       <value name="TO"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
     </block>
     <block type="math_random_float"></block>
+    <block type="math_constrain">
+      <value name="VALUE"><shadow type="math_number"><field name="NUM">50</field></shadow></value>
+      <value name="LOW"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
+      <value name="HIGH"><shadow type="math_number"><field name="NUM">100</field></shadow></value>
+    </block>
+    <block type="math_on_list"></block>
   </category>
   <category name="Text" categorystyle="text_blocks">
     <block type="text_setText">
@@ -108,48 +111,57 @@
     </block>
     <block type="text_join"></block>
     <block type="text_append"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_changeCase"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <block type="text_trim"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <sep gap="50"></sep>
     <block type="text_length"><value name="VALUE"><shadow type="text"><field name="TEXT">abc</field></shadow></value></block>
     <block type="text_isEmpty"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
     <block type="text_indexOf"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="FIND"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
     <block type="text_charAt"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="AT"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="text_getSubstring"><value name="STRING"><shadow type="text"><field name="TEXT"></field></shadow></value><value name="AT1"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="AT2"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
-    <block type="text_changeCase"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
-    <block type="text_trim"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
+    <sep gap="50"></sep>
     <block type="text_print"><value name="TEXT"><shadow type="text"><field name="TEXT">abc</field></shadow></value></block>
     <block type="text_prompt_ext"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
   </category>
   <category name="Lists" categorystyle="list_blocks">
     <block type="lists_create_with"></block>
     <block type="lists_repeat"><value name="NUM"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
+    <sep gap="50"></sep>
+    <block type="lists_split"></block>
     <block type="lists_length"></block>
     <block type="lists_isEmpty"></block>
     <block type="lists_indexOf"></block>
     <block type="lists_getIndex"></block>
     <block type="lists_setIndex"></block>
     <block type="lists_getSublist"></block>
-    <block type="lists_split"></block>
     <block type="lists_sort"></block>
   </category>
   <category name="Motion" categorystyle="motion_blocks">
-    <block type="motion_pointDirection"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>
-    <block type="motion_rotate"><value name="ANGLE"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
+    <block type="motion_goTo"><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="motion_moveBy"><value name="DX"><shadow type="math_number"><field name="NUM">10</field></shadow></value><value name="DY"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <block type="motion_glideSecsTo"><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <sep gap="50"></sep>
     <block type="motion_moveSteps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
     <block type="motion_setXY"><field name="AXIS">X</field><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
-    <block type="motion_goTo"><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
-    <block type="motion_glideSecsTo"><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
+    <sep gap="50"></sep>
+    <block type="motion_pointDirection"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>
+    <block type="motion_rotate"><value name="ANGLE"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
+    <sep gap="50"></sep>
     <block type="motion_getXY"></block>
   </category>
   <category name="Appearance" categorystyle="appearance_blocks">
     <block type="appearance_show"></block>
     <block type="appearance_hide"></block>
+    <sep gap="50"></sep>
     <block type="appearance_setSize"><value name="SIZE"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
     <block type="appearance_changeSize"><value name="CHANGE"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
-    <block type="appearance_setOpacity"><value name="OPACITY"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
-    <block type="appearance_setColor"></block>
     <block type="appearance_getSize"></block>
+    <sep gap="50"></sep>
+    <block type="appearance_setOpacity"><value name="OPACITY"><shadow type="math_number"><field name="NUM">100</field></shadow></value></block>
     <block type="appearance_getOpacity"></block>
+    <block type="appearance_setColor"></block>
     <block type="appearance_flip"></block>
+    <sep gap="50"></sep>
     <block type="appearance_setImageIndex"><value name="INDEX"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
     <block type="appearance_setImageName"><value name="NAME"><shadow type="text"><field name="TEXT">Image 1</field></shadow></value></block>
     <block type="appearance_nextImage"></block>
@@ -165,10 +177,12 @@
     <block type="effects_shake"><value name="INTENSITY"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
     <block type="effects_spin"><value name="TIMES"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
     <block type="effects_pulse"></block>
+    <sep gap="50"></sep>
     <block type="effects_tween"><value name="VALUE"><shadow type="math_number"><field name="NUM">100</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
     <block type="effects_setTweenMode"></block>
     <block type="effects_setPropertyTweenMode"></block>
     <block type="effects_resetPropertyTweenMode"></block>
+    <sep gap="50"></sep>
     <block type="effects_set_canvas"><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="effects_get_canvas"></block>
     <block type="effects_clear_canvas"></block>
@@ -179,6 +193,7 @@
     <block type="layers_sendToBack"></block>
     <block type="layers_sendForward"></block>
     <block type="layers_sendBackward"></block>
+    <sep gap="50"></sep>
     <block type="layers_setZIndex"><value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="layers_getZIndex"></block>
   </category>
@@ -186,9 +201,8 @@
   <category name="Variables" categorystyle="variable_blocks" custom="VARIABLE"></category>
   <category name="Functions" categorystyle="procedure_blocks">
     <block type="functions_lambda"></block>
-    <block type="functions_execute"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
-    <block type="functions_execute_reporter"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
     <block type="functions_return"><value name="VALUE"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="functions_execute"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
   </category>
     <category name="Other" categorystyle="other_blocks"></category>
 </xml>
