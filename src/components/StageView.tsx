@@ -444,9 +444,7 @@ export default function StageView() {
 		let frameCounter = 0;
 
 		try {
-			const captureFrame = async (force = false) => {
-				if (!isPlayingRef.current && !force) return;
-
+			const captureFrame = async () => {
 				try {
 					if (options.format === 'gif') {
 						gifFrames.push(canvas.toDataURL('image/png'));
@@ -460,11 +458,26 @@ export default function StageView() {
 				}
 			};
 
-			layer.on('draw.recording', () => captureFrame());
-			await handlePlay();
-			layer.off('draw.recording');
+			let finished = false;
+			const playPromise = handlePlay({ stepping: true });
+			playPromise.then(() => {
+				finished = true;
+			});
 
-			if (frameCounter === 0) await captureFrame(true);
+			while (!finished) {
+				layer.draw();
+				await captureFrame();
+				await runtime.step();
+
+				if (frameCounter > fps * 300) break;
+			}
+
+			if (frameCounter === 0) {
+				layer.draw();
+				await captureFrame();
+			}
+
+			runtime.disableStepping();
 
 			setIsEncoding(true);
 			setIsRecordModalOpen(true);
@@ -491,7 +504,7 @@ export default function StageView() {
 				downloadBlob(blob, 'export.gif');
 			} else {
 				const worker = new Worker(new URL('../lib/export.worker.ts', import.meta.url), { type: 'module' });
-				
+
 				const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
 					worker.onmessage = (e) => {
 						if (e.data.type === 'progress') setExportProgress(e.data.progress);
@@ -515,6 +528,7 @@ export default function StageView() {
 			console.error(err);
 			alert('Export failed');
 		} finally {
+			runtime.disableStepping();
 			resetRecordingState();
 		}
 	};
@@ -709,9 +723,13 @@ export default function StageView() {
 		}
 	}, [dispatch]);
 
-	const handlePlay = async () => {
+	const handlePlay = async (options?: { stepping?: boolean }) => {
 		const generation = ++playGenerationRef.current;
 		runtime.stop();
+
+		if (options?.stepping) runtime.enableStepping();
+		else runtime.disableStepping();
+
 		runtime.setFps(settings.fps);
 		pendingPlaybackChangesRef.current.clear();
 		setIsPlayingWithRef(true);
