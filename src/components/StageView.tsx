@@ -314,7 +314,7 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 					y={0}
 					width={sprite.width}
 					height={sprite.height}
-					fill="rgba(255,255,255,0.01)"
+					fill={mediaImage ? 'transparent' : 'rgba(255,255,255,0.01)'}
 					stroke={mediaImage ? undefined : isSelected ? '#a63ef5' : 'rgba(255,255,255,0.16)'}
 					strokeWidth={mediaImage ? 0 : 1}
 					dash={mediaImage ? undefined : [8, 5]}
