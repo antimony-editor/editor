@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Play, Square, Pause } from 'lucide-react';
+import { Play, Square, Pause, Video } from 'lucide-react';
 import { Stage, Layer, Rect, Text, Transformer, Line, Image as KonvaImage, Group } from 'react-konva';
 import KonvaCore from 'konva';
 import type Konva from 'konva';
@@ -9,6 +9,11 @@ import { useProjectSettings } from '../lib/settings';
 import * as Blockly from 'blockly';
 import { javascriptGenerator } from 'blockly/javascript';
 import runtime, { type SpriteContext } from '../lib/runtime';
+import * as Muxer from 'mp4-muxer';
+import * as WebMMuxer from 'webm-muxer';
+// @ts-ignore
+import gifshot from 'gifshot';
+import ExportModal, { type ExportOptions } from './ExportModal';
 
 function createStageCoords(virtualWidth: number, virtualHeight: number) {
 	return {
@@ -371,11 +376,25 @@ export default function StageView() {
 	const { state, dispatch } = useSprites();
 	const { settings } = useProjectSettings();
 	const [isPlaying, setIsPlaying] = useState(false);
+	const isPlayingRef = useRef(false);
 	const [isPaused, setIsPaused] = useState(false);
 	const playGenerationRef = useRef(0);
 	const spritesRef = useRef(state.sprites);
 	const pendingPlaybackChangesRef = useRef(new Map<string, Partial<Omit<Sprite, 'id' | 'type'>>>());
 	spritesRef.current = state.sprites;
+
+	const setIsPlayingWithRef = useCallback((val: boolean) => {
+		setIsPlaying(val);
+		isPlayingRef.current = val;
+	}, []);
+
+	const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+	const [isRecording, setIsRecording] = useState(false);
+	const [isEncoding, setIsEncoding] = useState(false);
+	const [exportProgress, setExportProgress] = useState<number | null>(null);
+	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+	const recordedChunksRef = useRef<Blob[]>([]);
+	const exportOptionsRef = useRef<ExportOptions | null>(null);
 
 	const virtualWidth = settings.width;
 	const virtualHeight = settings.height;
@@ -386,6 +405,121 @@ export default function StageView() {
 	const scale = stageSize.width / virtualWidth;
 
 	const [canvasEffects, setCanvasEffects] = useState<Record<string, number>>({});
+
+	const resetRecordingState = useCallback(() => {
+		setIsRecording(false);
+		setIsEncoding(false);
+		setExportProgress(null);
+		setIsRecordModalOpen(false);
+		mediaRecorderRef.current = null;
+		recordedChunksRef.current = [];
+	}, []);
+
+	const downloadBlob = (blob: Blob, fileName: string) => {
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = fileName;
+		a.click();
+		URL.revokeObjectURL(url);
+	};
+
+	const handleExport = async (options: ExportOptions) => {
+		const stage = stageRef.current;
+		const layer = layerRef.current;
+		if (!stage || !layer) return;
+
+		const canvas = layer.getCanvas()._canvas;
+		if (!canvas) return;
+
+		const physicalWidth = Math.floor(canvas.width / 2) * 2;
+		const physicalHeight = Math.floor(canvas.height / 2) * 2;
+		const fps = options.fps;
+
+		setIsRecordModalOpen(false);
+		setIsRecording(true);
+		setIsEncoding(false);
+		setExportProgress(0);
+
+		let gifFrames: string[] = [];
+		let videoFrames: ImageBitmap[] = [];
+		let frameCounter = 0;
+
+		try {
+			const captureFrame = async (force = false) => {
+				if (!isPlayingRef.current && !force) return;
+
+				try {
+					if (options.format === 'gif') {
+						gifFrames.push(canvas.toDataURL('image/png'));
+					} else {
+						const bitmap = await createImageBitmap(canvas);
+						videoFrames.push(bitmap);
+					}
+					frameCounter++;
+				} catch (e) {
+					console.error(e);
+				}
+			};
+
+			layer.on('draw.recording', () => captureFrame());
+			await handlePlay();
+			layer.off('draw.recording');
+
+			if (frameCounter === 0) await captureFrame(true);
+
+			setIsEncoding(true);
+			setIsRecordModalOpen(true);
+			setExportProgress(0);
+
+			if (options.format === 'gif') {
+				const result = await new Promise<{ image: string }>((resolve, reject) => {
+					gifshot.createGIF({
+						images: gifFrames,
+						gifWidth: physicalWidth,
+						gifHeight: physicalHeight,
+						interval: 1 / fps,
+						numFrames: gifFrames.length,
+						sampleInterval: 10,
+						progressCallback: (progress: number) => setExportProgress(progress * 100),
+					}, (obj: any) => {
+						if (!obj.error) resolve(obj);
+						else reject(new Error(obj.errorMsg));
+					});
+				});
+
+				const response = await fetch(result.image);
+				const blob = await response.blob();
+				downloadBlob(blob, 'export.gif');
+			} else {
+				const worker = new Worker(new URL('../lib/export.worker.ts', import.meta.url), { type: 'module' });
+				
+				const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
+					worker.onmessage = (e) => {
+						if (e.data.type === 'progress') setExportProgress(e.data.progress);
+						else if (e.data.type === 'done') resolve(e.data.buffer);
+						else if (e.data.type === 'error') reject(new Error(e.data.error));
+					};
+					worker.onerror = reject;
+					worker.postMessage({
+						options,
+						frames: videoFrames,
+						width: physicalWidth,
+						height: physicalHeight,
+						fps
+					}, videoFrames);
+				});
+
+				worker.terminate();
+				downloadBlob(new Blob([buffer], { type: options.format === 'mp4' ? 'video/mp4' : 'video/webm' }), `export.${options.format}`);
+			}
+		} catch (err) {
+			console.error(err);
+			alert('Export failed');
+		} finally {
+			resetRecordingState();
+		}
+	};
 
 	useEffect(() => {
 		let mounted = true;
@@ -582,7 +716,7 @@ export default function StageView() {
 		runtime.stop();
 		runtime.setFps(settings.fps);
 		pendingPlaybackChangesRef.current.clear();
-		setIsPlaying(true);
+		setIsPlayingWithRef(true);
 		setIsPaused(false);
 
 		state.sprites.forEach(sprite => {
@@ -761,7 +895,7 @@ export default function StageView() {
 		await runtime.start();
 		if (generation === playGenerationRef.current) {
 			flushPlaybackStateUpdates();
-			setIsPlaying(false);
+			setIsPlayingWithRef(false);
 			setIsPaused(false);
 		}
 	};
@@ -780,7 +914,7 @@ export default function StageView() {
 
 	const handleStop = () => {
 		playGenerationRef.current++;
-		setIsPlaying(false);
+		setIsPlayingWithRef(false);
 		setIsPaused(false);
 		runtime.stop();
 		flushPlaybackStateUpdates();
@@ -802,6 +936,7 @@ export default function StageView() {
 						className={`transport-btn ${isPlaying && !isPaused ? 'active' : ''}`}
 						title={isPaused ? 'Resume' : 'Play'}
 						onClick={handlePlay}
+						disabled={isRecording}
 					>
 						<Play size={18} />
 					</button>
@@ -809,7 +944,7 @@ export default function StageView() {
 						className={`transport-btn ${isPaused ? 'active' : ''}`}
 						title="Pause"
 						onClick={handlePause}
-						disabled={!isPlaying}
+						disabled={!isPlaying || isRecording}
 					>
 						<Pause size={18} />
 					</button>
@@ -817,8 +952,17 @@ export default function StageView() {
 						className="transport-btn"
 						title="Stop"
 						onClick={handleStop}
+						disabled={isRecording && !isPlaying}
 					>
 						<Square size={18} />
+					</button>
+					<button
+						className={`transport-btn ${isRecording ? 'active' : ''}`}
+						title="Record"
+						onClick={() => setIsRecordModalOpen(true)}
+						disabled={isRecording}
+					>
+						<Video size={18} />
 					</button>
 				</div>
 				<div
@@ -875,6 +1019,18 @@ export default function StageView() {
 					</Stage>
 				</div>
 			</div>
+
+			{isRecordModalOpen && (
+				<ExportModal
+					defaultFps={settings.fps}
+					isClosing={false}
+					onClose={() => setIsRecordModalOpen(false)}
+					onExport={handleExport}
+					isExporting={isRecording}
+					isEncoding={isEncoding}
+					progress={exportProgress}
+				/>
+			)}
 		</div>
 	);
 }
