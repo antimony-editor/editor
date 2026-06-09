@@ -951,7 +951,7 @@ export default function StageView() {
 					<button
 						className={`transport-btn ${isPlaying && !isPaused ? 'active' : ''}`}
 						title={isPaused ? 'Resume' : 'Play'}
-						onClick={handlePlay}
+						onClick={() => handlePlay()}
 						disabled={isRecording}
 					>
 						<Play size={18} />
