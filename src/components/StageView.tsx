@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Play, Square, Pause } from 'lucide-react';
 import { Stage, Layer, Rect, Text, Transformer, Line, Image as KonvaImage, Group } from 'react-konva';
+import KonvaCore from 'konva';
 import type Konva from 'konva';
 import { useSprites, isTextData, isMediaData, type Sprite } from '../lib/sprites';
 import { buildFontStack } from '../lib/fonts';
@@ -54,6 +55,13 @@ function getFpsColor(fps: number, targetFps: number): string {
 	if (ratio >= 0.3) return '#f97316';
 	return 'var(--danger)';
 }
+
+function getStagePixelRatio() {
+	if (typeof window === 'undefined') return 2;
+	return Math.min(3, Math.max(2, window.devicePixelRatio || 1));
+}
+
+KonvaCore.pixelRatio = getStagePixelRatio();
 
 function getFrameMs(fps: number): number {
 	return 1000 / Math.max(1, fps);
@@ -354,10 +362,12 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 
 export default function StageView() {
 	const parentRef = useRef<HTMLDivElement>(null);
+	const stageRef = useRef<Konva.Stage>(null);
 	const layerRef = useRef<Konva.Layer>(null);
 	const fpsRef = useRef<HTMLDivElement>(null);
 	const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
 	const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+	const [stagePixelRatio, setStagePixelRatio] = useState(getStagePixelRatio);
 	const { state, dispatch } = useSprites();
 	const { settings } = useProjectSettings();
 	const [isPlaying, setIsPlaying] = useState(false);
@@ -422,6 +432,26 @@ export default function StageView() {
 	};
 
 	const { filter: stageFilter, opacity: stageOpacity } = computeFilterAndOpacity();
+
+	useEffect(() => {
+		const updatePixelRatio = () => setStagePixelRatio(getStagePixelRatio());
+		updatePixelRatio();
+		window.addEventListener('resize', updatePixelRatio);
+		return () => window.removeEventListener('resize', updatePixelRatio);
+	}, []);
+
+	useEffect(() => {
+		KonvaCore.pixelRatio = stagePixelRatio;
+		const stage = stageRef.current;
+		if (!stage) return;
+		stage.bufferCanvas.setPixelRatio(stagePixelRatio);
+		stage.bufferHitCanvas.setPixelRatio(stagePixelRatio);
+		stage.getLayers().forEach((layer) => {
+			layer.getCanvas().setPixelRatio(stagePixelRatio);
+			layer.getHitCanvas().setPixelRatio(stagePixelRatio);
+			layer.batchDraw();
+		});
+	}, [stagePixelRatio, stageSize.width, stageSize.height]);
 
 	useEffect(() => {
 		runtime.setCompiler(() => {
@@ -803,6 +833,7 @@ export default function StageView() {
 			<div className="panel-body" ref={parentRef}>
 				<div className="stage-container">
 					<Stage
+						ref={stageRef}
 						width={stageSize.width}
 						height={stageSize.height}
 						scaleX={scale}

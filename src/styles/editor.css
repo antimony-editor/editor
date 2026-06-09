@@ -491,6 +491,10 @@ body {
   position: relative;
 }
 
+.stage-container canvas {
+  image-rendering: auto;
+}
+
 .blockly-area {
   position: relative;
 }
