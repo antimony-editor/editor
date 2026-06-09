@@ -132,9 +132,96 @@ export default function PropertiesPanel() {
 		</div>
 	);
 
+	const mediaSection = isMediaData(sprite.data) ? (() => {
+		const d = sprite.data as MediaSpriteData;
+		const activeImage = d.images.find((image) => image.id === d.currentImageId) ?? d.images[0];
+		const addImage = () => {
+			const id = generateMediaImageId();
+			updateMediaData({
+				...d,
+				images: [...d.images, { id, name: `Image ${d.images.length + 1}`, src: '' }],
+				currentImageId: id,
+			});
+		};
+		const removeImage = (imageId: string) => {
+			const nextImages = d.images.length > 1
+				? d.images.filter((image) => image.id !== imageId)
+				: d.images.map((image) => image.id === imageId ? { ...image, src: '' } : image);
+			const nextCurrent = nextImages.some((image) => image.id === d.currentImageId)
+				? d.currentImageId
+				: nextImages[0]?.id ?? null;
+			updateMediaData({ ...d, images: nextImages, currentImageId: nextCurrent });
+		};
+		const updateImage = (imageId: string, changes: Record<string, unknown>) => {
+			updateMediaData({
+				...d,
+				images: d.images.map((image) =>
+					image.id === imageId ? { ...image, ...changes } : image
+				),
+			});
+		};
+		return (
+			<div className="properties-section">
+				<div className="properties-section-title">Media</div>
+				<div className="media-tabs">
+					{d.images.map((image) => (
+						<button
+							key={image.id}
+							className={`media-tab ${image.id === activeImage?.id ? 'selected' : ''}`}
+							onClick={() => updateData({ currentImageId: image.id })}
+							title={image.name}
+						>
+							{image.src ? (
+								<img src={image.src} alt="" />
+							) : (
+								<Image size={16} />
+							)}
+						</button>
+					))}
+					<button className="media-tab add" onClick={addImage} title="Add image">
+						<Plus size={16} />
+					</button>
+				</div>
+				{activeImage && (
+					<>
+						<div className="media-preview">
+							{activeImage.src ? (
+								<img src={activeImage.src} alt="" />
+							) : (
+								<Image size={26} />
+							)}
+						</div>
+						<div className="properties-row">
+							<span className="properties-label">Name</span>
+							<input
+								className="properties-input"
+								type="text"
+								value={activeImage.name}
+								onChange={(e) => updateImage(activeImage.id, { name: e.target.value })}
+							/>
+						</div>
+						<div className="media-actions">
+							<button className="properties-btn" onClick={() => openImagePicker(activeImage.id)}>
+								<Upload size={14} /> Replace
+							</button>
+							<button className="properties-btn" onClick={() => updateImage(activeImage.id, { src: '' })}>
+								Clear
+							</button>
+							<button className="properties-btn danger" onClick={() => removeImage(activeImage.id)}>
+								<Trash2 size={14} /> Remove
+							</button>
+						</div>
+					</>
+				)}
+			</div>
+		);
+	})() : null;
+
 	return (
 		<div className="properties-panel" style={{ flexShrink: 0, borderBottom: '1px solid var(--border-subtle)' }}>
 			<div className="panel-body" style={{ overflowY: 'visible', flex: 'none', background: 'transparent' }}>
+				{mediaSection}
+
 				<div className="properties-section">
 					<div className="properties-section-title">Transform</div>
 					{numField('X', sprite.x, 'x')}
@@ -305,90 +392,6 @@ export default function PropertiesPanel() {
 					);
 				})()}
 
-				{isMediaData(sprite.data) && (() => {
-					const d = sprite.data as MediaSpriteData;
-					const activeImage = d.images.find((image) => image.id === d.currentImageId) ?? d.images[0];
-					const addImage = () => {
-						const id = generateMediaImageId();
-						updateMediaData({
-							...d,
-							images: [...d.images, { id, name: `Image ${d.images.length + 1}`, src: '' }],
-							currentImageId: id,
-						});
-					};
-					const removeImage = (imageId: string) => {
-						const nextImages = d.images.length > 1
-							? d.images.filter((image) => image.id !== imageId)
-							: d.images.map((image) => image.id === imageId ? { ...image, src: '' } : image);
-						const nextCurrent = nextImages.some((image) => image.id === d.currentImageId)
-							? d.currentImageId
-							: nextImages[0]?.id ?? null;
-						updateMediaData({ ...d, images: nextImages, currentImageId: nextCurrent });
-					};
-					const updateImage = (imageId: string, changes: Record<string, unknown>) => {
-						updateMediaData({
-							...d,
-							images: d.images.map((image) =>
-								image.id === imageId ? { ...image, ...changes } : image
-							),
-						});
-					};
-					return (
-						<div className="properties-section">
-							<div className="properties-section-title">Media</div>
-							<div className="media-tabs">
-								{d.images.map((image) => (
-									<button
-										key={image.id}
-										className={`media-tab ${image.id === activeImage?.id ? 'selected' : ''}`}
-										onClick={() => updateData({ currentImageId: image.id })}
-										title={image.name}
-									>
-										{image.src ? (
-											<img src={image.src} alt="" />
-										) : (
-											<Image size={16} />
-										)}
-									</button>
-								))}
-								<button className="media-tab add" onClick={addImage} title="Add image">
-									<Plus size={16} />
-								</button>
-							</div>
-							{activeImage && (
-								<>
-									<div className="media-preview">
-										{activeImage.src ? (
-											<img src={activeImage.src} alt="" />
-										) : (
-											<Image size={26} />
-										)}
-									</div>
-									<div className="properties-row">
-										<span className="properties-label">Name</span>
-										<input
-											className="properties-input"
-											type="text"
-											value={activeImage.name}
-											onChange={(e) => updateImage(activeImage.id, { name: e.target.value })}
-										/>
-									</div>
-									<div className="media-actions">
-										<button className="properties-btn" onClick={() => openImagePicker(activeImage.id)}>
-											<Upload size={14} /> Replace
-										</button>
-										<button className="properties-btn" onClick={() => updateImage(activeImage.id, { src: '' })}>
-											Clear
-										</button>
-										<button className="properties-btn danger" onClick={() => removeImage(activeImage.id)}>
-											<Trash2 size={14} /> Remove
-										</button>
-									</div>
-								</>
-							)}
-						</div>
-					);
-				})()}
 			</div>
 		</div>
 	);
