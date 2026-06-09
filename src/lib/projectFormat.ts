@@ -1,9 +1,10 @@
 import { Sprite, SpriteState } from './sprites';
 import { DEFAULT_TWEEN_MODE, isTweenMode, type TweenableProperty, type TweenMode } from './tween';
 import { DEFAULT_PROJECT_SETTINGS, normalizeProjectSettings, type ProjectSettings } from './settings';
+import { DEFAULT_MEDIA_SRC } from './sprites';
 
 const MAGIC = 'ANTIMONY';
-const VERSION = 2;
+const VERSION = 3;
 
 interface Section {
 	name: string;
@@ -25,7 +26,6 @@ export async function serializeProject(
 	sections.push({ name: 'state', data: stateBuffer });
 	sections.push({ name: 'settings', data: encoder.encode(JSON.stringify(settings)) });
 
-	// header, version, etc
 	const headerSize = 14;
 	const sectionEntrySize = 24;
 	const manifestSize = sections.length * sectionEntrySize;
@@ -36,14 +36,12 @@ export async function serializeProject(
 	const buffer = new ArrayBuffer(totalSize);
 	const view = new DataView(buffer);
 
-	// write the header
 	for (let i = 0; i < MAGIC.length; i++) {
 		view.setUint8(i, MAGIC.charCodeAt(i));
 	}
 	view.setUint16(8, VERSION);
 	view.setUint32(10, sections.length);
 
-	// write the manifest and the data
 	let manifestPos = 14;
 	for (const section of sections) {
 		const nameBytes = encoder.encode(section.name.slice(0, 16));
@@ -147,7 +145,7 @@ function serializeSpriteData(data: any, encoder: TextEncoder): Uint8Array {
 
 	for (const [k, v] of entries) {
 		parts.push(serializeString(k, encoder));
-		parts.push(serializeString(String(v), encoder));
+		parts.push(serializeString(JSON.stringify(v), encoder));
 	}
 
 	const totalLen = parts.reduce((sum, p) => sum + p.length, 0);
@@ -262,14 +260,16 @@ function deserializeState(data: Uint8Array, fileVersion: number): SpriteState {
 			}
 		}
 
+		const normalized = normalizeSpriteData(id.str, type.str, dataRes.data);
+
 		sprites.push({
 			id: id.str,
 			name: name.str,
-			type: type.str,
+			type: normalized.type,
 			x, y, width, height, rotation, opacity, visible, locked, zIndex,
 			tweenMode,
 			tweenModes,
-			data: dataRes.data,
+			data: normalized.data,
 			blocklyXml: blocklyXml.str
 		});
 	}
@@ -324,11 +324,50 @@ function deserializeSpriteData(view: DataView, offset: number, decoder: TextDeco
 		currentOffset += 4 + val.bytes.length;
 
 		const v = val.str;
-		if (v === 'true') data[key.str] = true;
-		else if (v === 'false') data[key.str] = false;
-		else if (!isNaN(Number(v)) && v.trim() !== '') data[key.str] = Number(v);
-		else data[key.str] = v;
+		try {
+			data[key.str] = JSON.parse(v);
+		} catch {
+			if (v === 'true') data[key.str] = true;
+			else if (v === 'false') data[key.str] = false;
+			else if (!isNaN(Number(v)) && v.trim() !== '') data[key.str] = Number(v);
+			else data[key.str] = v;
+		}
 	}
 
 	return { data, newOffset: currentOffset };
+}
+
+function normalizeSpriteData(spriteId: string, type: string, data: any): { type: any; data: any } {
+	if (type === 'text') return { type, data };
+	if (type === 'media') {
+		const images = Array.isArray(data.images)
+			? data.images
+			: Array.isArray(data.costumes) ? data.costumes : [];
+		const currentImageId = data.currentImageId ?? data.currentCostumeId;
+		const normalizedImages = images.length > 0
+			? images.map((image: any, index: number) => ({
+				id: String(image.id || `${spriteId}_image_${index + 1}`),
+				name: String(image.name || `Image ${index + 1}`),
+				src: String(image.src || ''),
+			}))
+			: [{ id: `${spriteId}_image_1`, name: 'Image 1', src: DEFAULT_MEDIA_SRC }];
+		const normalizedCurrentImageId = normalizedImages.some((image: any) => image.id === currentImageId)
+			? currentImageId
+			: normalizedImages[0].id;
+		return { type, data: { images: normalizedImages, currentImageId: normalizedCurrentImageId } };
+	}
+	if ('src' in data) {
+		const image = {
+			id: `${spriteId}_image_1`,
+			name: 'Image 1',
+			src: String(data.src || DEFAULT_MEDIA_SRC),
+		};
+		return { type: 'media', data: { images: [image], currentImageId: image.id } };
+	}
+	const image = {
+		id: `${spriteId}_image_1`,
+		name: 'Image 1',
+		src: DEFAULT_MEDIA_SRC,
+	};
+	return { type: 'media', data: { images: [image], currentImageId: image.id } };
 }

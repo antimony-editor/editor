@@ -3,8 +3,8 @@ export type {
 	SpriteType,
 	SpriteData,
 	TextSpriteData,
-	ShapeSpriteData,
-	ImageSpriteData,
+	MediaImage,
+	MediaSpriteData,
 	SpriteState,
 	SpriteAction,
 } from './sprites';

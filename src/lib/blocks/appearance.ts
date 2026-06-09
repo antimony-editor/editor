@@ -157,4 +157,91 @@ javascriptGenerator.forBlock["appearance_flip"] = function (block: Blockly.Block
   }
 };
 
+Blockly.Blocks["appearance_setImageIndex"] = {
+  init: function () {
+    this.appendValueInput("INDEX")
+      .setCheck("Number")
+      .appendField("switch image to");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Switch to an image by number");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_setImageIndex"] = function (block: Blockly.Block) {
+  const index = javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
+  return `context.sprite.imageIndex = ${index};\n`;
+};
+
+Blockly.Blocks["appearance_setImageName"] = {
+  init: function () {
+    this.appendValueInput("NAME")
+      .setCheck("String")
+      .appendField("switch image named");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Switch to an image by name");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_setImageName"] = function (block: Blockly.Block) {
+  const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
+  return `context.sprite.imageName = ${name};\n`;
+};
+
+Blockly.Blocks["appearance_nextImage"] = {
+  init: function () {
+    this.appendDummyInput().appendField("next image");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Switch to the next image");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_nextImage"] = function () {
+  return `context.sprite.imageIndex = context.sprite.imageCount > 0 ? (context.sprite.imageIndex % context.sprite.imageCount) + 1 : 0;\n`;
+};
+
+Blockly.Blocks["appearance_getImageIndex"] = {
+  init: function () {
+    this.appendDummyInput().appendField("image number");
+    this.setOutput(true, "Number");
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Get the current image number");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_getImageIndex"] = function () {
+  return ["context.sprite.imageIndex", Order.ATOMIC];
+};
+
+Blockly.Blocks["appearance_getImageName"] = {
+  init: function () {
+    this.appendDummyInput().appendField("image name");
+    this.setOutput(true, "String");
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Get the current image name");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_getImageName"] = function () {
+  return ["context.sprite.imageName", Order.ATOMIC];
+};
+
+Blockly.Blocks["appearance_getImageCount"] = {
+  init: function () {
+    this.appendDummyInput().appendField("image count");
+    this.setOutput(true, "Number");
+    this.setStyle("appearance_blocks");
+    this.setTooltip("Get the number of images");
+  },
+};
+
+javascriptGenerator.forBlock["appearance_getImageCount"] = function () {
+  return ["context.sprite.imageCount", Order.ATOMIC];
+};
+
 export { };

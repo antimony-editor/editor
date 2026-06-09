@@ -1,4 +1,5 @@
-import { useSprites, isTextData, isShapeData, type TextSpriteData, type ShapeSpriteData } from '../lib/sprites';
+import { Image, Plus, Trash2, Upload } from 'lucide-react';
+import { useSprites, isTextData, isMediaData, generateMediaImageId, type TextSpriteData, type MediaSpriteData } from '../lib/sprites';
 import { useEffect, useState } from 'react';
 import { getAvailableFonts, COMMON_FONTS, detectAvailableFonts, requestFontAccess, getFontPermissionState } from '../lib/fonts';
 import { TWEEN_MODE_OPTIONS, TWEENABLE_PROPERTY_OPTIONS, type TweenMode } from '../lib/tween';
@@ -60,6 +61,58 @@ export default function PropertiesPanel() {
 
 	const updateData = (dataChanges: Record<string, unknown>) => {
 		update({ data: { ...sprite.data, ...dataChanges } });
+	};
+
+	const updateMediaData = (data: MediaSpriteData, extraChanges: Record<string, unknown> = {}) => {
+		update({ ...extraChanges, data });
+	};
+
+	const readImageFile = (file: File, imageId: string) => {
+		if (!isMediaData(sprite.data)) return;
+		const reader = new FileReader();
+		reader.onload = () => {
+			const src = String(reader.result ?? '');
+			const image = new window.Image();
+			image.onload = () => {
+				if (!isMediaData(sprite.data)) return;
+				const nextData: MediaSpriteData = {
+					...sprite.data,
+					currentImageId: imageId,
+					images: sprite.data.images.map((image) =>
+						image.id === imageId
+							? { ...image, src, name: image.name || file.name.replace(/\.[^.]+$/, '') || 'Image' }
+							: image
+					),
+				};
+				updateMediaData(nextData, {
+					width: Math.max(5, image.naturalWidth || sprite.width),
+					height: Math.max(5, image.naturalHeight || sprite.height),
+				});
+			};
+			image.onerror = () => {
+				if (!isMediaData(sprite.data)) return;
+				updateMediaData({
+					...sprite.data,
+					currentImageId: imageId,
+					images: sprite.data.images.map((image) =>
+						image.id === imageId ? { ...image, src } : image
+					),
+				});
+			};
+			image.src = src;
+		};
+		reader.readAsDataURL(file);
+	};
+
+	const openImagePicker = (imageId: string) => {
+		const input = document.createElement('input');
+		input.type = 'file';
+		input.accept = 'image/*,.svg';
+		input.onchange = () => {
+			const file = input.files?.[0];
+			if (file) readImageFile(file, imageId);
+		};
+		input.click();
 	};
 
 	const numField = (label: string, value: number, key: string, isData = false) => (
@@ -252,55 +305,87 @@ export default function PropertiesPanel() {
 					);
 				})()}
 
-				{isShapeData(sprite.data) && (() => {
-					const d = sprite.data as ShapeSpriteData;
+				{isMediaData(sprite.data) && (() => {
+					const d = sprite.data as MediaSpriteData;
+					const activeImage = d.images.find((image) => image.id === d.currentImageId) ?? d.images[0];
+					const addImage = () => {
+						const id = generateMediaImageId();
+						updateMediaData({
+							...d,
+							images: [...d.images, { id, name: `Image ${d.images.length + 1}`, src: '' }],
+							currentImageId: id,
+						});
+					};
+					const removeImage = (imageId: string) => {
+						const nextImages = d.images.length > 1
+							? d.images.filter((image) => image.id !== imageId)
+							: d.images.map((image) => image.id === imageId ? { ...image, src: '' } : image);
+						const nextCurrent = nextImages.some((image) => image.id === d.currentImageId)
+							? d.currentImageId
+							: nextImages[0]?.id ?? null;
+						updateMediaData({ ...d, images: nextImages, currentImageId: nextCurrent });
+					};
+					const updateImage = (imageId: string, changes: Record<string, unknown>) => {
+						updateMediaData({
+							...d,
+							images: d.images.map((image) =>
+								image.id === imageId ? { ...image, ...changes } : image
+							),
+						});
+					};
 					return (
 						<div className="properties-section">
-							<div className="properties-section-title">Shape</div>
-							<div className="properties-row">
-								<span className="properties-label">Type</span>
-								<select
-									className="properties-select"
-									value={d.shape}
-									onChange={(e) => updateData({ shape: e.target.value })}
-								>
-									<option value="rect">Rectangle</option>
-									<option value="ellipse">Ellipse</option>
-								</select>
+							<div className="properties-section-title">Media</div>
+							<div className="media-tabs">
+								{d.images.map((image) => (
+									<button
+										key={image.id}
+										className={`media-tab ${image.id === activeImage?.id ? 'selected' : ''}`}
+										onClick={() => updateData({ currentImageId: image.id })}
+										title={image.name}
+									>
+										{image.src ? (
+											<img src={image.src} alt="" />
+										) : (
+											<Image size={16} />
+										)}
+									</button>
+								))}
+								<button className="media-tab add" onClick={addImage} title="Add image">
+									<Plus size={16} />
+								</button>
 							</div>
-							<div className="properties-row">
-								<span className="properties-label">Fill</span>
-								<div className="properties-color-swatch">
-									<input
-										type="color"
-										value={d.fill}
-										onChange={(e) => updateData({ fill: e.target.value })}
-									/>
-								</div>
-								<input
-									className="properties-input"
-									type="text"
-									value={d.fill}
-									onChange={(e) => updateData({ fill: e.target.value })}
-								/>
-							</div>
-							<div className="properties-row">
-								<span className="properties-label">Stroke</span>
-								<div className="properties-color-swatch">
-									<input
-										type="color"
-										value={d.stroke}
-										onChange={(e) => updateData({ stroke: e.target.value })}
-									/>
-								</div>
-								<input
-									className="properties-input"
-									type="text"
-									value={d.stroke}
-									onChange={(e) => updateData({ stroke: e.target.value })}
-								/>
-							</div>
-							{numField('Stroke W', d.strokeWidth, 'strokeWidth', true)}
+							{activeImage && (
+								<>
+									<div className="media-preview">
+										{activeImage.src ? (
+											<img src={activeImage.src} alt="" />
+										) : (
+											<Image size={26} />
+										)}
+									</div>
+									<div className="properties-row">
+										<span className="properties-label">Name</span>
+										<input
+											className="properties-input"
+											type="text"
+											value={activeImage.name}
+											onChange={(e) => updateImage(activeImage.id, { name: e.target.value })}
+										/>
+									</div>
+									<div className="media-actions">
+										<button className="properties-btn" onClick={() => openImagePicker(activeImage.id)}>
+											<Upload size={14} /> Replace
+										</button>
+										<button className="properties-btn" onClick={() => updateImage(activeImage.id, { src: '' })}>
+											Clear
+										</button>
+										<button className="properties-btn danger" onClick={() => removeImage(activeImage.id)}>
+											<Trash2 size={14} /> Remove
+										</button>
+									</div>
+								</>
+							)}
 						</div>
 					);
 				})()}

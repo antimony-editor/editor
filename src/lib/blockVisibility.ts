@@ -1,7 +1,7 @@
 export type BlockSourceType = "text" | "sprite" | "stage" | "all";
 
 export function getSourceTypeForSprite(
-  spriteType: "text" | "shape" | "image",
+  spriteType: "text" | "media",
 ): BlockSourceType {
   return spriteType === "text" ? "text" : "sprite";
 }
@@ -32,6 +32,12 @@ export const blockVisibilityConfig: BlockVisibilityConfig = {
   appearance_getSize: { visibleFor: ["sprite", "text"] },
   appearance_getOpacity: { visibleFor: ["sprite", "text"] },
   appearance_flip: { visibleFor: ["sprite"] },
+  appearance_setImageIndex: { visibleFor: ["sprite"] },
+  appearance_setImageName: { visibleFor: ["sprite"] },
+  appearance_nextImage: { visibleFor: ["sprite"] },
+  appearance_getImageIndex: { visibleFor: ["sprite"] },
+  appearance_getImageName: { visibleFor: ["sprite"] },
+  appearance_getImageCount: { visibleFor: ["sprite"] },
 
   effects_shake: { visibleFor: ["sprite"] },
   effects_spin: { visibleFor: ["sprite"] },

@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { Type, Pentagon, Image, HelpCircle, X, Copy } from 'lucide-react';
-import { useSprites, createTextSprite, createShapeSprite } from '../lib/sprites';
+import { Type, Image, HelpCircle, X, Copy } from 'lucide-react';
+import { useSprites, createTextSprite, createMediaSprite } from '../lib/sprites';
 
 export default function SpritePanel() {
 	const { state, dispatch } = useSprites();
 	const [showMenu, setShowMenu] = useState(false);
 
-	const handleAdd = (type: 'text' | 'shape') => {
+	const handleAdd = (type: 'text' | 'media') => {
 		const count = state.sprites.filter(s => s.type === type).length + 1;
 		const sprite = type === 'text'
 			? createTextSprite(`Text ${count}`)
-			: createShapeSprite(`Shape ${count}`);
+			: createMediaSprite(`Media ${count}`);
 		dispatch({ type: 'ADD_SPRITE', sprite });
 		setShowMenu(false);
 	};
@@ -18,8 +18,7 @@ export default function SpritePanel() {
 	const iconForType = (type: string) => {
 		switch (type) {
 			case 'text': return <Type size={16} />;
-			case 'shape': return <Pentagon size={16} />;
-			case 'image': return <Image size={16} />;
+			case 'media': return <Image size={16} />;
 			default: return <HelpCircle size={16} />;
 		}
 	};
@@ -71,8 +70,8 @@ export default function SpritePanel() {
 						<button className="add-sprite-option" onClick={() => handleAdd('text')}>
 							<span style={{ color: 'var(--accent)', display: 'flex' }}><Type size={14} /></span> Text
 						</button>
-						<button className="add-sprite-option" onClick={() => handleAdd('shape')}>
-							<span style={{ color: 'var(--accent)', display: 'flex' }}><Pentagon size={14} /></span> Shape
+						<button className="add-sprite-option" onClick={() => handleAdd('media')}>
+							<span style={{ color: 'var(--accent)', display: 'flex' }}><Image size={14} /></span> Media
 						</button>
 
 					</div>

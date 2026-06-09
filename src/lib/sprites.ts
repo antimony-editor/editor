@@ -10,20 +10,22 @@ export interface TextSpriteData {
 	align: 'left' | 'center' | 'right';
 }
 
-export interface ShapeSpriteData {
-	shape: 'rect' | 'ellipse';
-	fill: string;
-	stroke: string;
-	strokeWidth: number;
-}
+export const DEFAULT_MEDIA_SRC = '/default_sprite.svg';
 
-export interface ImageSpriteData {
+export interface MediaImage {
+	id: string;
+	name: string;
 	src: string;
 }
 
-export type SpriteData = TextSpriteData | ShapeSpriteData | ImageSpriteData;
+export interface MediaSpriteData {
+	images: MediaImage[];
+	currentImageId: string | null;
+}
 
-export type SpriteType = 'text' | 'shape' | 'image';
+export type SpriteData = TextSpriteData | MediaSpriteData;
+
+export type SpriteType = 'text' | 'media';
 
 export interface Sprite {
 	id: string;
@@ -65,6 +67,10 @@ export function generateSpriteId(): string {
 	return `sprite_${Date.now()}_${nextId++}`;
 }
 
+export function generateMediaImageId(): string {
+	return `image_${Date.now()}_${nextId++}`;
+}
+
 export function createTextSprite(name: string): Sprite {
 	return {
 		id: generateSpriteId(),
@@ -93,15 +99,16 @@ export function createTextSprite(name: string): Sprite {
 	};
 }
 
-export function createShapeSprite(name: string): Sprite {
+export function createMediaSprite(name: string): Sprite {
+	const imageId = generateMediaImageId();
 	return {
 		id: generateSpriteId(),
 		name,
-		type: 'shape',
+		type: 'media',
 		x: 0,
 		y: 0,
-		width: 120,
-		height: 120,
+		width: (195.49078 * 3),
+		height: (59.46922 * 3),
 		rotation: 0,
 		opacity: 1,
 		visible: true,
@@ -111,34 +118,9 @@ export function createShapeSprite(name: string): Sprite {
 		tweenModes: {},
 		blocklyXml: '',
 		data: {
-			shape: 'rect',
-			fill: '#4C8BF5',
-			stroke: '#ffffff',
-			strokeWidth: 0,
-		} as ShapeSpriteData,
-	};
-}
-
-export function createImageSprite(name: string, src: string): Sprite {
-	return {
-		id: generateSpriteId(),
-		name,
-		type: 'image',
-		x: 0,
-		y: 0,
-		width: 200,
-		height: 150,
-		rotation: 0,
-		opacity: 1,
-		visible: true,
-		locked: false,
-		zIndex: 0,
-		tweenMode: DEFAULT_TWEEN_MODE,
-		tweenModes: {},
-		blocklyXml: '',
-		data: {
-			src,
-		} as ImageSpriteData,
+			images: [{ id: imageId, name: 'Image 1', src: DEFAULT_MEDIA_SRC }],
+			currentImageId: imageId,
+		} as MediaSpriteData,
 	};
 }
 
@@ -244,10 +226,6 @@ export function isTextData(data: SpriteData): data is TextSpriteData {
 	return 'content' in data && 'fontFamily' in data;
 }
 
-export function isShapeData(data: SpriteData): data is ShapeSpriteData {
-	return 'shape' in data && 'fill' in data;
-}
-
-export function isImageData(data: SpriteData): data is ImageSpriteData {
-	return 'src' in data && !('shape' in data);
+export function isMediaData(data: SpriteData): data is MediaSpriteData {
+	return 'images' in data && 'currentImageId' in data;
 }

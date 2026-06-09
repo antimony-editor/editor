@@ -1,6 +1,4 @@
-<!-- trust me this is for the better... -->
   <xml xmlns="https://developers.google.com/blockly/xml">
-  <!-- logic -->
   <category name="Logic" categorystyle="logic_blocks">
     <block type="controls_if">
     </block>
@@ -50,7 +48,6 @@
     <block type="logic_exit_case"></block>
     <block type="logic_runNextCaseWhen"><value name="VALUE"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
   </category>
-  <!-- loops -->
   <category name="Loops" categorystyle="loop_blocks">
     <block type="controls_forLoop">
       <value name="VAR"><block type="controls_forLoop_var"></block></value>
@@ -75,7 +72,6 @@
     <block type="controls_forEach"></block>
     <block type="controls_flow_statements"></block>
   </category>
-  <!-- math -->
   <category name="Math" categorystyle="math_blocks">
     <block type="math_arithmetic">
       <value name="A"><shadow type="math_number"><field name="NUM">1</field></shadow></value>
@@ -102,7 +98,6 @@
     </block>
     <block type="math_random_float"></block>
   </category>
-  <!-- text -->
   <category name="Text" categorystyle="text_blocks">
     <block type="text_setText">
       <value name="TEXT">
@@ -123,7 +118,6 @@
     <block type="text_print"><value name="TEXT"><shadow type="text"><field name="TEXT">abc</field></shadow></value></block>
     <block type="text_prompt_ext"><value name="TEXT"><shadow type="text"><field name="TEXT"></field></shadow></value></block>
   </category>
-  <!-- lists -->
   <category name="Lists" categorystyle="list_blocks">
     <block type="lists_create_with"></block>
     <block type="lists_repeat"><value name="NUM"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
@@ -136,7 +130,6 @@
     <block type="lists_split"></block>
     <block type="lists_sort"></block>
   </category>
-  <!-- motion -->
   <category name="Motion" categorystyle="motion_blocks">
     <block type="motion_pointDirection"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>
     <block type="motion_rotate"><value name="ANGLE"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
@@ -147,7 +140,6 @@
     <block type="motion_glideSecsTo"><value name="SECS"><shadow type="math_number"><field name="NUM">1</field></shadow></value><value name="X"><shadow type="math_number"><field name="NUM">0</field></shadow></value><value name="Y"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="motion_getXY"></block>
   </category>
-  <!-- appearance -->
   <category name="Appearance" categorystyle="appearance_blocks">
     <block type="appearance_show"></block>
     <block type="appearance_hide"></block>
@@ -158,13 +150,17 @@
     <block type="appearance_getSize"></block>
     <block type="appearance_getOpacity"></block>
     <block type="appearance_flip"></block>
+    <block type="appearance_setImageIndex"><value name="INDEX"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="appearance_setImageName"><value name="NAME"><shadow type="text"><field name="TEXT">Image 1</field></shadow></value></block>
+    <block type="appearance_nextImage"></block>
+    <block type="appearance_getImageIndex"></block>
+    <block type="appearance_getImageName"></block>
+    <block type="appearance_getImageCount"></block>
   </category>
-  <!-- timing -->
   <category name="Timing" categorystyle="timing_blocks">
     <block type="on_start"></block>
     <block type="wait_seconds"><value name="SECONDS"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
   </category>
-  <!-- effects -->
   <category name="Effects" categorystyle="effects_blocks">
     <block type="effects_shake"><value name="INTENSITY"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
     <block type="effects_spin"><value name="TIMES"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
@@ -178,7 +174,6 @@
     <block type="effects_clear_canvas"></block>
     <block type="effects_change_canvas"><value name="DELTA"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
   </category>
-  <!-- layers -->
   <category name="Layers" categorystyle="layers_blocks">
     <block type="layers_sendToFront"></block>
     <block type="layers_sendToBack"></block>
@@ -187,17 +182,13 @@
     <block type="layers_setZIndex"><value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="layers_getZIndex"></block>
   </category>
-  <!-- audio -->
   <category name="Audio" categorystyle="audio_blocks"></category>
-  <!-- variables -->
   <category name="Variables" categorystyle="variable_blocks" custom="VARIABLE"></category>
-  <!-- functions -->
   <category name="Functions" categorystyle="procedure_blocks">
     <block type="functions_lambda"></block>
     <block type="functions_execute"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
     <block type="functions_execute_reporter"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
     <block type="functions_return"><value name="VALUE"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
   </category>
-  <!-- other -->
     <category name="Other" categorystyle="other_blocks"></category>
 </xml>

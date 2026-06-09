@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Play, Square, Pause } from 'lucide-react';
-import { Stage, Layer, Rect, Text, Ellipse, Transformer, Line } from 'react-konva';
+import { Stage, Layer, Rect, Text, Transformer, Line, Image as KonvaImage, Group } from 'react-konva';
 import type Konva from 'konva';
-import { useSprites, isTextData, isShapeData, type Sprite } from '../lib/sprites';
+import { useSprites, isTextData, isMediaData, type Sprite } from '../lib/sprites';
 import { buildFontStack } from '../lib/fonts';
 import { useProjectSettings } from '../lib/settings';
 import * as Blockly from 'blockly';
@@ -134,24 +134,49 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 	isSelected: boolean;
 	showTransformer: boolean;
 	onSelect: () => void;
-	onNodeReady: (id: string, node: Konva.Shape | null) => void;
+	onNodeReady: (id: string, node: Konva.Node | null) => void;
 	stageCoords: ReturnType<typeof createStageCoords>;
 	snapToGrid: boolean;
 	gridSize: number;
 }) {
 	const { toCanvasX, toCanvasY, fromCanvasX, fromCanvasY } = stageCoords;
-	const shapeRef = useRef<Konva.Shape | null>(null);
+	const nodeRef = useRef<Konva.Node | null>(null);
 	const trRef = useRef<Konva.Transformer | null>(null);
 	const { dispatch } = useSprites();
+	const mediaData = isMediaData(sprite.data) ? sprite.data : null;
+	const activeImage = mediaData
+		? mediaData.images.find((image) => image.id === mediaData.currentImageId) ?? mediaData.images[0]
+		: null;
+	const mediaSrc = activeImage?.src ?? '';
+	const [mediaImage, setMediaImage] = useState<HTMLImageElement | null>(null);
 
 	useEffect(() => {
-		onNodeReady(sprite.id, shapeRef.current);
+		if (!mediaSrc) {
+			setMediaImage(null);
+			return;
+		}
+		let mounted = true;
+		const image = new window.Image();
+		image.onload = () => {
+			if (mounted) setMediaImage(image);
+		};
+		image.onerror = () => {
+			if (mounted) setMediaImage(null);
+		};
+		image.src = mediaSrc;
+		return () => {
+			mounted = false;
+		};
+	}, [mediaSrc]);
+
+	useEffect(() => {
+		onNodeReady(sprite.id, nodeRef.current);
 		return () => onNodeReady(sprite.id, null);
 	}, [onNodeReady, sprite.id]);
 
 	useEffect(() => {
-		if (isSelected && showTransformer && trRef.current && shapeRef.current) {
-			trRef.current.nodes([shapeRef.current]);
+		if (isSelected && showTransformer && trRef.current && nodeRef.current) {
+			trRef.current.nodes([nodeRef.current]);
 			trRef.current.getLayer()?.batchDraw();
 		}
 	}, [isSelected, showTransformer]);
@@ -159,12 +184,6 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 	const handleDragMove = (e: Konva.KonvaEventObject<DragEvent>) => {
 		if (!snapToGrid || sprite.locked) return;
 		const node = e.target;
-		if (isShapeData(sprite.data) && sprite.data.shape === 'ellipse') {
-			const snapped = snapCanvasPoint(node.x(), node.y(), gridSize);
-			node.x(snapped.x);
-			node.y(snapped.y);
-			return;
-		}
 		const snapped = snapTopLeftToGrid(node.x(), node.y(), node.width(), node.height(), gridSize);
 		node.x(snapped.x);
 		node.y(snapped.y);
@@ -173,16 +192,6 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 	const handleDragEnd = (e: Konva.KonvaEventObject<DragEvent>) => {
 		if (sprite.locked) return;
 		const node = e.target;
-		if (isShapeData(sprite.data) && sprite.data.shape === 'ellipse') {
-			const canvasX = snapToGrid ? snapCanvasCoord(node.x(), gridSize) : node.x();
-			const canvasY = snapToGrid ? snapCanvasCoord(node.y(), gridSize) : node.y();
-			if (snapToGrid) {
-				node.x(canvasX);
-				node.y(canvasY);
-			}
-			dispatch({ type: 'UPDATE_SPRITE', id: sprite.id, changes: { x: fromCanvasX(canvasX), y: fromCanvasY(canvasY) } });
-			return;
-		}
 		const width = node.width();
 		const height = node.height();
 		const topLeft = snapToGrid
@@ -203,7 +212,7 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 	};
 
 	const handleTransformEnd = () => {
-		const node = shapeRef.current;
+		const node = nodeRef.current;
 		if (!node) return;
 		const scaleX = node.scaleX();
 		const scaleY = node.scaleY();
@@ -221,25 +230,14 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 			rotation: updatedRotation,
 		};
 
-		if (isShapeData(sprite.data) && sprite.data.shape === 'ellipse') {
-			const canvasX = snapToGrid ? snapCanvasCoord(node.x(), gridSize) : node.x();
-			const canvasY = snapToGrid ? snapCanvasCoord(node.y(), gridSize) : node.y();
-			changes.x = fromCanvasX(canvasX);
-			changes.y = fromCanvasY(canvasY);
-			if (snapToGrid) {
-				node.x(canvasX);
-				node.y(canvasY);
-			}
-		} else {
-			const topLeft = snapToGrid
-				? snapTopLeftToGrid(node.x(), node.y(), updatedWidth, updatedHeight, gridSize)
-				: { x: node.x(), y: node.y() };
-			changes.x = fromCanvasX(topLeft.x + updatedWidth / 2);
-			changes.y = fromCanvasY(topLeft.y + updatedHeight / 2);
-			if (snapToGrid) {
-				node.x(topLeft.x);
-				node.y(topLeft.y);
-			}
+		const topLeft = snapToGrid
+			? snapTopLeftToGrid(node.x(), node.y(), updatedWidth, updatedHeight, gridSize)
+			: { x: node.x(), y: node.y() };
+		changes.x = fromCanvasX(topLeft.x + updatedWidth / 2);
+		changes.y = fromCanvasY(topLeft.y + updatedHeight / 2);
+		if (snapToGrid) {
+			node.x(topLeft.x);
+			node.y(topLeft.y);
 		}
 
 		if (isTextSprite && isTextData(sprite.data)) {
@@ -286,7 +284,7 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 		element = (
 			<Text
 				{...commonProps}
-				ref={shapeRef as React.RefObject<Konva.Text | null>}
+				ref={nodeRef as React.RefObject<Konva.Text | null>}
 				text={d.content}
 				fontFamily={buildFontStack(d.fontFamily)}
 				fontSize={d.fontSize}
@@ -297,39 +295,35 @@ function SpriteRenderer({ sprite, isSelected, showTransformer, onSelect, onNodeR
 				wrap="word"
 			/>
 		);
-	} else if (isShapeData(sprite.data)) {
-		const d = sprite.data;
-		if (d.shape === 'ellipse') {
-			element = (
-				<Ellipse
-					ref={shapeRef as React.RefObject<Konva.Ellipse | null>}
-					radiusX={sprite.width / 2}
-					radiusY={sprite.height / 2}
-					x={toCanvasX(sprite.x)}
-					y={toCanvasY(sprite.y)}
-					fill={d.fill}
-					stroke={d.stroke}
-					strokeWidth={d.strokeWidth}
-					draggable={!sprite.locked}
-					onClick={onSelect}
-					onTap={onSelect}
-					onDragMove={handleDragMove}
-					onDragEnd={handleDragEnd}
-					onTransformEnd={handleTransformEnd}
-				/>
-			);
-		} else {
-			element = (
+	} else if (isMediaData(sprite.data)) {
+		element = (
+			<Group
+				{...commonProps}
+				ref={nodeRef as React.RefObject<Konva.Group | null>}
+			>
 				<Rect
-					{...commonProps}
-					ref={shapeRef as React.RefObject<Konva.Rect | null>}
-					fill={d.fill}
-					stroke={d.stroke}
-					strokeWidth={d.strokeWidth}
+					x={0}
+					y={0}
+					width={sprite.width}
+					height={sprite.height}
+					fill="rgba(255,255,255,0.01)"
+					stroke={mediaImage ? undefined : isSelected ? '#a63ef5' : 'rgba(255,255,255,0.16)'}
+					strokeWidth={mediaImage ? 0 : 1}
+					dash={mediaImage ? undefined : [8, 5]}
 					cornerRadius={4}
 				/>
-			);
-		}
+				{mediaImage && (
+					<KonvaImage
+						x={0}
+						y={0}
+						width={sprite.width}
+						height={sprite.height}
+						image={mediaImage}
+						listening={false}
+					/>
+				)}
+			</Group>
+		);
 	}
 
 	return (
@@ -362,7 +356,7 @@ export default function StageView() {
 	const parentRef = useRef<HTMLDivElement>(null);
 	const layerRef = useRef<Konva.Layer>(null);
 	const fpsRef = useRef<HTMLDivElement>(null);
-	const spriteNodeRefs = useRef(new Map<string, Konva.Shape>());
+	const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
 	const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
 	const { state, dispatch } = useSprites();
 	const { settings } = useProjectSettings();
@@ -526,7 +520,7 @@ export default function StageView() {
 		}
 	}, [dispatch]);
 
-	const handleSpriteNodeReady = useCallback((id: string, node: Konva.Shape | null) => {
+	const handleSpriteNodeReady = useCallback((id: string, node: Konva.Node | null) => {
 		if (node) {
 			spriteNodeRefs.current.set(id, node);
 		} else {
@@ -572,27 +566,15 @@ export default function StageView() {
 				const rotation = Number(spriteData.rotation ?? sprite.rotation);
 				const opacity = Number(spriteData.opacity ?? sprite.opacity);
 				const visible = Boolean(spriteData.visible ?? sprite.visible);
-				if (isShapeData(sprite.data) && sprite.data.shape === 'ellipse') {
-					node.setAttrs({
-						x: stageCoords.toCanvasX(x),
-						y: stageCoords.toCanvasY(y),
-						radiusX: width / 2,
-						radiusY: height / 2,
-						rotation,
-						opacity,
-						visible,
-					});
-				} else {
-					node.setAttrs({
-						x: stageCoords.toCanvasX(x) - width / 2,
-						y: stageCoords.toCanvasY(y) - height / 2,
-						width,
-						height,
-						rotation,
-						opacity,
-						visible,
-					});
-				}
+				node.setAttrs({
+					x: stageCoords.toCanvasX(x) - width / 2,
+					y: stageCoords.toCanvasY(y) - height / 2,
+					width,
+					height,
+					rotation,
+					opacity,
+					visible,
+				});
 				if (sprite.type === 'text') {
 					if (typeof spriteData.color === 'string') node.setAttr('fill', spriteData.color);
 					if (typeof spriteData.text === 'string') node.setAttr('text', spriteData.text);
@@ -617,6 +599,13 @@ export default function StageView() {
 				spriteData.color = sprite.data.color;
 				spriteData.text = sprite.data.content;
 			}
+			if (sprite.type === 'media' && isMediaData(sprite.data)) {
+				const media = sprite.data;
+				const imageIndex = Math.max(0, media.images.findIndex((image) => image.id === media.currentImageId));
+				spriteData.imageIndex = imageIndex + 1;
+				spriteData.imageName = media.images[imageIndex]?.name ?? '';
+				spriteData.imageCount = media.images.length;
+			}
 
 			const spriteProxy = new Proxy(spriteData, {
 				get: (target, property) => {
@@ -635,6 +624,21 @@ export default function StageView() {
 					}
 					if (property === 'text') {
 						return target.text;
+					}
+					if (property === 'imageCount') {
+						return current && isMediaData(current.data) ? current.data.images.length : 0;
+					}
+					if (property === 'imageIndex') {
+						if (!current || !isMediaData(current.data)) return 0;
+						const media = current.data;
+						const index = media.images.findIndex((image) => image.id === media.currentImageId);
+						return Math.max(0, index) + 1;
+					}
+					if (property === 'imageName') {
+						if (!current || !isMediaData(current.data)) return '';
+						const media = current.data;
+						const image = media.images.find((entry) => entry.id === media.currentImageId) ?? media.images[0];
+						return image?.name ?? '';
 					}
 					return target[property as keyof typeof target];
 				},
@@ -675,6 +679,35 @@ export default function StageView() {
 							queuePlaybackStateUpdate(sprite.id, {
 								data: { ...current.data, content: value as string },
 							});
+						}
+						return true;
+					}
+					if (property === 'imageIndex') {
+						if (current && isMediaData(current.data) && current.data.images.length > 0) {
+							const media = current.data;
+							const index = Math.max(0, Math.min(media.images.length - 1, Math.round(Number(value) || 1) - 1));
+							const nextData = { ...media, currentImageId: media.images[index].id };
+							target.imageIndex = index + 1;
+							target.imageName = media.images[index].name;
+							target.imageCount = media.images.length;
+							dispatch({ type: 'UPDATE_SPRITE', id: sprite.id, changes: { data: nextData } });
+							queuePlaybackStateUpdate(sprite.id, { data: nextData });
+						}
+						return true;
+					}
+					if (property === 'imageName') {
+						if (current && isMediaData(current.data) && current.data.images.length > 0) {
+							const media = current.data;
+							const requested = String(value);
+							const index = media.images.findIndex((image) => image.name === requested);
+							if (index !== -1) {
+								const nextData = { ...media, currentImageId: media.images[index].id };
+								target.imageIndex = index + 1;
+								target.imageName = media.images[index].name;
+								target.imageCount = media.images.length;
+								dispatch({ type: 'UPDATE_SPRITE', id: sprite.id, changes: { data: nextData } });
+								queuePlaybackStateUpdate(sprite.id, { data: nextData });
+							}
 						}
 						return true;
 					}
