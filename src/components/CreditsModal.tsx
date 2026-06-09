@@ -24,12 +24,13 @@ const credits = [
 ];
 
 interface CreditsModalProps {
+	isClosing?: boolean;
 	onClose: () => void;
 }
 
-export default function CreditsModal({ onClose }: CreditsModalProps) {
+export default function CreditsModal({ isClosing = false, onClose }: CreditsModalProps) {
 	return (
-		<div className="modal-overlay" onClick={onClose}>
+		<div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onClick={onClose}>
 			<div className="modal-content credits-modal" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
 					<h2>Credits</h2>

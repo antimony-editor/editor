@@ -4,10 +4,11 @@ import { RESOLUTION_PRESETS, type ProjectSettings } from '../lib/settings';
 interface SettingsModalProps {
 	settings: ProjectSettings;
 	onChange: (settings: ProjectSettings) => void;
+	isClosing?: boolean;
 	onClose: () => void;
 }
 
-export default function SettingsModal({ settings, onChange, onClose }: SettingsModalProps) {
+export default function SettingsModal({ settings, onChange, isClosing = false, onClose }: SettingsModalProps) {
 	const matchedPreset = RESOLUTION_PRESETS.find(
 		(preset) => preset.width === settings.width && preset.height === settings.height,
 	);
@@ -20,7 +21,7 @@ export default function SettingsModal({ settings, onChange, onClose }: SettingsM
 	};
 
 	return (
-		<div className="modal-overlay" onClick={onClose}>
+		<div className={`modal-overlay ${isClosing ? 'is-closing' : ''}`} onClick={onClose}>
 			<div className="modal-content settings-modal" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
 					<h2>Project Settings</h2>

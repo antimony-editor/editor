@@ -1,4 +1,4 @@
-import { useReducer, useState, useMemo, useCallback } from 'react';
+import { useReducer, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { SpriteContext, spriteReducer, initialSpriteState } from './lib/sprites';
 import HeaderBar from './components/HeaderBar';
@@ -17,6 +17,9 @@ import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 hljs.registerLanguage('javascript', javascript);
 
+const MODAL_EXIT_MS = 120;
+type ModalKey = 'js' | 'credits' | 'settings';
+
 export default function App() {
 	const [state, dispatch] = useReducer(spriteReducer, initialSpriteState);
 	const [showJS, setShowJS] = useState(false);
@@ -25,6 +28,40 @@ export default function App() {
 	const [projectSettings, setProjectSettings] = useState<ProjectSettings>(DEFAULT_PROJECT_SETTINGS);
 	const [showCredits, setShowCredits] = useState(false);
 	const [showSettings, setShowSettings] = useState(false);
+	const [closingModals, setClosingModals] = useState<Record<ModalKey, boolean>>({
+		js: false,
+		credits: false,
+		settings: false,
+	});
+	const modalCloseTimers = useRef<Partial<Record<ModalKey, number>>>({});
+
+	useEffect(() => {
+		return () => {
+			Object.values(modalCloseTimers.current).forEach((timer) => {
+				if (timer) window.clearTimeout(timer);
+			});
+		};
+	}, []);
+
+	const openModal = useCallback((key: ModalKey, setOpen: (open: boolean) => void) => {
+		const timer = modalCloseTimers.current[key];
+		if (timer) {
+			window.clearTimeout(timer);
+			delete modalCloseTimers.current[key];
+		}
+		setClosingModals((current) => current[key] ? { ...current, [key]: false } : current);
+		setOpen(true);
+	}, []);
+
+	const closeModal = useCallback((key: ModalKey, setOpen: (open: boolean) => void) => {
+		if (modalCloseTimers.current[key]) return;
+		setClosingModals((current) => current[key] ? current : { ...current, [key]: true });
+		modalCloseTimers.current[key] = window.setTimeout(() => {
+			setOpen(false);
+			setClosingModals((current) => current[key] ? { ...current, [key]: false } : current);
+			delete modalCloseTimers.current[key];
+		}, MODAL_EXIT_MS);
+	}, []);
 
 	const updateProjectSettings = useCallback((changes: Partial<ProjectSettings>) => {
 		setProjectSettings((current) => ({ ...current, ...changes }));
@@ -32,7 +69,7 @@ export default function App() {
 
 	const handleSeeJS = () => {
 		setGeneratedJS(runtime.compile().trim());
-		setShowJS(true);
+		openModal('js', setShowJS);
 	};
 
 	const handleSave = async () => {
@@ -98,8 +135,8 @@ export default function App() {
 						onSeeJS={handleSeeJS}
 						onSave={handleSave}
 						onLoad={handleLoad}
-						onOpenCredits={() => setShowCredits(true)}
-						onOpenSettings={() => setShowSettings(true)}
+						onOpenCredits={() => openModal('credits', setShowCredits)}
+						onOpenSettings={() => openModal('settings', setShowSettings)}
 					/>
 					<BlocklyEditor />
 					<div className="right-column">
@@ -112,23 +149,30 @@ export default function App() {
 				</div>
 
 				{showCredits && (
-					<CreditsModal onClose={() => setShowCredits(false)} />
+					<CreditsModal
+						isClosing={closingModals.credits}
+						onClose={() => closeModal('credits', setShowCredits)}
+					/>
 				)}
 
 				{showSettings && (
 					<SettingsModal
 						settings={projectSettings}
 						onChange={setProjectSettings}
-						onClose={() => setShowSettings(false)}
+						isClosing={closingModals.settings}
+						onClose={() => closeModal('settings', setShowSettings)}
 					/>
 				)}
 
 				{showJS && (
-					<div className="modal-overlay" onClick={() => setShowJS(false)}>
+					<div
+						className={`modal-overlay ${closingModals.js ? 'is-closing' : ''}`}
+						onClick={() => closeModal('js', setShowJS)}
+					>
 						<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 							<div className="modal-header">
 								<h2>Generated JavaScript</h2>
-								<button className="close-modal-btn" onClick={() => setShowJS(false)}><X size={18} /></button>
+								<button className="close-modal-btn" onClick={() => closeModal('js', setShowJS)}><X size={18} /></button>
 							</div>
 							<div className="modal-body">
 								<div className="code-container">
