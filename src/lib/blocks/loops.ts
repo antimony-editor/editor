@@ -2,7 +2,7 @@ import * as Blockly from "blockly/core";
 import { javascriptGenerator, Order } from "blockly/javascript";
 
 const forLoopVarBlock = {
-    init: function () {
+    init: function (this: Blockly.Block) {
         this.appendDummyInput().appendField("i");
         this.setOutput(true, "Number");
         this.setStyle("loop_blocks");

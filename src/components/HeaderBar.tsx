@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { File, Code } from 'lucide-react';
+import { File, Code, BookOpen, Settings } from 'lucide-react';
 
 interface HeaderBarProps {
 	projectName: string;
@@ -7,6 +7,8 @@ interface HeaderBarProps {
 	onSeeJS: () => void;
 	onSave: () => void;
 	onLoad: () => void;
+	onOpenCredits: () => void;
+	onOpenSettings: () => void;
 }
 
 export default function HeaderBar({
@@ -14,7 +16,9 @@ export default function HeaderBar({
 	onProjectNameChange,
 	onSeeJS,
 	onSave,
-	onLoad
+	onLoad,
+	onOpenCredits,
+	onOpenSettings,
 }: HeaderBarProps) {
 	const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
@@ -69,6 +73,14 @@ export default function HeaderBar({
 						</div>
 					)}
 				</div>
+
+				<button className="file-tab-btn" title="Credits" onClick={onOpenCredits}>
+					<BookOpen size={20} />
+				</button>
+
+				<button className="file-tab-btn" title="Settings" onClick={onOpenSettings}>
+					<Settings size={20} />
+				</button>
 			</div>
 
 			<div className="header-project-name">

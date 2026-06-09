@@ -1,24 +1,29 @@
 import { Sprite, SpriteState } from './sprites';
+import { DEFAULT_TWEEN_MODE, isTweenMode, type TweenableProperty, type TweenMode } from './tween';
+import { DEFAULT_PROJECT_SETTINGS, normalizeProjectSettings, type ProjectSettings } from './settings';
 
 const MAGIC = 'ANTIMONY';
-const VERSION = 1;
+const VERSION = 2;
 
 interface Section {
 	name: string;
 	data: Uint8Array;
 }
 
-export async function serializeProject(projectName: string, state: SpriteState): Promise<ArrayBuffer> {
+export async function serializeProject(
+	projectName: string,
+	state: SpriteState,
+	settings: ProjectSettings = DEFAULT_PROJECT_SETTINGS,
+): Promise<ArrayBuffer> {
 	const encoder = new TextEncoder();
 	const sections: Section[] = [];
 
-	// metadata stuff
 	const metadata = `name:${projectName}\nversion:${VERSION}`;
 	sections.push({ name: 'metadata', data: encoder.encode(metadata) });
 
-	// state
 	const stateBuffer = serializeState(state, encoder);
 	sections.push({ name: 'state', data: stateBuffer });
+	sections.push({ name: 'settings', data: encoder.encode(JSON.stringify(settings)) });
 
 	// header, version, etc
 	const headerSize = 14;
@@ -84,6 +89,8 @@ function serializeState(state: SpriteState, encoder: TextEncoder): Uint8Array {
 
 		parts.push(serializeSpriteData(sprite.data, encoder));
 		parts.push(serializeString(sprite.blocklyXml, encoder));
+		parts.push(serializeString(sprite.tweenMode, encoder));
+		parts.push(serializeTweenModes(sprite.tweenModes, encoder));
 	}
 
 	const totalLen = parts.reduce((sum, p) => sum + p.length, 0);
@@ -102,6 +109,32 @@ function serializeString(str: string, encoder: TextEncoder): Uint8Array {
 	new DataView(buf.buffer).setUint32(0, bytes.length);
 	buf.set(bytes, 4);
 	return buf;
+}
+
+function serializeTweenModes(
+	modes: Partial<Record<TweenableProperty, TweenMode>>,
+	encoder: TextEncoder,
+): Uint8Array {
+	const entries = Object.entries(modes).filter(([, mode]) => Boolean(mode));
+	const parts: Uint8Array[] = [];
+
+	const countBuf = new Uint8Array(4);
+	new DataView(countBuf.buffer).setUint32(0, entries.length);
+	parts.push(countBuf);
+
+	for (const [property, mode] of entries) {
+		parts.push(serializeString(property, encoder));
+		parts.push(serializeString(mode, encoder));
+	}
+
+	const totalLen = parts.reduce((sum, p) => sum + p.length, 0);
+	const result = new Uint8Array(totalLen);
+	let offset = 0;
+	for (const p of parts) {
+		result.set(p, offset);
+		offset += p.length;
+	}
+	return result;
 }
 
 function serializeSpriteData(data: any, encoder: TextEncoder): Uint8Array {
@@ -127,7 +160,11 @@ function serializeSpriteData(data: any, encoder: TextEncoder): Uint8Array {
 	return result;
 }
 
-export async function deserializeProject(buffer: ArrayBuffer): Promise<{ projectName: string, state: SpriteState }> {
+export async function deserializeProject(buffer: ArrayBuffer): Promise<{
+	projectName: string;
+	state: SpriteState;
+	settings: ProjectSettings;
+}> {
 	const view = new DataView(buffer);
 	const decoder = new TextDecoder();
 
@@ -140,6 +177,7 @@ export async function deserializeProject(buffer: ArrayBuffer): Promise<{ project
 
 	let projectName = 'Untitled Project';
 	let state: SpriteState = { sprites: [], selectedSpriteId: null, loadKey: 0 };
+	let settings = DEFAULT_PROJECT_SETTINGS;
 
 	let manifestPos = 14;
 	for (let i = 0; i < sectionCount; i++) {
@@ -158,16 +196,22 @@ export async function deserializeProject(buffer: ArrayBuffer): Promise<{ project
 				if (k === 'name') projectName = v;
 			}
 		} else if (name === 'state') {
-			state = deserializeState(data);
+			state = deserializeState(data, version);
+		} else if (name === 'settings') {
+			try {
+				settings = normalizeProjectSettings(JSON.parse(decoder.decode(data)));
+			} catch {
+				settings = DEFAULT_PROJECT_SETTINGS;
+			}
 		}
 
 		manifestPos += 24;
 	}
 
-	return { projectName, state };
+	return { projectName, state, settings };
 }
 
-function deserializeState(data: Uint8Array): SpriteState {
+function deserializeState(data: Uint8Array, fileVersion: number): SpriteState {
 	const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
 	const decoder = new TextDecoder();
 	let offset = 0;
@@ -203,11 +247,28 @@ function deserializeState(data: Uint8Array): SpriteState {
 		const blocklyXml = deserializeString(view, offset, decoder);
 		offset += 4 + blocklyXml.bytes.length;
 
+		let tweenMode: TweenMode = DEFAULT_TWEEN_MODE;
+		let tweenModes: Partial<Record<TweenableProperty, TweenMode>> = {};
+
+		if (fileVersion >= 2 && offset < data.byteLength) {
+			const tweenModeRes = deserializeString(view, offset, decoder);
+			offset += 4 + tweenModeRes.bytes.length;
+			tweenMode = isTweenMode(tweenModeRes.str) ? tweenModeRes.str : DEFAULT_TWEEN_MODE;
+
+			if (offset < data.byteLength) {
+				const tweenModesRes = deserializeTweenModes(view, offset, decoder);
+				offset = tweenModesRes.newOffset;
+				tweenModes = tweenModesRes.modes;
+			}
+		}
+
 		sprites.push({
 			id: id.str,
 			name: name.str,
 			type: type.str,
 			x, y, width, height, rotation, opacity, visible, locked, zIndex,
+			tweenMode,
+			tweenModes,
 			data: dataRes.data,
 			blocklyXml: blocklyXml.str
 		});
@@ -224,6 +285,30 @@ function deserializeString(view: DataView, offset: number, decoder: TextDecoder)
 	const len = view.getUint32(offset);
 	const bytes = new Uint8Array(view.buffer, view.byteOffset + offset + 4, len);
 	return { str: decoder.decode(bytes), bytes };
+}
+
+function deserializeTweenModes(
+	view: DataView,
+	offset: number,
+	decoder: TextDecoder,
+): { modes: Partial<Record<TweenableProperty, TweenMode>>; newOffset: number } {
+	const count = view.getUint32(offset);
+	let currentOffset = offset + 4;
+	const modes: Partial<Record<TweenableProperty, TweenMode>> = {};
+
+	for (let i = 0; i < count; i++) {
+		const property = deserializeString(view, currentOffset, decoder);
+		currentOffset += 4 + property.bytes.length;
+
+		const mode = deserializeString(view, currentOffset, decoder);
+		currentOffset += 4 + mode.bytes.length;
+
+		if (isTweenMode(mode.str)) {
+			modes[property.str as TweenableProperty] = mode.str;
+		}
+	}
+
+	return { modes, newOffset: currentOffset };
 }
 
 function deserializeSpriteData(view: DataView, offset: number, decoder: TextDecoder): { data: any, newOffset: number } {

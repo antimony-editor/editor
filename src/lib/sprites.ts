@@ -1,4 +1,5 @@
 import { createContext, useContext, type Dispatch } from 'react';
+import { DEFAULT_TWEEN_MODE, type TweenMode, type TweenableProperty } from './tween';
 
 export interface TextSpriteData {
 	content: string;
@@ -37,6 +38,8 @@ export interface Sprite {
 	visible: boolean;
 	locked: boolean;
 	zIndex: number;
+	tweenMode: TweenMode;
+	tweenModes: Partial<Record<TweenableProperty, TweenMode>>;
 	data: SpriteData;
 	blocklyXml: string;
 }
@@ -69,18 +72,20 @@ export function createTextSprite(name: string): Sprite {
 		type: 'text',
 		x: 0,
 		y: 0,
-		width: 200,
-		height: 40,
+		width: 533,
+		height: 107,
 		rotation: 0,
 		opacity: 1,
 		visible: true,
 		locked: false,
 		zIndex: 0,
+		tweenMode: DEFAULT_TWEEN_MODE,
+		tweenModes: {},
 		blocklyXml: '',
 		data: {
 			content: 'Antimony!',
 			fontFamily: 'Inter',
-			fontSize: 24,
+			fontSize: 64,
 			fontWeight: 400,
 			color: '#ffffff',
 			align: 'center',
@@ -102,6 +107,8 @@ export function createShapeSprite(name: string): Sprite {
 		visible: true,
 		locked: false,
 		zIndex: 0,
+		tweenMode: DEFAULT_TWEEN_MODE,
+		tweenModes: {},
 		blocklyXml: '',
 		data: {
 			shape: 'rect',
@@ -126,6 +133,8 @@ export function createImageSprite(name: string, src: string): Sprite {
 		visible: true,
 		locked: false,
 		zIndex: 0,
+		tweenMode: DEFAULT_TWEEN_MODE,
+		tweenModes: {},
 		blocklyXml: '',
 		data: {
 			src,
@@ -193,6 +202,7 @@ export function spriteReducer(state: SpriteState, action: SpriteAction): SpriteS
 				x: original.x + 20,
 				y: original.y + 20,
 				zIndex: state.sprites.length,
+				tweenModes: { ...original.tweenModes },
 				data: { ...original.data },
 			};
 			return {
@@ -204,6 +214,11 @@ export function spriteReducer(state: SpriteState, action: SpriteAction): SpriteS
 		case 'LOAD_PROJECT': {
 			return {
 				...action.state,
+				sprites: action.state.sprites.map((sprite) => ({
+					...sprite,
+					tweenMode: sprite.tweenMode ?? DEFAULT_TWEEN_MODE,
+					tweenModes: sprite.tweenModes ?? {},
+				})),
 				loadKey: state.loadKey + 1,
 			};
 		}

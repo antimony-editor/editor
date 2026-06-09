@@ -1,5 +1,6 @@
 import * as Blockly from "blockly/core";
 import { javascriptGenerator, Order } from "blockly/javascript";
+import { TWEEN_MODE_OPTIONS, TWEENABLE_PROPERTY_OPTIONS } from "../tween";
 
 Blockly.Blocks["effects_shake"] = {
   init: function () {
@@ -84,68 +85,13 @@ javascriptGenerator.forBlock["effects_pulse"] = function () {
 })();\n`;
 };
 
-Blockly.Blocks["effects_fadeIn"] = {
+Blockly.Blocks["effects_tween"] = {
   init: function () {
-    this.appendValueInput("DURATION")
-      .setCheck("Number")
-      .appendField("fade in over");
-    this.appendDummyInput().appendField("seconds");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("effects_blocks");
-    this.setTooltip("Make the sprite gradually appear");
-  },
-};
-
-javascriptGenerator.forBlock["effects_fadeIn"] = function (block: Blockly.Block) {
-  const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
-  return `await (async () => {
-  const startOpacity = context.sprite.opacity;
-  context.sprite.opacity = 0;
-  const steps = 20;
-  const stepDuration = (${duration} * 1000) / steps;
-  for (let i = 0; i < steps; i++) {
-    if (window.RUNTIME.isStopped()) return;
-    context.sprite.opacity = (i / steps) * startOpacity;
-    await window.RUNTIME.delay(stepDuration);
-  }
-  context.sprite.opacity = startOpacity;
-})();\n`;
-};
-
-Blockly.Blocks["effects_fadeOut"] = {
-  init: function () {
-    this.appendValueInput("DURATION")
-      .setCheck("Number")
-      .appendField("fade out over");
-    this.appendDummyInput().appendField("seconds");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("effects_blocks");
-    this.setTooltip("Make the sprite gradually disappear");
-  },
-};
-
-javascriptGenerator.forBlock["effects_fadeOut"] = function (block: Blockly.Block) {
-  const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
-  return `await (async () => {
-  const startOpacity = context.sprite.opacity;
-  const steps = 20;
-  const stepDuration = (${duration} * 1000) / steps;
-  for (let i = 0; i < steps; i++) {
-    if (window.RUNTIME.isStopped()) return;
-    context.sprite.opacity = startOpacity * (1 - i / steps);
-    await window.RUNTIME.delay(stepDuration);
-  }
-  context.sprite.opacity = 0;
-})();\n`;
-};
-
-Blockly.Blocks["effects_scaleAnimation"] = {
-  init: function () {
-    this.appendValueInput("SCALE")
-      .setCheck("Number")
-      .appendField("scale to");
+    this.appendDummyInput()
+      .appendField("tween")
+      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY")
+      .appendField("to");
+    this.appendValueInput("VALUE").setCheck("Number");
     this.appendValueInput("DURATION")
       .setCheck("Number")
       .appendField("over");
@@ -153,63 +99,70 @@ Blockly.Blocks["effects_scaleAnimation"] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("effects_blocks");
-    this.setTooltip("Smoothly change the sprite size");
+    this.setTooltip("Smoothly change a sprite property over time using its tween mode");
+    this.setInputsInline(true);
   },
 };
 
-javascriptGenerator.forBlock["effects_scaleAnimation"] = function (block: Blockly.Block) {
-  const scale = javascriptGenerator.valueToCode(block, "SCALE", Order.ATOMIC) || "1.5";
+javascriptGenerator.forBlock["effects_tween"] = function (block: Blockly.Block) {
+  const property = block.getFieldValue("PROPERTY");
+  const value = javascriptGenerator.valueToCode(block, "VALUE", Order.ATOMIC) || "0";
   const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
-  return `await (async () => {
-  const startWidth = context.sprite.width;
-  const startHeight = context.sprite.height;
-  const targetScale = ${scale};
-  const steps = 20;
-  const stepDuration = (${duration} * 1000) / steps;
-  for (let i = 0; i < steps; i++) {
-    if (window.RUNTIME.isStopped()) return;
-    const progress = i / steps;
-    context.sprite.width = startWidth * (1 + (targetScale - 1) * progress);
-    context.sprite.height = startHeight * (1 + (targetScale - 1) * progress);
-    await window.RUNTIME.delay(stepDuration);
-  }
-  context.sprite.width = startWidth * targetScale;
-  context.sprite.height = startHeight * targetScale;
-})();\n`;
+  return `await window.RUNTIME.tween(context, ${JSON.stringify(property)}, (${value}), (${duration}));\n`;
 };
 
-Blockly.Blocks["effects_rotateTo"] = {
+Blockly.Blocks["effects_setTweenMode"] = {
   init: function () {
-    this.appendValueInput("ANGLE")
-      .setCheck("Number")
-      .appendField("rotate to");
-    this.appendValueInput("DURATION")
-      .setCheck("Number")
-      .appendField("degrees over");
-    this.appendDummyInput().appendField("seconds");
+    this.appendDummyInput()
+      .appendField("set tween mode to")
+      .appendField(new Blockly.FieldDropdown(TWEEN_MODE_OPTIONS), "MODE");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("effects_blocks");
-    this.setTooltip("Smoothly rotate the sprite to a specific angle");
+    this.setTooltip("Set the default tween mode for this sprite");
   },
 };
 
-javascriptGenerator.forBlock["effects_rotateTo"] = function (block: Blockly.Block) {
-  const angle = javascriptGenerator.valueToCode(block, "ANGLE", Order.ATOMIC) || "90";
-  const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
-  return `await (async () => {
-  const startRotation = context.sprite.rotation;
-  const targetRotation = ${angle};
-  const steps = 20;
-  const stepDuration = (${duration} * 1000) / steps;
-  for (let i = 0; i < steps; i++) {
-    if (window.RUNTIME.isStopped()) return;
-    const progress = i / steps;
-    context.sprite.rotation = startRotation + (targetRotation - startRotation) * progress;
-    await window.RUNTIME.delay(stepDuration);
-  }
-  context.sprite.rotation = targetRotation;
-})();\n`;
+javascriptGenerator.forBlock["effects_setTweenMode"] = function (block: Blockly.Block) {
+  const mode = block.getFieldValue("MODE");
+  return `context.sprite.tweenMode = ${JSON.stringify(mode)};\n`;
+};
+
+Blockly.Blocks["effects_setPropertyTweenMode"] = {
+  init: function () {
+    this.appendDummyInput()
+      .appendField("set tween mode for")
+      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY")
+      .appendField("to")
+      .appendField(new Blockly.FieldDropdown(TWEEN_MODE_OPTIONS), "MODE");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setStyle("effects_blocks");
+    this.setTooltip("Override the tween mode for a specific property");
+  },
+};
+
+javascriptGenerator.forBlock["effects_setPropertyTweenMode"] = function (block: Blockly.Block) {
+  const property = block.getFieldValue("PROPERTY");
+  const mode = block.getFieldValue("MODE");
+  return `context.sprite.tweenModes = { ...context.sprite.tweenModes, ${JSON.stringify(property)}: ${JSON.stringify(mode)} };\n`;
+};
+
+Blockly.Blocks["effects_resetPropertyTweenMode"] = {
+  init: function () {
+    this.appendDummyInput()
+      .appendField("reset tween mode for")
+      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setStyle("effects_blocks");
+    this.setTooltip("Use the sprite default tween mode for this property again");
+  },
+};
+
+javascriptGenerator.forBlock["effects_resetPropertyTweenMode"] = function (block: Blockly.Block) {
+  const property = block.getFieldValue("PROPERTY");
+  return `(() => { const _next = { ...context.sprite.tweenModes }; delete _next[${JSON.stringify(property)}]; context.sprite.tweenModes = _next; })();\n`;
 };
 
 export { };

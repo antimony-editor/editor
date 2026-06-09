@@ -1,6 +1,7 @@
 import { useSprites, isTextData, isShapeData, type TextSpriteData, type ShapeSpriteData } from '../lib/sprites';
 import { useEffect, useState } from 'react';
 import { getAvailableFonts, COMMON_FONTS, detectAvailableFonts, requestFontAccess, getFontPermissionState } from '../lib/fonts';
+import { TWEEN_MODE_OPTIONS, TWEENABLE_PROPERTY_OPTIONS, type TweenMode } from '../lib/tween';
 
 export default function PropertiesPanel() {
 	const { state, dispatch } = useSprites();
@@ -121,6 +122,46 @@ export default function PropertiesPanel() {
 							onClick={() => update({ locked: !sprite.locked })}
 						/>
 					</div>
+				</div>
+
+				<div className="properties-section">
+					<div className="properties-section-title">Tween</div>
+					<div className="properties-row">
+						<span className="properties-label">Default</span>
+						<select
+							className="properties-select"
+							value={sprite.tweenMode}
+							onChange={(e) => update({ tweenMode: e.target.value as TweenMode })}
+						>
+							{TWEEN_MODE_OPTIONS.map(([label, mode]) => (
+								<option key={mode} value={mode}>{label}</option>
+							))}
+						</select>
+					</div>
+					{TWEENABLE_PROPERTY_OPTIONS.map(([label, property]) => (
+						<div className="properties-row" key={property}>
+							<span className="properties-label">{label}</span>
+							<select
+								className="properties-select"
+								value={sprite.tweenModes[property] ?? ''}
+								onChange={(e) => {
+									const value = e.target.value;
+									const next = { ...sprite.tweenModes };
+									if (!value) {
+										delete next[property];
+									} else {
+										next[property] = value as TweenMode;
+									}
+									update({ tweenModes: next });
+								}}
+							>
+								<option value="">default</option>
+								{TWEEN_MODE_OPTIONS.map(([modeLabel, mode]) => (
+									<option key={mode} value={mode}>{modeLabel}</option>
+								))}
+							</select>
+						</div>
+					))}
 				</div>
 
 				{isTextData(sprite.data) && (() => {

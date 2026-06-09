@@ -1,13 +1,42 @@
 import type { Sprite, SpriteAction } from './sprites';
 import type { Dispatch } from 'react';
+import {
+	applyTweenMode,
+	readTweenProperty,
+	writeTweenProperty,
+	type TweenableProperty,
+	type TweenMode,
+} from './tween';
 
-type EventHandler = (_: unknown) => void | Promise<void>; // eslint-disable-line @typescript-eslint/no-unused-vars
+type EventHandler = (_: unknown) => void | Promise<void>;
 
 class StopError extends Error {
     constructor() {
         super('Stopped');
         this.name = 'StopError';
     }
+}
+
+class PauseError extends Error {
+    elapsed: number;
+
+    constructor(elapsed: number) {
+        super('Paused');
+        this.name = 'PauseError';
+        this.elapsed = elapsed;
+    }
+}
+
+interface PendingDelay {
+    timeoutId?: ReturnType<typeof setTimeout>;
+    start: number;
+    reject: (error: StopError | PauseError) => void;
+    cleanup: () => void;
+}
+
+interface FrameWaiter {
+    resolve: () => void;
+    reject: (error: StopError) => void;
 }
 
 export interface SpriteContext {
@@ -21,6 +50,8 @@ export interface SpriteContext {
         visible: boolean;
         zIndex: number;
         color?: string;
+        tweenMode?: TweenMode;
+        tweenModes?: Partial<Record<TweenableProperty, TweenMode>>;
     };
     spriteId?: string;
     dispatch?: Dispatch<SpriteAction>;
@@ -46,6 +77,54 @@ class Runtime {
     private activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
     private pendingDelays = new Set<(error: StopError) => void>();
     private canvasEffects: Map<string, number> = new Map();
+    private fps = 60;
+    private paused = false;
+    private pauseResolvers = new Set<() => void>();
+    private pendingDelayEntries = new Set<PendingDelay>();
+    private frameWaiters = new Set<FrameWaiter>();
+    private frameRafId: number | null = null;
+    private frameTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    private lastFrameTime = 0;
+
+    setFps(fps: number) {
+        this.fps = Math.max(1, fps);
+    }
+
+    getStepMs() {
+        return 1000 / this.fps;
+    }
+
+    isPaused() {
+        return this.paused;
+    }
+
+    pause() {
+        if (this.stopped || this.paused) return;
+        this.paused = true;
+        for (const entry of this.pendingDelayEntries) {
+            clearTimeout(entry.timeoutId);
+            entry.cleanup();
+            entry.reject(new PauseError(performance.now() - entry.start));
+        }
+        this.pendingDelayEntries.clear();
+        this.activeTimeouts.clear();
+    }
+
+    resume() {
+        if (this.stopped || !this.paused) return;
+        this.paused = false;
+        for (const resolve of this.pauseResolvers) {
+            resolve();
+        }
+        this.pauseResolvers.clear();
+    }
+
+    private waitForResume(): Promise<void> {
+        if (!this.paused || this.stopped) return Promise.resolve();
+        return new Promise((resolve) => {
+            this.pauseResolvers.add(resolve);
+        });
+    }
 
     registerSprite(spriteId: string, context: SpriteContext) {
         this.sprites.set(spriteId, context);
@@ -111,41 +190,98 @@ class Runtime {
             return Promise.reject(new StopError());
         }
 
+        return this.delayFor(ms);
+    }
+
+    private async delayFor(ms: number): Promise<void> {
+        let remaining = ms;
+        while (remaining > 0) {
+            if (this.isStopped()) {
+                throw new StopError();
+            }
+            while (this.paused) {
+                await this.waitForResume();
+                if (this.isStopped()) {
+                    throw new StopError();
+                }
+            }
+            try {
+                await this.timedWait(remaining);
+                return;
+            } catch (error) {
+                if (error instanceof PauseError) {
+                    remaining = Math.max(0, remaining - error.elapsed);
+                    continue;
+                }
+                throw error;
+            }
+        }
+    }
+
+    private timedWait(ms: number): Promise<void> {
+        if (this.stopped) {
+            return Promise.reject(new StopError());
+        }
+
         return new Promise((resolve, reject) => {
+            const start = performance.now();
+            const entry: PendingDelay = {
+                start,
+                reject,
+                cleanup: () => {
+                    this.pendingDelayEntries.delete(entry);
+                    this.pendingDelays.delete(rejectDelay);
+                    if (entry.timeoutId !== undefined) {
+                        this.activeTimeouts.delete(entry.timeoutId);
+                    }
+                },
+            };
+
             const rejectDelay = (error: StopError) => {
-                this.pendingDelays.delete(rejectDelay);
+                entry.cleanup();
                 reject(error);
             };
-            this.pendingDelays.add(rejectDelay);
 
-            const id = setTimeout(() => {
-                this.activeTimeouts.delete(id);
-                this.pendingDelays.delete(rejectDelay);
+            this.pendingDelays.add(rejectDelay);
+            entry.timeoutId = setTimeout(() => {
+                entry.cleanup();
                 if (this.stopped) {
                     reject(new StopError());
                 } else {
                     resolve();
                 }
             }, ms);
-            this.activeTimeouts.add(id);
+            this.activeTimeouts.add(entry.timeoutId);
+            this.pendingDelayEntries.add(entry);
         });
     }
 
     stop() {
         this.stopped = true;
+        this.paused = false;
         this.epoch++;
         for (const id of this.activeTimeouts) {
             clearTimeout(id);
         }
         this.activeTimeouts.clear();
+        this.cancelFrameTick();
+        for (const waiter of this.frameWaiters) {
+            waiter.reject(new StopError());
+        }
+        this.frameWaiters.clear();
+        this.lastFrameTime = 0;
+        this.pendingDelayEntries.clear();
         for (const reject of this.pendingDelays) {
             reject(new StopError());
         }
         this.pendingDelays.clear();
+        for (const resolve of this.pauseResolvers) {
+            resolve();
+        }
+        this.pauseResolvers.clear();
         this.clearHandlers();
     }
 
-    // Canvas / global effects API
     setCanvasEffect(effect: string, value: number) {
         this.canvasEffects.set(effect, value);
     }
@@ -161,6 +297,150 @@ class Runtime {
 
     clearCanvasEffects() {
         this.canvasEffects.clear();
+    }
+
+    async tween(
+        context: SpriteContext,
+        property: TweenableProperty,
+        targetValue: number,
+        durationSec: number,
+    ) {
+        await this.tweenMany(context, { [property]: targetValue }, durationSec);
+    }
+
+    async tweenMany(
+        context: SpriteContext,
+        targets: Partial<Record<TweenableProperty, number>>,
+        durationSec: number,
+    ) {
+        const entries = Object.entries(targets) as [TweenableProperty, number][];
+        if (entries.length === 0) return;
+
+        const sprite = context.sprite as Record<string, unknown>;
+        const starts = Object.fromEntries(
+            entries.map(([property]) => [property, readTweenProperty(sprite, property)]),
+        ) as Record<TweenableProperty, number>;
+        const modes = Object.fromEntries(
+            entries.map(([property]) => {
+                const tweenModes = sprite.tweenModes as Partial<Record<TweenableProperty, TweenMode>> | undefined;
+                return [property, tweenModes?.[property] ?? (sprite.tweenMode as TweenMode | undefined) ?? 'linear'];
+            }),
+        ) as Record<TweenableProperty, TweenMode>;
+
+        const durationMs = Math.max(0, durationSec) * 1000;
+        let startTime = performance.now();
+
+        if (durationMs === 0) {
+            for (const [property, targetValue] of entries) {
+                writeTweenProperty(sprite, property, targetValue);
+            }
+            return;
+        }
+
+        while (true) {
+            if (this.isStopped()) return;
+
+            while (this.paused) {
+                const pauseStart = performance.now();
+                await this.waitForResume();
+                startTime += performance.now() - pauseStart;
+                if (this.isStopped()) return;
+            }
+
+            const linearT = Math.min(1, (performance.now() - startTime) / durationMs);
+            for (const [property, targetValue] of entries) {
+                const easedT = applyTweenMode(linearT, modes[property]);
+                const startValue = starts[property];
+                const value = startValue + (targetValue - startValue) * easedT;
+                writeTweenProperty(sprite, property, value);
+            }
+
+            if (linearT >= 1) break;
+
+            await this.nextFrame();
+        }
+
+        if (this.isStopped()) return;
+
+        for (const [property, targetValue] of entries) {
+            writeTweenProperty(sprite, property, targetValue);
+        }
+    }
+
+    private nextFrame(): Promise<void> {
+        if (this.stopped) {
+            return Promise.reject(new StopError());
+        }
+
+        return new Promise((resolve, reject) => {
+            const waiter = { resolve, reject };
+            this.frameWaiters.add(waiter);
+            this.scheduleFrameTick();
+        });
+    }
+
+    private scheduleFrameTick() {
+        if (this.frameWaiters.size === 0 || this.frameRafId !== null || this.frameTimeoutId !== null) return;
+
+        const now = performance.now();
+        if (this.lastFrameTime === 0) {
+            this.lastFrameTime = now;
+        }
+
+        const delay = this.lastFrameTime + this.getStepMs() - now;
+        if (delay > 4) {
+            this.frameTimeoutId = setTimeout(() => {
+                this.frameTimeoutId = null;
+                this.requestFrameTick();
+            }, Math.max(0, delay - 2));
+            return;
+        }
+
+        this.requestFrameTick();
+    }
+
+    private requestFrameTick() {
+        if (this.frameWaiters.size === 0 || this.frameRafId !== null) return;
+
+        this.frameRafId = requestAnimationFrame((timestamp) => {
+            this.frameRafId = null;
+
+            if (this.stopped) {
+                const waiters = Array.from(this.frameWaiters);
+                this.frameWaiters.clear();
+                for (const waiter of waiters) {
+                    waiter.reject(new StopError());
+                }
+                return;
+            }
+
+            const stepMs = this.getStepMs();
+            if (timestamp + 0.25 < this.lastFrameTime + stepMs) {
+                this.scheduleFrameTick();
+                return;
+            }
+
+            this.lastFrameTime = timestamp - this.lastFrameTime > stepMs * 2
+                ? timestamp
+                : this.lastFrameTime + stepMs;
+
+            const waiters = Array.from(this.frameWaiters);
+            this.frameWaiters.clear();
+            for (const waiter of waiters) {
+                waiter.resolve();
+            }
+        });
+    }
+
+    private cancelFrameTick() {
+        if (this.frameRafId !== null) {
+            cancelAnimationFrame(this.frameRafId);
+            this.frameRafId = null;
+        }
+        if (this.frameTimeoutId !== null) {
+            clearTimeout(this.frameTimeoutId);
+            this.frameTimeoutId = null;
+        }
     }
 
     onStart(handler: EventHandler) {
@@ -199,6 +479,8 @@ class Runtime {
         this.stop();
         this.runEpoch = this.epoch;
         this.stopped = false;
+        this.paused = false;
+        this.lastFrameTime = performance.now();
         const myEpoch = this.runEpoch;
         const compiled = this.compile();
         this.clearHandlers();
@@ -237,7 +519,6 @@ class Runtime {
 
 const runtime = new Runtime();
 
-// exposure. tung gugt
 window.RUNTIME = window.RUNTIME ?? runtime;
 
 export default runtime;

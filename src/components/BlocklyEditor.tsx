@@ -25,6 +25,7 @@ import 'blockly/blocks';
 import * as En from 'blockly/msg/en';
 import { initAllBlocks, workspaceConfig, buildToolboxForSource } from '../lib/config';
 import { getSourceTypeForSprite } from '../lib/blockVisibility';
+import { MOTION_CATEGORY_NAME, updateMotionGoToFlyoutDefaults } from '../lib/flyoutDefaults';
 import { useSprites } from '../lib/sprites';
 
 function syncShadowColours(workspace: Blockly.WorkspaceSvg | Blockly.Workspace) {
@@ -60,6 +61,19 @@ function getFlyoutWorkspace(workspace: Blockly.WorkspaceSvg) {
 	return workspace.getFlyout()?.getWorkspace() ?? null;
 }
 
+function applyMotionGoToFlyoutDefaults(
+	workspace: Blockly.WorkspaceSvg,
+	sprite: { x: number; y: number } | undefined,
+) {
+	if (!sprite) return;
+	requestAnimationFrame(() => {
+		const flyoutWorkspace = getFlyoutWorkspace(workspace);
+		if (!flyoutWorkspace) return;
+		updateMotionGoToFlyoutDefaults(flyoutWorkspace, sprite.x, sprite.y);
+		syncShadowColours(flyoutWorkspace);
+	});
+}
+
 export default function BlocklyEditor() {
 	const blocklyDivRef = useRef<HTMLDivElement | null>(null);
 	const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
@@ -69,6 +83,8 @@ export default function BlocklyEditor() {
 
 	const loadedSpriteIdRef = useRef<string | null>(null);
 	const lastLoadKeyRef = useRef<number>(state.loadKey);
+	const selectedSpriteRef = useRef(selectedSprite);
+	selectedSpriteRef.current = selectedSprite;
 	const isSwappingRef = useRef(false);
 	const [toolboxWidth, setToolboxWidth] = useState(0);
 
@@ -135,8 +151,17 @@ export default function BlocklyEditor() {
 			const fw = getFlyoutWorkspace(workspace);
 			if (fw) syncShadowColours(fw);
 
+			if (
+				e.type === Blockly.Events.TOOLBOX_ITEM_SELECT
+				&& 'newItem' in e
+				&& e.newItem === MOTION_CATEGORY_NAME
+			) {
+				applyMotionGoToFlyoutDefaults(workspace, selectedSpriteRef.current);
+			}
+
 			if (isSwappingRef.current) return;
 			if (e.isUiEvent) return;
+			if ('workspaceId' in e && e.workspaceId !== workspace.id) return;
 
 			const currentSpriteId = loadedSpriteIdRef.current;
 			if (!currentSpriteId) return;

@@ -169,10 +169,10 @@
     <block type="effects_shake"><value name="INTENSITY"><shadow type="math_number"><field name="NUM">5</field></shadow></value></block>
     <block type="effects_spin"><value name="TIMES"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
     <block type="effects_pulse"></block>
-    <block type="effects_fadeIn"><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
-    <block type="effects_fadeOut"><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
-    <block type="effects_scaleAnimation"><value name="SCALE"><shadow type="math_number"><field name="NUM">1.5</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
-    <block type="effects_rotateTo"><value name="ANGLE"><shadow type="math_number"><field name="NUM">90</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_tween"><value name="VALUE"><shadow type="math_number"><field name="NUM">100</field></shadow></value><value name="DURATION"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="effects_setTweenMode"></block>
+    <block type="effects_setPropertyTweenMode"></block>
+    <block type="effects_resetPropertyTweenMode"></block>
     <block type="effects_set_canvas"><value name="VALUE"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="effects_get_canvas"></block>
     <block type="effects_clear_canvas"></block>

@@ -258,5 +258,5 @@ javascriptGenerator.forBlock["motion_glideSecsTo"] = function (block: Blockly.Bl
   const secs = javascriptGenerator.valueToCode(block, "SECS", Order.NONE) || "0";
   const x = javascriptGenerator.valueToCode(block, "X", Order.NONE) || "0";
   const y = javascriptGenerator.valueToCode(block, "Y", Order.NONE) || "0";
-  return `(async function(context){\n  const duration = (${secs}) * 1000;\n  const targetX = (${x});\n  const targetY = (${y});\n  const startX = context.sprite.x;\n  const startY = context.sprite.y;\n  const dx = targetX - startX;\n  const dy = targetY - startY;\n  const stepMs = 20;\n  const steps = Math.max(1, Math.ceil(duration / stepMs));\n  for (let i = 1; i <= steps; i++) {\n    const t = i / steps;\n    context.sprite.x = startX + dx * t;\n    context.sprite.y = startY + dy * t;\n    await window.RUNTIME.delay(duration / steps);\n  }\n})(context);\n`;
+  return `await window.RUNTIME.tweenMany(context, { x: (${x}), y: (${y}) }, (${secs}));\n`;
 };
