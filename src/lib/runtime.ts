@@ -86,11 +86,6 @@ class Runtime {
     private frameTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private lastFrameTime = 0;
 
-    private isStepping = false;
-    private virtualTime = 0;
-    private virtualDelayWaiters = new Set<{ targetTime: number; resolve: () => void; reject: (e: Error) => void }>();
-    private virtualFrameWaiters = new Set<{ resolve: () => void; reject: (e: Error) => void }>();
-
     setFps(fps: number) {
         this.fps = Math.max(1, fps);
     }
@@ -101,45 +96,6 @@ class Runtime {
 
     isPaused() {
         return this.paused;
-    }
-
-    now() {
-        if (this.isStepping) return this.virtualTime;
-        return performance.now();
-    }
-
-    enableStepping() {
-        this.isStepping = true;
-        this.virtualTime = 0;
-        this.virtualDelayWaiters.clear();
-        this.virtualFrameWaiters.clear();
-    }
-
-    disableStepping() {
-        this.isStepping = false;
-    }
-
-    async step() {
-        if (!this.isStepping) return;
-
-        this.virtualTime += this.getStepMs();
-
-        const frameWaiters = Array.from(this.virtualFrameWaiters);
-        this.virtualFrameWaiters.clear();
-        for (const waiter of frameWaiters) {
-            waiter.resolve();
-        }
-
-        const delayWaiters = Array.from(this.virtualDelayWaiters);
-        for (const waiter of delayWaiters) {
-            if (this.virtualTime >= waiter.targetTime) {
-                this.virtualDelayWaiters.delete(waiter);
-                waiter.resolve();
-            }
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 0));
-        await new Promise(resolve => setTimeout(resolve, 0));
     }
 
     pause() {
@@ -234,16 +190,6 @@ class Runtime {
             return Promise.reject(new StopError());
         }
 
-        if (this.isStepping) {
-            return new Promise((resolve, reject) => {
-                this.virtualDelayWaiters.add({
-                    targetTime: this.virtualTime + ms,
-                    resolve,
-                    reject
-                });
-            });
-        }
-
         return this.delayFor(ms);
     }
 
@@ -323,14 +269,6 @@ class Runtime {
             waiter.reject(new StopError());
         }
         this.frameWaiters.clear();
-        for (const waiter of this.virtualFrameWaiters) {
-            waiter.reject(new StopError());
-        }
-        this.virtualFrameWaiters.clear();
-        for (const waiter of this.virtualDelayWaiters) {
-            waiter.reject(new StopError());
-        }
-        this.virtualDelayWaiters.clear();
         this.lastFrameTime = 0;
         this.pendingDelayEntries.clear();
         for (const reject of this.pendingDelays) {
@@ -390,7 +328,7 @@ class Runtime {
         ) as Record<TweenableProperty, TweenMode>;
 
         const durationMs = Math.max(0, durationSec) * 1000;
-        let startTime = this.now();
+        let startTime = performance.now();
 
         if (durationMs === 0) {
             for (const [property, targetValue] of entries) {
@@ -409,7 +347,7 @@ class Runtime {
                 if (this.isStopped()) return;
             }
 
-            const linearT = Math.min(1, (this.now() - startTime) / durationMs);
+            const linearT = Math.min(1, (performance.now() - startTime) / durationMs);
             for (const [property, targetValue] of entries) {
                 const easedT = applyTweenMode(linearT, modes[property]);
                 const startValue = starts[property];
@@ -432,12 +370,6 @@ class Runtime {
     private nextFrame(): Promise<void> {
         if (this.stopped) {
             return Promise.reject(new StopError());
-        }
-
-        if (this.isStepping) {
-            return new Promise((resolve, reject) => {
-                this.virtualFrameWaiters.add({ resolve, reject });
-            });
         }
 
         return new Promise((resolve, reject) => {
