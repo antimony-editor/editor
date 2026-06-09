@@ -140,7 +140,7 @@ export default function ExportModal({
 								onClick={() => onExport({ fps, format, bitrate: bitrate * 1_000_000, quality })}
 							>
 								<FileVideo size={18} />
-								Start Export
+								Export
 							</button>
 						)}
 					</div>

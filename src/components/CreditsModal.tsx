@@ -4,7 +4,7 @@ const credits = [
 	{
 		name: 'Gen1x',
 		url: 'https://gen1x.imsogay.me',
-		roles: 'Lead Developer, Founder, Designer',
+		roles: 'Founder, Lead Developer, Designer',
 	},
 	{
 		name: 'Dotun',
@@ -12,13 +12,18 @@ const credits = [
 		roles: 'Co-Owner, Lead Developer, Designer',
 	},
 	{
-		name: 'UnbraveChimp',
+		name: 'Ash',
 		url: 'https://ash0.dev',
 		roles: 'Developer, Designer, Logo',
 	},
 	{
 		name: 'ddededodediamante',
 		url: 'https://ddededodediamante.vercel.app/',
+		roles: 'Developer',
+	},
+	{
+		name: 'Lord Cat',
+		url: '#',
 		roles: 'Developer',
 	},
 ];
