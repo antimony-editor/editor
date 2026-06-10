@@ -500,20 +500,20 @@ export default function StageView() {
 				finished = true;
 			});
 
+			await new Promise(resolve => setTimeout(resolve, 0));
+			await new Promise(resolve => setTimeout(resolve, 0));
+
 			while (true) {
-				await runtime.step();
-				if (finished) break;
 				layer.draw();
 				await captureFrame();
+				if (finished) break;
+
+				await runtime.step();
 
 				if (frameCounter > fps * 300) break;
 			}
 
 			runtime.disableStepping();
-
-            // YES. i know this approach sucks, but idk how to fix it, so THIS IS WHAT YOU GET
-			gifFrames = gifFrames.slice(0, -1);
-			videoFrames = videoFrames.slice(0, -1);
 
 			setIsEncoding(true);
 			setIsRecordModalOpen(true);
@@ -977,10 +977,10 @@ export default function StageView() {
 		() => getGridColorFromBackground(settings.backgroundColor),
 		[settings.backgroundColor],
 	);
-	const showGrid = settings.showGrid && !(isPlaying && !isPaused);
-	const showROT = settings.showROT && !(isPlaying && !isPaused); // rule of thirds
+	const showGrid = settings.showGrid && !(isPlaying && !isPaused) && !isRecording;
+	const showROT = settings.showROT && !(isPlaying && !isPaused) && !isRecording; // rule of thirds
 	//const showROT = true; // tmp dev
-	const showTransformers = !isPlaying || isPaused;
+	const showTransformers = (!isPlaying || isPaused) && !isRecording;
 
 	return (
 		<div className="stage-area panel">
