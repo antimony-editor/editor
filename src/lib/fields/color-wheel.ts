@@ -3,23 +3,31 @@ import iro from "@jaames/iro";
 
 type ColorPickerOptions = Parameters<typeof iro.ColorPicker>[1];
 
+const defaultColor = "#FF00FF";
+
+const size = 24;
+
 export default class ColorWheelField extends Field {
     static SERIALIZABLE = true;
     SERIALIZABLE = true;
     private width: number;
     private pickerOptions: ColorPickerOptions;
 
-    constructor(color = "#FF00FF", width = 150, options: ColorPickerOptions = {}) {
+    constructor(color = defaultColor, width = 150, options: ColorPickerOptions = {}) {
         super(color);
         this.width = width;
         this.pickerOptions = options;
     }
 
     static fromJson(options: Record<string, unknown>) {
-        const color = typeof options.color === 'string' ? (options.color as string) : '#FF00FF';
+        const color = typeof options.color === 'string' ? (options.color as string) : defaultColor;
         const width = typeof options.width === 'number' ? (options.width as number) : 150;
         const opts = typeof options.options === 'object' && options.options !== null ? (options.options as ColorPickerOptions) : {};
         return new ColorWheelField(color, width, opts);
+    }
+
+    getText() {
+        return "iiii"; // this is a hack to make blockly make the field wider, ugly. ik.
     }
 
     protected showEditor_() {
@@ -29,14 +37,14 @@ export default class ColorWheelField extends Field {
 
         const colorPicker = iro.ColorPicker(editor, {
             width: this.width,
-            color: (this.getValue() as string) ?? "#FF00FF",
+            color: (this.getValue() as string) ?? defaultColor,
             ...this.pickerOptions,
         });
 
         const input = document.createElement("input");
         input.type = "text";
         input.className = "blockly-color-wheel-input";
-        input.value = (this.getValue() as string) ?? "#FF00FF";
+        input.value = (this.getValue() as string) ?? defaultColor;
         input.style.marginTop = "8px";
         input.style.width = `${Math.min(this.width, 200)}px`;
         input.style.padding = "6px";
@@ -48,6 +56,7 @@ export default class ColorWheelField extends Field {
             const hex = color.hexString;
             input.value = hex;
             this.setValue(hex);
+            this.render_();
         };
 
         colorPicker.on("color:change", setFromPicker);
@@ -65,9 +74,10 @@ export default class ColorWheelField extends Field {
             if (val) {
                 colorPicker.color.hexString = val;
                 this.setValue(val);
+                this.render_();
                 input.value = val;
             } else {
-                input.value = colorPicker.color.hexString ?? ((this.getValue() as string) ?? "#FF00FF");
+                input.value = colorPicker.color.hexString ?? ((this.getValue() as string) ?? defaultColor);
             }
         };
 
@@ -79,6 +89,13 @@ export default class ColorWheelField extends Field {
         DropDownDiv.showPositionedByField(this, () => {
             editor.remove();
         });
+    }
+
+    protected render_() {
+        super.render_();
+        const color = (this.getValue() as string) ?? defaultColor;
+        this.borderRect_?.style.setProperty("fill", color);
+        this.textElement_?.style.setProperty("fill", "transparent");
     }
 }
 
