@@ -35,11 +35,9 @@
 		"konva": "^10.3.0",
 		"lucide-react": "^1.17.0",
 		"mediabunny": "^1.46.0",
-		"mp4-muxer": "^5.2.2",
 		"prism": "^4.1.2",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
-		"react-konva": "^19.2.4",
-		"webm-muxer": "^5.1.4"
+		"react-konva": "^19.2.4"
 	}
 }
