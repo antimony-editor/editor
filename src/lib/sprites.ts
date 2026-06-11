@@ -25,6 +25,7 @@ export interface MediaSound {
 	id: string;
 	name: string;
 	src: string;
+	volume?: number;
 }
 
 export interface MediaSpriteData {

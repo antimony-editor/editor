@@ -34,6 +34,56 @@ interface PendingDelay {
     cleanup: () => void;
 }
 
+interface VolumeKeyframe {
+    time: number;
+    value: number;
+}
+
+interface LiveVoice {
+    source: AudioBufferSourceNode;
+    gain: GainNode;
+    loop: boolean;
+}
+
+interface OfflineVoice {
+    id: string;
+    src: string;
+    startVirtualTime: number;
+    loop: boolean;
+    rate: number;
+    keyframes: VolumeKeyframe[];
+}
+
+const AudioCtxClass: typeof AudioContext | undefined =
+    typeof window !== 'undefined'
+        ? window.AudioContext
+            ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        : undefined;
+
+function clamp01(value: number): number {
+    if (Number.isNaN(value)) return 0;
+    return Math.max(0, Math.min(1, value));
+}
+
+function evalKeyframes(keyframes: VolumeKeyframe[], time: number, fallback: number): number {
+    if (keyframes.length === 0) return fallback;
+    const first = keyframes[0];
+    if (time <= first.time) return first.value;
+    const last = keyframes[keyframes.length - 1];
+    if (time >= last.time) return last.value;
+    for (let i = 1; i < keyframes.length; i++) {
+        const a = keyframes[i - 1];
+        const b = keyframes[i];
+        if (time <= b.time) {
+            const span = b.time - a.time;
+            if (span <= 0) return b.value;
+            const t = (time - a.time) / span;
+            return a.value + (b.value - a.value) * t;
+        }
+    }
+    return last.value;
+}
+
 interface FrameWaiter {
     resolve: () => void;
     reject: (error: StopError) => void;
@@ -87,7 +137,6 @@ class Runtime {
     private frameRafId: number | null = null;
     private frameTimeoutId: ReturnType<typeof setTimeout> | null = null;
     private lastFrameTime = 0;
-    private activeAudio = new Map<string, HTMLAudioElement>();
 
     private isStepping = false;
     public virtualTime = 0;
@@ -95,15 +144,44 @@ class Runtime {
     private virtualFrameWaiters = new Set<{ resolve: () => void; reject: (e: Error) => void }>();
 
     private audioContext: AudioContext | null = null;
+    private masterGain: GainNode | null = null;
     private audioBufferCache: Map<string, AudioBuffer> = new Map();
-    private activePlayingSounds: Set<{ src: string; startVirtualTime: number; loop: boolean }> = new Set();
-    private activeSteppingNodes = new Set<AudioBufferSourceNode>();
+    private masterVolume = 1;
+    private masterVolumeKeyframes: VolumeKeyframe[] = [];
+    private soundVolumes: Map<string, number> = new Map();
+    private soundRates: Map<string, number> = new Map();
+    private liveVoices: Map<string, Set<LiveVoice>> = new Map();
+    private activePlayingSounds: Set<OfflineVoice> = new Set();
+    private spritesProvider: (() => Sprite[]) | null = null;
 
     private getAudioContext() {
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            if (!AudioCtxClass) {
+                throw new Error('Web Audio API is not supported in this environment');
+            }
+            this.audioContext = new AudioCtxClass();
         }
         return this.audioContext;
+    }
+
+    private getMasterGain() {
+        const ctx = this.getAudioContext();
+        if (!this.masterGain) {
+            this.masterGain = ctx.createGain();
+            this.masterGain.gain.value = this.masterVolume;
+            this.masterGain.connect(ctx.destination);
+        }
+        return this.masterGain;
+    }
+
+    private virtualDelay(ms: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.virtualDelayWaiters.add({
+                targetTime: this.virtualTime + ms,
+                resolve,
+                reject,
+            });
+        });
     }
 
     async decodeAudio(src: string): Promise<AudioBuffer | null> {
@@ -126,28 +204,39 @@ class Runtime {
         const left = new Float32Array(numSamples);
         const right = new Float32Array(numSamples);
 
-        const mix = (ch0: Float32Array, ch1: Float32Array, srcSampleRate: number, startOffset: number, loop: boolean) => {
+        const mix = (
+            ch0: Float32Array,
+            ch1: Float32Array,
+            srcSampleRate: number,
+            startOffsetSec: number,
+            loop: boolean,
+            rate: number,
+            gainAt: (sampleIndex: number) => number,
+        ) => {
+            const len = ch0.length;
             for (let i = 0; i < numSamples; i++) {
-                const time = startOffset + i / sampleRate;
+                const time = startOffsetSec + i / sampleRate;
                 if (time < 0) continue;
 
-                const pos = time * srcSampleRate;
+                const pos = time * rate * srcSampleRate;
                 const idx0 = Math.floor(pos);
                 const idx1 = idx0 + 1;
                 const t = pos - idx0;
 
-                const len = ch0.length;
-                const i0 = loop ? idx0 % len : idx0;
-                const i1 = loop ? idx1 % len : idx1;
+                const i0 = loop ? ((idx0 % len) + len) % len : idx0;
+                const i1 = loop ? ((idx1 % len) + len) % len : idx1;
 
-                if (i0 >= len) continue;
+                if (!loop && i0 >= len) continue;
+                const gain = gainAt(i);
+                if (gain === 0) continue;
+
                 const s0L = ch0[i0];
                 const s1L = i1 < len ? ch0[i1] : s0L;
                 const s0R = ch1[i0];
                 const s1R = i1 < len ? ch1[i1] : s0R;
 
-                left[i] += s0L + (s1L - s0L) * t;
-                right[i] += s0R + (s1R - s0R) * t;
+                left[i] += (s0L + (s1L - s0L) * t) * gain;
+                right[i] += (s0R + (s1R - s0R) * t) * gain;
             }
         };
 
@@ -158,15 +247,21 @@ class Runtime {
             const ch0 = buffer.getChannelData(0);
             const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : ch0;
             const startOffset = (this.virtualTime - sound.startVirtualTime) / 1000;
-            mix(ch0, ch1, buffer.sampleRate, startOffset, sound.loop);
+            const baseGain = sound.keyframes[0]?.value ?? 1;
+            mix(ch0, ch1, buffer.sampleRate, startOffset, sound.loop, sound.rate, (i) => {
+                const vt = this.virtualTime + (i / sampleRate) * 1000;
+                return evalKeyframes(sound.keyframes, vt, baseGain);
+            });
         }
 
-        const spritesSnapshot = this.getSprites?.() ?? [];
+        const spritesSnapshot = this.spritesProvider?.() ?? [];
         for (const [id] of this.sprites.entries()) {
-            const spriteData = (spritesSnapshot.find(s => s.id === id)?.data) as any;
+            const spriteData = spritesSnapshot.find(s => s.id === id)?.data as
+                | { images?: { id: string; src?: string }[]; currentImageId?: string | null }
+                | undefined;
             if (!spriteData || !spriteData.images || !spriteData.currentImageId) continue;
 
-            const image = spriteData.images.find((img: any) => img.id === spriteData.currentImageId);
+            const image = spriteData.images.find((img) => img.id === spriteData.currentImageId);
             if (!image || !image.src) continue;
 
             if (image.src.startsWith('data:video/') || /\.(mp4|webm|ogg|mov)$/i.test(image.src)) {
@@ -178,13 +273,17 @@ class Runtime {
 
                 const ch0 = buffer.getChannelData(0);
                 const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : ch0;
-                mix(ch0, ch1, buffer.sampleRate, this.virtualTime / 1000, true);
+                mix(ch0, ch1, buffer.sampleRate, this.virtualTime / 1000, true, 1, () => 1);
             }
         }
 
         const stereo = new Float32Array(numSamples * 2);
-        stereo.set(left, 0);
-        stereo.set(right, numSamples);
+        for (let i = 0; i < numSamples; i++) {
+            const vt = this.virtualTime + (i / sampleRate) * 1000;
+            const master = evalKeyframes(this.masterVolumeKeyframes, vt, this.masterVolume);
+            stereo[i] = Math.tanh(left[i] * master);
+            stereo[numSamples + i] = Math.tanh(right[i] * master);
+        }
         return stereo;
     }
 
@@ -241,6 +340,7 @@ class Runtime {
     pause() {
         if (this.stopped || this.paused) return;
         this.paused = true;
+        this.audioContext?.suspend().catch(() => { });
         for (const entry of this.pendingDelayEntries) {
             clearTimeout(entry.timeoutId);
             entry.cleanup();
@@ -253,6 +353,7 @@ class Runtime {
     resume() {
         if (this.stopped || !this.paused) return;
         this.paused = false;
+        this.audioContext?.resume().catch(() => { });
         for (const resolve of this.pauseResolvers) {
             resolve();
         }
@@ -268,6 +369,9 @@ class Runtime {
 
     registerSprite(spriteId: string, context: SpriteContext) {
         this.sprites.set(spriteId, context);
+        if (context.getSprites) {
+            this.spritesProvider = context.getSprites;
+        }
         if (!this.spriteHandlers.has(spriteId)) {
             this.spriteHandlers.set(spriteId, new Map());
         }
@@ -331,13 +435,7 @@ class Runtime {
         }
 
         if (this.isStepping) {
-            return new Promise((resolve, reject) => {
-                this.virtualDelayWaiters.add({
-                    targetTime: this.virtualTime + ms,
-                    resolve,
-                    reject
-                });
-            });
+            return this.virtualDelay(ms);
         }
 
         return this.delayFor(ms);
@@ -416,6 +514,7 @@ class Runtime {
         this.activeTimeouts.clear();
         this.stopAllSounds();
         this.activePlayingSounds.clear();
+        this.resetAudioState();
         this.cancelFrameTick();
         for (const waiter of this.frameWaiters) {
             waiter.reject(new StopError());
@@ -442,95 +541,259 @@ class Runtime {
         this.clearHandlers();
     }
 
-    async playSound(src: string, loop: boolean = false, id: string): Promise<void> {
+    private resetAudioState() {
+        this.soundVolumes.clear();
+        this.soundRates.clear();
+        this.masterVolume = 1;
+        this.masterVolumeKeyframes = [];
+        if (this.masterGain && this.audioContext) {
+            try {
+                this.masterGain.gain.cancelScheduledValues(this.audioContext.currentTime);
+                this.masterGain.gain.value = 1;
+            } catch {
+                // ignore
+            }
+        }
+    }
+
+    async playSound(src: string, loop: boolean = false, id: string, baseVolume: number = 1): Promise<void> {
         if (this.stopped || !src) return;
+
+        const volume = this.soundVolumes.get(id) ?? clamp01(baseVolume);
+        const rate = this.soundRates.get(id) ?? 1;
 
         if (this.isStepping) {
             const buffer = await this.decodeAudio(src);
-            const soundEntry = { src, startVirtualTime: this.virtualTime, loop };
-            this.activePlayingSounds.add(soundEntry);
+            if (this.stopped) return;
+            const voice: OfflineVoice = {
+                id,
+                src,
+                startVirtualTime: this.virtualTime,
+                loop,
+                rate,
+                keyframes: [{ time: this.virtualTime, value: volume }],
+            };
+            this.activePlayingSounds.add(voice);
 
-            if (buffer) {
-                const ctx = this.getAudioContext();
-                const node = ctx.createBufferSource();
-                node.buffer = buffer;
-                node.loop = loop;
-                node.connect(ctx.destination);
-                node.start();
-                this.activeSteppingNodes.add(node);
-                node.onended = () => this.activeSteppingNodes.delete(node);
-            }
+            if (loop || !buffer) return;
+            const durationMs = (buffer.duration / Math.max(0.01, rate)) * 1000;
+            await this.virtualDelay(durationMs);
+            this.activePlayingSounds.delete(voice);
             return;
         }
 
-        const audio = new Audio(src);
-        audio.loop = loop;
-        this.activeAudio.set(id, audio);
+        return this.playLive(src, id, loop, volume, rate);
+    }
 
-        return new Promise((resolve, reject) => {
+    /** Play a sound in the editor independent of the run lifecycle (e.g. previews). */
+    async previewSound(src: string, id: string, volume: number = 1): Promise<void> {
+        if (!src) return;
+        return this.playLive(src, id, false, clamp01(volume), 1);
+    }
+
+    private async playLive(
+        src: string,
+        id: string,
+        loop: boolean,
+        volume: number,
+        rate: number,
+    ): Promise<void> {
+        const buffer = await this.decodeAudio(src);
+        if (!buffer) return;
+
+        let ctx: AudioContext;
+        let master: GainNode;
+        try {
+            ctx = this.getAudioContext();
+            master = this.getMasterGain();
+        } catch (e) {
+            console.warn('audio playback unavailable:', e);
+            return;
+        }
+
+        if (ctx.state === 'suspended' && !this.paused) {
+            ctx.resume().catch(() => { });
+        }
+
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
+        source.loop = loop;
+        source.playbackRate.value = rate;
+
+        const gain = ctx.createGain();
+        gain.gain.value = volume;
+        source.connect(gain);
+        gain.connect(master);
+
+        const voice: LiveVoice = { source, gain, loop };
+        const set = this.liveVoices.get(id) ?? new Set<LiveVoice>();
+        set.add(voice);
+        this.liveVoices.set(id, set);
+
+        return new Promise((resolve) => {
             const cleanup = () => {
-                this.activeAudio.delete(id);
-                audio.removeEventListener('ended', onEnded);
-                audio.removeEventListener('error', onError);
-            };
-
-            const onEnded = () => {
-                cleanup();
-                resolve();
-            };
-
-            const onError = (e: Event) => {
-                cleanup();
-                console.error(`audio playback error for sound "${id || 'unknown'}" (src: ${src}):`, e);
-                resolve();
-            };
-
-            audio.addEventListener('ended', onEnded);
-            audio.addEventListener('error', onError);
-
-            audio.play().catch(e => {
-                cleanup();
-                if (e.name === 'NotAllowedError') {
-                    console.warn('audio play failed (blocked by browser): click on the site first');
-                } else {
-                    console.warn(`audio play failed for sound "${id || 'unknown'}" (src: ${src}):`, e);
+                set.delete(voice);
+                if (set.size === 0) this.liveVoices.delete(id);
+                try {
+                    source.disconnect();
+                    gain.disconnect();
+                } catch {
+                    // ignore
                 }
-                resolve();
-            });
+            };
 
-            if (this.stopped) {
-                audio.pause();
+            source.onended = () => {
                 cleanup();
-                reject(new StopError());
+                resolve();
+            };
+
+            try {
+                source.start();
+            } catch {
+                cleanup();
+                resolve();
             }
         });
     }
 
-    stopAllSounds() {
-        this.activePlayingSounds.clear();
-        for (const audio of this.activeAudio.values()) {
+    stopSound(id: string) {
+        if (this.isStepping) {
+            for (const voice of Array.from(this.activePlayingSounds)) {
+                if (voice.id === id) this.activePlayingSounds.delete(voice);
+            }
+            return;
+        }
+        const set = this.liveVoices.get(id);
+        if (!set) return;
+        for (const voice of Array.from(set)) {
             try {
-                audio.pause();
-                audio.dispatchEvent(new Event('ended'));
-            } catch (e) {
+                voice.source.stop();
+                voice.source.disconnect();
+                voice.gain.disconnect();
+            } catch {
                 // ignore
             }
         }
-        this.activeAudio.clear();
-        const nodes = Array.from(this.activeSteppingNodes);
-        this.activeSteppingNodes.clear();
-        for (const node of nodes) {
-            try {
-                node.stop();
-                node.disconnect();
-            } catch (e) {
-                // ignore
+        this.liveVoices.delete(id);
+    }
+
+    stopAllSounds() {
+        this.activePlayingSounds.clear();
+        for (const set of this.liveVoices.values()) {
+            for (const voice of set) {
+                try {
+                    voice.source.stop();
+                    voice.source.disconnect();
+                    voice.gain.disconnect();
+                } catch {
+                    // ignore
+                }
+            }
+        }
+        this.liveVoices.clear();
+    }
+
+    isSoundPlaying(id: string) {
+        if (this.isStepping) {
+            for (const voice of this.activePlayingSounds) {
+                if (voice.id === id) return true;
+            }
+            return false;
+        }
+        const set = this.liveVoices.get(id);
+        return !!set && set.size > 0;
+    }
+
+    setMasterVolume(value: number) {
+        const v = clamp01(value);
+        this.masterVolume = v;
+        if (this.isStepping) {
+            this.masterVolumeKeyframes.push({ time: this.virtualTime, value: v });
+            return;
+        }
+        if (this.masterGain && this.audioContext) {
+            const now = this.audioContext.currentTime;
+            this.masterGain.gain.cancelScheduledValues(now);
+            this.masterGain.gain.setTargetAtTime(v, now, 0.01);
+        }
+    }
+
+    changeMasterVolume(delta: number) {
+        this.setMasterVolume(this.masterVolume + delta);
+    }
+
+    getMasterVolume() {
+        return this.masterVolume;
+    }
+
+    setSoundVolume(id: string, value: number) {
+        const v = clamp01(value);
+        this.soundVolumes.set(id, v);
+        if (this.isStepping) {
+            for (const voice of this.activePlayingSounds) {
+                if (voice.id === id) voice.keyframes.push({ time: this.virtualTime, value: v });
+            }
+            return;
+        }
+        const set = this.liveVoices.get(id);
+        if (set && this.audioContext) {
+            const now = this.audioContext.currentTime;
+            for (const voice of set) {
+                voice.gain.gain.cancelScheduledValues(now);
+                voice.gain.gain.setTargetAtTime(v, now, 0.01);
             }
         }
     }
 
-    isSoundPlaying(id: string) {
-        return this.activeAudio.has(id);
+    changeSoundVolume(id: string, delta: number) {
+        const current = this.soundVolumes.get(id) ?? 1;
+        this.setSoundVolume(id, current + delta);
+    }
+
+    getSoundVolume(id: string) {
+        return this.soundVolumes.get(id) ?? 1;
+    }
+
+    setSoundPitch(id: string, rate: number) {
+        const r = Math.max(0.01, Number.isNaN(rate) ? 1 : rate);
+        this.soundRates.set(id, r);
+        if (!this.isStepping) {
+            const set = this.liveVoices.get(id);
+            if (set && this.audioContext) {
+                const now = this.audioContext.currentTime;
+                for (const voice of set) {
+                    voice.source.playbackRate.cancelScheduledValues(now);
+                    voice.source.playbackRate.setTargetAtTime(r, now, 0.01);
+                }
+            }
+        }
+    }
+
+    fadeSound(id: string, targetValue: number, durationSec: number) {
+        const v = clamp01(targetValue);
+        const duration = Math.max(0, durationSec);
+        this.soundVolumes.set(id, v);
+
+        if (this.isStepping) {
+            const endTime = this.virtualTime + duration * 1000;
+            for (const voice of this.activePlayingSounds) {
+                if (voice.id !== id) continue;
+                const current = evalKeyframes(voice.keyframes, this.virtualTime, voice.keyframes[0]?.value ?? 1);
+                voice.keyframes.push({ time: this.virtualTime, value: current });
+                voice.keyframes.push({ time: endTime, value: v });
+            }
+            return;
+        }
+
+        const set = this.liveVoices.get(id);
+        if (set && this.audioContext) {
+            const now = this.audioContext.currentTime;
+            for (const voice of set) {
+                voice.gain.gain.cancelScheduledValues(now);
+                voice.gain.gain.setValueAtTime(voice.gain.gain.value, now);
+                voice.gain.gain.linearRampToValueAtTime(v, now + duration);
+            }
+        }
     }
 
     setCanvasEffect(effect: string, value: number) {
@@ -737,6 +1000,9 @@ class Runtime {
         this.runEpoch = this.epoch;
         this.stopped = false;
         this.paused = false;
+        if (!this.isStepping) {
+            this.audioContext?.resume().catch(() => { });
+        }
         this.lastFrameTime = performance.now();
         const myEpoch = this.runEpoch;
         const compiled = this.compile();

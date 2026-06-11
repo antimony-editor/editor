@@ -344,6 +344,9 @@ function normalizeSpriteData(spriteId: string, type: string, data: any): { type:
 				id: String(sound.id || `${spriteId}_sound_${index + 1}`),
 				name: String(sound.name || `Sound ${index + 1}`),
 				src: String(sound.src || ''),
+				volume: typeof sound.volume === 'number'
+					? Math.max(0, Math.min(1, sound.volume))
+					: 1,
 			}))
 			: [{ id: `${spriteId}_sound_1`, name: 'Sound 1', src: DEFAULT_MEDIA_SRC.replace('default_sprite.svg', 'default_sound.mp3') }];
 		const normalizedCurrentSoundId = normalizedSounds.some((sound: any) => sound.id === currentSoundId)
