@@ -4,7 +4,6 @@ import { SpriteContext, spriteReducer, initialSpriteState, type SpriteAction } f
 import HeaderBar from './components/HeaderBar';
 import SpritePanel from './components/SpritePanel';
 import StageView from './components/StageView';
-import BlocklyEditor from './components/BlocklyEditor';
 import PropertiesPanel from './components/PropertiesPanel';
 import CreditsModal from './components/CreditsModal';
 import SettingsModal from './components/SettingsModal';
@@ -12,7 +11,6 @@ import runtime from './lib/runtime';
 import { serializeProject, deserializeProject } from './lib/projectFormat';
 import { DEFAULT_PROJECT_SETTINGS, ProjectSettingsContext, type ProjectSettings } from './lib/settings';
 import './styles/editor.css';
-import './components/TabSection'
 
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';

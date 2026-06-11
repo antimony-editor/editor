@@ -37,6 +37,7 @@
 		"mediabunny": "^1.46.0",
 		"prism": "^4.1.2",
 		"react": "^19.1.0",
+		"react-contexify": "^6.0.0",
 		"react-dom": "^19.1.0",
 		"react-konva": "^19.2.4",
 		"react-tabs": "^6.1.1"
