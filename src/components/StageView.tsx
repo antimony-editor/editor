@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { Play, Square, Pause, Video } from 'lucide-react';
+import { Play, Square, Pause, Video, Maximize, X } from 'lucide-react';
 import { Stage, Layer, Rect, Text, Transformer, Line, Image as KonvaImage, Group } from 'react-konva';
 import KonvaCore from 'konva';
 import type Konva from 'konva';
@@ -471,8 +471,10 @@ export default function StageView() {
 	const stageRef = useRef<Konva.Stage>(null);
 	const layerRef = useRef<Konva.Layer>(null);
 	const fpsRef = useRef<HTMLDivElement>(null);
+	const fullScreenFpsRef = useRef<HTMLDivElement>(null);
 	const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
-	const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
+	const [normalStageSize, setNormalStageSize] = useState({ width: 0, height: 0 });
+	const [fullScreenStageSize, setFullScreenStageSize] = useState({ width: 0, height: 0 });
 	const [stagePixelRatio, setStagePixelRatio] = useState(getStagePixelRatio);
 	const { state, dispatch } = useSprites();
 	const { settings } = useProjectSettings();
@@ -490,6 +492,8 @@ export default function StageView() {
 	}, []);
 
 	const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+	const [isFullScreen, setIsFullScreen] = useState(false);
+	const fullScreenParentRef = useRef<HTMLDivElement>(null);
 	const [isRecording, setIsRecording] = useState(false);
 	const [isEncoding, setIsEncoding] = useState(false);
 	const [exportProgress, setExportProgress] = useState<number | null>(null);
@@ -498,6 +502,7 @@ export default function StageView() {
 
 	const virtualWidth = settings.width;
 	const virtualHeight = settings.height;
+	const stageSize = isFullScreen ? fullScreenStageSize : normalStageSize;
 	const stageCoords = useMemo(
 		() => createStageCoords(virtualWidth, virtualHeight),
 		[virtualWidth, virtualHeight],
@@ -758,6 +763,12 @@ export default function StageView() {
 				fpsNode.textContent = `${fps} FPS`;
 				fpsNode.style.color = getFpsColor(fps, settings.fps);
 			}
+
+			const fsFpsNode = fullScreenFpsRef.current;
+			if (fsFpsNode) {
+				fsFpsNode.textContent = `${fps} FPS`;
+				fsFpsNode.style.color = getFpsColor(fps, settings.fps);
+			}
 			rafId = requestAnimationFrame(tick);
 		};
 
@@ -776,18 +787,39 @@ export default function StageView() {
 		const observer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				const { width: pw, height: ph } = entry.contentRect;
+				if (pw === 0 || ph === 0) continue;
 				let w = pw - 16;
 				let h = w / ratio;
 				if (h > ph - 16) {
 					h = ph - 16;
 					w = h * ratio;
 				}
-				setStageSize({ width: Math.floor(w), height: Math.floor(h) });
+				setNormalStageSize({ width: Math.floor(w), height: Math.floor(h) });
 			}
 		});
 		observer.observe(parentRef.current);
 		return () => observer.disconnect();
 	}, [virtualWidth, virtualHeight]);
+
+	useEffect(() => {
+		if (!isFullScreen || !fullScreenParentRef.current) return;
+		const ratio = virtualWidth / virtualHeight;
+		const observer = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const { width: pw, height: ph } = entry.contentRect;
+				if (pw === 0 || ph === 0) continue;
+				let w = pw - 16;
+				let h = w / ratio;
+				if (h > ph - 16) {
+					h = ph - 16;
+					w = h * ratio;
+				}
+				setFullScreenStageSize({ width: Math.floor(w), height: Math.floor(h) });
+			}
+		});
+		observer.observe(fullScreenParentRef.current);
+		return () => observer.disconnect();
+	}, [virtualWidth, virtualHeight, isFullScreen]);
 
 	const handleStageClick = useCallback((e: Konva.KonvaEventObject<MouseEvent>) => {
 		const target = e.target;
@@ -1050,6 +1082,57 @@ export default function StageView() {
 	//const showROT = true; // tmp dev
 	const showTransformers = (!isPlaying || isPaused) && !isRecording;
 
+	const stageElement = (
+		<Stage
+			ref={stageRef}
+			width={stageSize.width}
+			height={stageSize.height}
+			scaleX={scale}
+			scaleY={scale}
+			onClick={handleStageClick}
+			style={{ borderRadius: '4px', overflow: 'hidden', filter: stageFilter || undefined, opacity: stageOpacity }}
+		>
+			<Layer ref={layerRef}>
+				<Rect
+					x={0}
+					y={0}
+					width={virtualWidth}
+					height={virtualHeight}
+					name="background"
+					fill={settings.backgroundColor}
+				/>
+				{showGrid && (
+					<StageGrid
+						width={virtualWidth}
+						height={virtualHeight}
+						gridSize={settings.gridSize}
+						stroke={gridColor}
+					/>
+				)}
+				{showROT && (
+					<StageROT
+						width={virtualWidth}
+						height={virtualHeight}
+					/>
+				)}
+				{sorted.map(sprite => (
+					<SpriteRenderer
+						key={sprite.id}
+						sprite={sprite}
+						isSelected={state.selectedSpriteId === sprite.id}
+						showTransformer={showTransformers}
+						onSelect={() => dispatch({ type: 'SELECT_SPRITE', id: sprite.id })}
+						onNodeReady={handleSpriteNodeReady}
+						stageCoords={stageCoords}
+						snapToGrid={settings.snapToGrid}
+						gridSize={settings.gridSize}
+						isPlaying={isPlaying}
+					/>
+				))}
+			</Layer>
+		</Stage>
+	);
+
 	return (
 		<div className="stage-area panel">
 			<div className="panel-header stage-panel-header">
@@ -1087,67 +1170,82 @@ export default function StageView() {
 						<Video size={20} />
 					</button>
 				</div>
-				<div
-					ref={fpsRef}
-					className="stage-fps-counter"
-					style={{ color: getFpsColor(0, settings.fps) }}
-					title={`Target: ${settings.fps} FPS`}
-				>
-					0 FPS
+				<div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+					<button
+						className="transport-btn"
+						title="Full Screen"
+						onClick={() => setIsFullScreen(true)}
+					>
+						<Maximize size={18} />
+					</button>
+					<div
+						ref={fpsRef}
+						className="stage-fps-counter"
+						style={{ color: getFpsColor(0, settings.fps) }}
+						title={`Target: ${settings.fps} FPS`}
+					>
+						0 FPS
+					</div>
 				</div>
 			</div>
 			<div className="panel-body" ref={parentRef}>
 				<div className="stage-container">
-					<Stage
-						ref={stageRef}
-						width={stageSize.width}
-						height={stageSize.height}
-						scaleX={scale}
-						scaleY={scale}
-						onClick={handleStageClick}
-						style={{ borderRadius: '4px', overflow: 'hidden', filter: stageFilter || undefined, opacity: stageOpacity }}
-					>
-						<Layer ref={layerRef}>
-							<Rect
-								x={0}
-								y={0}
-								width={virtualWidth}
-								height={virtualHeight}
-								name="background"
-								fill={settings.backgroundColor}
-							/>
-							{showGrid && (
-								<StageGrid
-									width={virtualWidth}
-									height={virtualHeight}
-									gridSize={settings.gridSize}
-									stroke={gridColor}
-								/>
-							)}
-							{showROT && (
-								<StageROT
-									width={virtualWidth}
-									height={virtualHeight}
-								/>
-							)}
-							{sorted.map(sprite => (
-								<SpriteRenderer
-									key={sprite.id}
-									sprite={sprite}
-									isSelected={state.selectedSpriteId === sprite.id}
-									showTransformer={showTransformers}
-									onSelect={() => dispatch({ type: 'SELECT_SPRITE', id: sprite.id })}
-									onNodeReady={handleSpriteNodeReady}
-									stageCoords={stageCoords}
-									snapToGrid={settings.snapToGrid}
-									gridSize={settings.gridSize}
-									isPlaying={isPlaying}
-								/>
-							))}
-						</Layer>
-					</Stage>
+					{!isFullScreen && stageElement}
 				</div>
 			</div>
+
+			{isFullScreen && (
+				<div className="modal-overlay" onClick={() => setIsFullScreen(false)}>
+					<div className="modal-content stage-modal" onClick={(e) => e.stopPropagation()}>
+						<div className="modal-header" style={{ position: 'relative', justifyContent: 'center' }}>
+							<div
+								ref={fullScreenFpsRef}
+								className="stage-fps-counter"
+								style={{ position: 'absolute', left: 'var(--space-lg)', color: getFpsColor(0, settings.fps) }}
+								title={`Target: ${settings.fps} FPS`}
+							>
+								0 FPS
+							</div>
+							<div className="transport-controls" style={{ background: 'transparent', border: 'none', padding: 0 }}>
+								<button
+									className={`transport-btn ${isPlaying && !isPaused ? 'active' : ''}`}
+									title={isPaused ? 'Resume' : 'Play'}
+									onClick={() => handlePlay()}
+									disabled={isRecording}
+								>
+									<Play size={18} />
+								</button>
+								<button
+									className={`transport-btn ${isPaused ? 'active' : ''}`}
+									title="Pause"
+									onClick={handlePause}
+									disabled={!isPlaying || isRecording}
+								>
+									<Pause size={18} />
+								</button>
+								<button
+									className="transport-btn"
+									title="Stop"
+									onClick={handleStop}
+									disabled={isRecording && !isPlaying}
+								>
+									<Square size={18} />
+								</button>
+							</div>
+							<button
+								className="close-modal-btn"
+								onClick={() => setIsFullScreen(false)}
+								style={{ position: 'absolute', right: 'var(--space-lg)' }}
+							>
+								<X size={18} />
+							</button>
+						</div>
+						<div className="modal-body stage-modal-body" ref={fullScreenParentRef}>
+							{stageElement}
+						</div>
+					</div>
+				</div>
+			)}
 
 			{isRecordModalOpen && (
 				<ExportModal
