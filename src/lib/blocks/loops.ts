@@ -33,6 +33,28 @@ Blockly.Blocks["controls_forLoop"] = {
     },
 };
 
+Blockly.Blocks["controls_forever"] = {
+    init(this: Blockly.Block) {
+        this.appendDummyInput().appendField("forever");
+        this.appendStatementInput("DO");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(false);
+        this.setStyle("loop_blocks");
+        this.setTooltip("Loops forever.");
+    },
+};
+
+javascriptGenerator.forBlock["controls_forever"] = function (block: Blockly.Block) {
+    const body = javascriptGenerator.statementToCode(block, "DO");
+    return `
+        await (async () => { while (true) { 
+            if (window.RUNTIME.isStopped()) break;
+            ${body}
+            await window.RUNTIME.delay(1);
+        }})();
+    `; // it blows up without the delay haha
+};
+
 javascriptGenerator.forBlock["controls_forLoop"] = function (block: Blockly.Block) {
     const variableName = javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
     const start = javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
