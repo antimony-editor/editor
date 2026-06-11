@@ -161,8 +161,9 @@ class Runtime {
             mix(ch0, ch1, buffer.sampleRate, startOffset, sound.loop);
         }
 
+        const spritesSnapshot = this.getSprites?.() ?? [];
         for (const [id] of this.sprites.entries()) {
-            const spriteData = (this.getSprites?.().find(s => s.id === id)?.data) as any;
+            const spriteData = (spritesSnapshot.find(s => s.id === id)?.data) as any;
             if (!spriteData || !spriteData.images || !spriteData.currentImageId) continue;
 
             const image = spriteData.images.find((img: any) => img.id === spriteData.currentImageId);
@@ -234,7 +235,6 @@ class Runtime {
             }
         }
 
-        await new Promise(resolve => setTimeout(resolve, 0));
         await new Promise(resolve => setTimeout(resolve, 0));
     }
 
@@ -508,7 +508,6 @@ class Runtime {
 
     stopAllSounds() {
         this.activePlayingSounds.clear();
-        this.activeAudio.clear();
         for (const audio of this.activeAudio.values()) {
             try {
                 audio.pause();
@@ -517,6 +516,7 @@ class Runtime {
                 // ignore
             }
         }
+        this.activeAudio.clear();
         const nodes = Array.from(this.activeSteppingNodes);
         this.activeSteppingNodes.clear();
         for (const node of nodes) {
@@ -530,7 +530,6 @@ class Runtime {
     }
 
     isSoundPlaying(id: string) {
-        console.log(this.activeAudio.has(id));
         return this.activeAudio.has(id);
     }
 
