@@ -36,8 +36,9 @@ const getSoundOptions: Blockly.MenuGenerator = function (this: any) {
 
   return options;
 };
-function soundLookup(soundId: string, varName: string) {
-  return `const ${varName} = context.sprite.sounds?.find(s => s.id === "${soundId}");\n`;
+
+function soundStatement(soundId: string, body: string) {
+  return `{ const _sound = context.sprite.sounds?.find(s => s.id === "${soundId}"); ${body} }\n`;
 }
 
 Blockly.Blocks["audio_play"] = {
@@ -54,7 +55,7 @@ Blockly.Blocks["audio_play"] = {
 
 javascriptGenerator.forBlock["audio_play"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return `${soundLookup(soundId, "_sound")}    if (_sound?.src) window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);\n`;
+  return soundStatement(soundId, `if (_sound?.src) window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`);
 };
 
 Blockly.Blocks["audio_playUntilDone"] = {
@@ -72,7 +73,7 @@ Blockly.Blocks["audio_playUntilDone"] = {
 
 javascriptGenerator.forBlock["audio_playUntilDone"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return `${soundLookup(soundId, "_soundWait")}    if (_soundWait?.src) await window.RUNTIME.playSound(_soundWait.src, false, "${soundId}", _soundWait.volume ?? 1);\n`;
+  return soundStatement(soundId, `if (_sound?.src) await window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`);
 };
 
 Blockly.Blocks["audio_loop"] = {
@@ -89,7 +90,7 @@ Blockly.Blocks["audio_loop"] = {
 
 javascriptGenerator.forBlock["audio_loop"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return `${soundLookup(soundId, "_soundLoop")}    if (_soundLoop?.src) window.RUNTIME.playSound(_soundLoop.src, true, "${soundId}", _soundLoop.volume ?? 1);\n`;
+  return soundStatement(soundId, `if (_sound?.src) window.RUNTIME.playSound(_sound.src, true, "${soundId}", _sound.volume ?? 1);`);
 };
 
 Blockly.Blocks["audio_stop"] = {
