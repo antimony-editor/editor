@@ -4,7 +4,6 @@ import { SpriteContext, spriteReducer, initialSpriteState, type SpriteAction } f
 import HeaderBar from './components/HeaderBar';
 import SpritePanel from './components/SpritePanel';
 import StageView from './components/StageView';
-import BlocklyEditor from './components/BlocklyEditor';
 import PropertiesPanel from './components/PropertiesPanel';
 import CreditsModal from './components/CreditsModal';
 import SettingsModal from './components/SettingsModal';
@@ -15,6 +14,7 @@ import './styles/editor.css';
 
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
+import TabSection from './components/TabSection';
 hljs.registerLanguage('javascript', javascript);
 
 const MODAL_EXIT_MS = 120;
@@ -167,7 +167,7 @@ export default function App() {
 						onOpenCredits={() => openModal('credits', setShowCredits)}
 						onOpenSettings={() => openModal('settings', setShowSettings)}
 					/>
-					<BlocklyEditor />
+					<TabSection/>
 					<div className="right-column">
 						<StageView />
 						<div className="panel" style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflowY: 'auto' }}>

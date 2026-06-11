@@ -218,7 +218,17 @@ export default function BlocklyEditor() {
 		workspace.addChangeListener(handleWorkspaceChange);
 		flyoutWorkspace?.addChangeListener(handleWorkspaceChange);
 
-		const observer = new ResizeObserver(() => Blockly.svgResize(workspace));
+		const observer = new ResizeObserver((entries) => {
+			const entry = entries[0];
+			if (!entry) return;
+
+			const { width, height } = entry.contentRect;
+
+			if (width === 0 || height === 0) return;
+
+			Blockly.svgResize(workspace);
+		});
+
 		observer.observe(blocklyDiv);
 
 		return () => {
