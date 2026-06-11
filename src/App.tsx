@@ -105,7 +105,7 @@ export default function App() {
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement('a');
 		link.href = url;
-		link.download = `${projectName.replace(/\s+/g, '_').toLowerCase()}.antimony`;
+		link.download = `${projectName.replace(/\s+/g, '_').toLowerCase()}.atm`;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
@@ -116,7 +116,7 @@ export default function App() {
 	const handleLoad = () => {
 		const input = document.createElement('input');
 		input.type = 'file';
-		input.accept = '.antimony';
+		input.accept = '.atm';
 		input.onchange = (e) => {
 			const file = (e.target as HTMLInputElement).files?.[0];
 			if (!file) return;

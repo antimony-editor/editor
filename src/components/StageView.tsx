@@ -509,6 +509,10 @@ export default function StageView() {
 	);
 	const scale = stageSize.width / virtualWidth;
 
+	const hasBlocks = useMemo(() => {
+		return state.sprites.some(sprite => sprite.blocklyXml && sprite.blocklyXml.includes('<block'));
+	}, [state.sprites]);
+
 	const [canvasEffects, setCanvasEffects] = useState<Record<string, number>>({});
 
 	const resetRecordingState = useCallback(() => {
@@ -1165,7 +1169,7 @@ export default function StageView() {
 						className={`transport-btn ${isRecording ? 'active' : ''}`}
 						title="Export"
 						onClick={() => setIsRecordModalOpen(true)}
-						disabled={isRecording}
+						disabled={isRecording || !hasBlocks}
 					>
 						<Video size={20} />
 					</button>
@@ -1175,6 +1179,7 @@ export default function StageView() {
 						className="transport-btn"
 						title="Full Screen"
 						onClick={() => setIsFullScreen(true)}
+						disabled={isRecording}
 					>
 						<Maximize size={18} />
 					</button>
