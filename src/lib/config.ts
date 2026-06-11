@@ -282,6 +282,5 @@ export const workspaceConfig: Blockly.BlocklyOptions = {
         spacing: 30,
         length: 1,
         colour: "#222",
-        snap: true,
     },
 };
