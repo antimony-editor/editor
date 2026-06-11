@@ -1649,9 +1649,12 @@ body {
 }
 
 .tab {
-  padding: 8px 16px;
+  padding: 5px 13px;
   background: var(--bg-primary);
   border: 1px solid var(--border-subtle);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  margin-top: 10px;
   border-bottom: none;
   color: var(--text-primary);
   font-size: 14px;
