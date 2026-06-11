@@ -48,10 +48,21 @@ function WaveformPreview({ src, soundId, volume }: { src: string; soundId: strin
 		if (!canvas) return;
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
-		const w = canvas.width;
-		const h = canvas.height;
+
+		const dpr = window.devicePixelRatio || 1;
+		const rect = canvas.getBoundingClientRect();
+
+		canvas.width = Math.round(rect.width * dpr);
+		canvas.height = Math.round(rect.height * dpr);
+
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+		const w = rect.width;
+		const h = rect.height;
+
 		ctx.clearRect(0, 0, w, h);
 		if (peaks.length === 0) return;
+
 		const barWidth = w / peaks.length;
 		for (let i = 0; i < peaks.length; i++) {
 			const played = (i / peaks.length) <= progress;
@@ -101,7 +112,15 @@ function WaveformPreview({ src, soundId, volume }: { src: string; soundId: strin
 			<button className="audio-editor-play" onClick={play} aria-label={playing ? 'Stop' : 'Play'}>
 				{playing ? <Square /> : <PlayIcon />}
 			</button>
-			<canvas ref={canvasRef} width={600} height={90} className="audio-waveform" />
+			<canvas
+				ref={canvasRef}
+				className="audio-waveform"
+				style={{
+					width: '100%',
+					height: '90px',
+					display: 'block'
+				}}
+			/>
 		</div>
 	);
 }
