@@ -14,8 +14,11 @@ Blockly.Blocks["effects_shake"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_shake"] = function (block: Blockly.Block) {
-  const intensity = javascriptGenerator.valueToCode(block, "INTENSITY", Order.ATOMIC) || "5";
+javascriptGenerator.forBlock["effects_shake"] = function (
+  block: Blockly.Block,
+) {
+  const intensity =
+    javascriptGenerator.valueToCode(block, "INTENSITY", Order.ATOMIC) || "5";
   return `await (async () => {
   const originalX = context.sprite.x;
   const originalY = context.sprite.y;
@@ -32,9 +35,7 @@ javascriptGenerator.forBlock["effects_shake"] = function (block: Blockly.Block) 
 
 Blockly.Blocks["effects_spin"] = {
   init: function () {
-    this.appendValueInput("TIMES")
-      .setCheck("Number")
-      .appendField("spin");
+    this.appendValueInput("TIMES").setCheck("Number").appendField("spin");
     this.appendDummyInput().appendField("times");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -44,7 +45,8 @@ Blockly.Blocks["effects_spin"] = {
 };
 
 javascriptGenerator.forBlock["effects_spin"] = function (block: Blockly.Block) {
-  const times = javascriptGenerator.valueToCode(block, "TIMES", Order.ATOMIC) || "1";
+  const times =
+    javascriptGenerator.valueToCode(block, "TIMES", Order.ATOMIC) || "1";
   return `await (async () => {
   const startRotation = context.sprite.rotation;
   const totalRotation = ${times} * 360;
@@ -89,25 +91,32 @@ Blockly.Blocks["effects_tween"] = {
   init: function () {
     this.appendDummyInput()
       .appendField("tween")
-      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY")
+      .appendField(
+        new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS),
+        "PROPERTY",
+      )
       .appendField("to");
     this.appendValueInput("VALUE").setCheck("Number");
-    this.appendValueInput("DURATION")
-      .setCheck("Number")
-      .appendField("over");
+    this.appendValueInput("DURATION").setCheck("Number").appendField("over");
     this.appendDummyInput().appendField("seconds");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("effects_blocks");
-    this.setTooltip("Smoothly change a sprite property over time using its tween mode");
+    this.setTooltip(
+      "Smoothly change a sprite property over time using its tween mode",
+    );
     this.setInputsInline(true);
   },
 };
 
-javascriptGenerator.forBlock["effects_tween"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_tween"] = function (
+  block: Blockly.Block,
+) {
   const property = block.getFieldValue("PROPERTY");
-  const value = javascriptGenerator.valueToCode(block, "VALUE", Order.ATOMIC) || "0";
-  const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
+  const value =
+    javascriptGenerator.valueToCode(block, "VALUE", Order.ATOMIC) || "0";
+  const duration =
+    javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
   return `await window.RUNTIME.tween(context, ${JSON.stringify(property)}, (${value}), (${duration}));\n`;
 };
 
@@ -123,7 +132,9 @@ Blockly.Blocks["effects_setTweenMode"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_setTweenMode"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_setTweenMode"] = function (
+  block: Blockly.Block,
+) {
   const mode = block.getFieldValue("MODE");
   return `context.sprite.tweenMode = ${JSON.stringify(mode)};\n`;
 };
@@ -132,7 +143,10 @@ Blockly.Blocks["effects_setPropertyTweenMode"] = {
   init: function () {
     this.appendDummyInput()
       .appendField("set tween mode for")
-      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY")
+      .appendField(
+        new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS),
+        "PROPERTY",
+      )
       .appendField("to")
       .appendField(new Blockly.FieldDropdown(TWEEN_MODE_OPTIONS), "MODE");
     this.setPreviousStatement(true, null);
@@ -142,7 +156,9 @@ Blockly.Blocks["effects_setPropertyTweenMode"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_setPropertyTweenMode"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_setPropertyTweenMode"] = function (
+  block: Blockly.Block,
+) {
   const property = block.getFieldValue("PROPERTY");
   const mode = block.getFieldValue("MODE");
   return `context.sprite.tweenModes = { ...context.sprite.tweenModes, ${JSON.stringify(property)}: ${JSON.stringify(mode)} };\n`;
@@ -152,20 +168,27 @@ Blockly.Blocks["effects_resetPropertyTweenMode"] = {
   init: function () {
     this.appendDummyInput()
       .appendField("reset tween mode for")
-      .appendField(new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS), "PROPERTY");
+      .appendField(
+        new Blockly.FieldDropdown(TWEENABLE_PROPERTY_OPTIONS),
+        "PROPERTY",
+      );
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("effects_blocks");
-    this.setTooltip("Use the sprite default tween mode for this property again");
+    this.setTooltip(
+      "Use the sprite default tween mode for this property again",
+    );
   },
 };
 
-javascriptGenerator.forBlock["effects_resetPropertyTweenMode"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_resetPropertyTweenMode"] = function (
+  block: Blockly.Block,
+) {
   const property = block.getFieldValue("PROPERTY");
   return `(() => { const _next = { ...context.sprite.tweenModes }; delete _next[${JSON.stringify(property)}]; context.sprite.tweenModes = _next; })();\n`;
 };
 
-export { };
+export {};
 
 const EFFECT_OPTIONS: [string, string][] = [
   ["blur", "blur"],
@@ -193,9 +216,12 @@ Blockly.Blocks["effects_set_canvas"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_set_canvas"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_set_canvas"] = function (
+  block: Blockly.Block,
+) {
   const effect = block.getFieldValue("EFFECT");
-  const val = javascriptGenerator.valueToCode(block, "VALUE", Order.ATOMIC) || "0";
+  const val =
+    javascriptGenerator.valueToCode(block, "VALUE", Order.ATOMIC) || "0";
   return `window.RUNTIME.setCanvasEffect(${JSON.stringify(effect)}, (${val}));\n`;
 };
 
@@ -210,9 +236,14 @@ Blockly.Blocks["effects_get_canvas"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_get_canvas"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_get_canvas"] = function (
+  block: Blockly.Block,
+) {
   const effect = block.getFieldValue("EFFECT");
-  return [`window.RUNTIME.getCanvasEffect(${JSON.stringify(effect)})`, Order.ATOMIC];
+  return [
+    `window.RUNTIME.getCanvasEffect(${JSON.stringify(effect)})`,
+    Order.ATOMIC,
+  ];
 };
 
 Blockly.Blocks["effects_clear_canvas"] = {
@@ -244,8 +275,11 @@ Blockly.Blocks["effects_change_canvas"] = {
   },
 };
 
-javascriptGenerator.forBlock["effects_change_canvas"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["effects_change_canvas"] = function (
+  block: Blockly.Block,
+) {
   const effect = block.getFieldValue("EFFECT");
-  const delta = javascriptGenerator.valueToCode(block, "DELTA", Order.ATOMIC) || "0";
+  const delta =
+    javascriptGenerator.valueToCode(block, "DELTA", Order.ATOMIC) || "0";
   return `window.RUNTIME.changeCanvasEffect(${JSON.stringify(effect)}, (${delta}));\n`;
 };

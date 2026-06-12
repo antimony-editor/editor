@@ -11,7 +11,9 @@ const getSoundOptions: Blockly.MenuGenerator = function (this: any) {
   let options: [string, string][] = [];
 
   if (spriteId && (workspace as any).sprites) {
-    const sprite = (workspace as any).sprites.find((s: any) => s.id === spriteId);
+    const sprite = (workspace as any).sprites.find(
+      (s: any) => s.id === spriteId,
+    );
     if (sprite && sprite.data.sounds && sprite.data.sounds.length > 0) {
       options = sprite.data.sounds.map((s: any) => [s.name, s.id]);
     }
@@ -25,11 +27,14 @@ const getSoundOptions: Blockly.MenuGenerator = function (this: any) {
 
   const currentValue = block.getFieldValue("SOUND");
   if (currentValue !== undefined && currentValue !== null) {
-    const found = options.find(opt => opt[1] === currentValue);
+    const found = options.find((opt) => opt[1] === currentValue);
     if (!found) {
-      const label = currentValue === ""
-        ? (hasSounds ? "Select sound..." : "no sounds")
-        : `missing sound (${currentValue})`;
+      const label =
+        currentValue === ""
+          ? hasSounds
+            ? "Select sound..."
+            : "no sounds"
+          : `missing sound (${currentValue})`;
       options.push([label, currentValue]);
     }
   }
@@ -55,7 +60,10 @@ Blockly.Blocks["audio_play"] = {
 
 javascriptGenerator.forBlock["audio_play"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return soundStatement(soundId, `if (_sound?.src) window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`);
+  return soundStatement(
+    soundId,
+    `if (_sound?.src) window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`,
+  );
 };
 
 Blockly.Blocks["audio_playUntilDone"] = {
@@ -71,9 +79,14 @@ Blockly.Blocks["audio_playUntilDone"] = {
   },
 };
 
-javascriptGenerator.forBlock["audio_playUntilDone"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_playUntilDone"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return soundStatement(soundId, `if (_sound?.src) await window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`);
+  return soundStatement(
+    soundId,
+    `if (_sound?.src) await window.RUNTIME.playSound(_sound.src, false, "${soundId}", _sound.volume ?? 1);`,
+  );
 };
 
 Blockly.Blocks["audio_loop"] = {
@@ -90,7 +103,10 @@ Blockly.Blocks["audio_loop"] = {
 
 javascriptGenerator.forBlock["audio_loop"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  return soundStatement(soundId, `if (_sound?.src) window.RUNTIME.playSound(_sound.src, true, "${soundId}", _sound.volume ?? 1);`);
+  return soundStatement(
+    soundId,
+    `if (_sound?.src) window.RUNTIME.playSound(_sound.src, true, "${soundId}", _sound.volume ?? 1);`,
+  );
 };
 
 Blockly.Blocks["audio_stop"] = {
@@ -140,9 +156,12 @@ Blockly.Blocks["audio_setVolume"] = {
   },
 };
 
-javascriptGenerator.forBlock["audio_setVolume"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_setVolume"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
-  const volume = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
+  const volume =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
   return `window.RUNTIME.setSoundVolume("${soundId}", (${volume}) / 100);\n`;
 };
 
@@ -157,13 +176,18 @@ Blockly.Blocks["audio_changeVolume"] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("audio_blocks");
-    this.setTooltip("Change the volume of the selected sound by an amount (in %)");
+    this.setTooltip(
+      "Change the volume of the selected sound by an amount (in %)",
+    );
   },
 };
 
-javascriptGenerator.forBlock["audio_changeVolume"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_changeVolume"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
-  const delta = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "10";
+  const delta =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "10";
   return `window.RUNTIME.changeSoundVolume("${soundId}", (${delta}) / 100);\n`;
 };
 
@@ -178,7 +202,9 @@ Blockly.Blocks["audio_getVolume"] = {
   },
 };
 
-javascriptGenerator.forBlock["audio_getVolume"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_getVolume"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
   return [`(window.RUNTIME.getSoundVolume("${soundId}") * 100)`, Order.ATOMIC];
 };
@@ -203,8 +229,10 @@ Blockly.Blocks["audio_fade"] = {
 
 javascriptGenerator.forBlock["audio_fade"] = function (block: Blockly.Block) {
   const soundId = block.getFieldValue("SOUND") || "";
-  const volume = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "0";
-  const seconds = javascriptGenerator.valueToCode(block, "SECONDS", Order.ATOMIC) || "1";
+  const volume =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "0";
+  const seconds =
+    javascriptGenerator.valueToCode(block, "SECONDS", Order.ATOMIC) || "1";
   return `window.RUNTIME.fadeSound("${soundId}", (${volume}) / 100, ${seconds});\n`;
 };
 
@@ -220,13 +248,18 @@ Blockly.Blocks["audio_setPitch"] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("audio_blocks");
-    this.setTooltip("Set the playback pitch/speed of the selected sound (100% = normal)");
+    this.setTooltip(
+      "Set the playback pitch/speed of the selected sound (100% = normal)",
+    );
   },
 };
 
-javascriptGenerator.forBlock["audio_setPitch"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_setPitch"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
-  const pitch = javascriptGenerator.valueToCode(block, "PITCH", Order.ATOMIC) || "100";
+  const pitch =
+    javascriptGenerator.valueToCode(block, "PITCH", Order.ATOMIC) || "100";
   return `window.RUNTIME.setSoundPitch("${soundId}", (${pitch}) / 100);\n`;
 };
 
@@ -244,8 +277,11 @@ Blockly.Blocks["audio_setProjectVolume"] = {
   },
 };
 
-javascriptGenerator.forBlock["audio_setProjectVolume"] = function (block: Blockly.Block) {
-  const volume = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
+javascriptGenerator.forBlock["audio_setProjectVolume"] = function (
+  block: Blockly.Block,
+) {
+  const volume =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
   return `window.RUNTIME.setMasterVolume((${volume}) / 100);\n`;
 };
 
@@ -262,8 +298,11 @@ Blockly.Blocks["audio_changeProjectVolume"] = {
   },
 };
 
-javascriptGenerator.forBlock["audio_changeProjectVolume"] = function (block: Blockly.Block) {
-  const delta = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "10";
+javascriptGenerator.forBlock["audio_changeProjectVolume"] = function (
+  block: Blockly.Block,
+) {
+  const delta =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "10";
   return `window.RUNTIME.changeMasterVolume((${delta}) / 100);\n`;
 };
 
@@ -289,10 +328,12 @@ Blockly.Blocks["audio_isPlaying"] = {
     this.setOutput(true, "Boolean");
     this.setStyle("audio_blocks");
     this.setTooltip("Returns whether a sound is currently playing");
-  }
+  },
 };
 
-javascriptGenerator.forBlock["audio_isPlaying"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["audio_isPlaying"] = function (
+  block: Blockly.Block,
+) {
   const soundId = block.getFieldValue("SOUND") || "";
   return [`window.RUNTIME.isSoundPlaying("${soundId}")`, Order.FUNCTION_CALL];
 };

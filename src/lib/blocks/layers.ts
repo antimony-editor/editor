@@ -70,9 +70,7 @@ javascriptGenerator.forBlock["layers_sendBackward"] = function () {
 
 Blockly.Blocks["layers_setZIndex"] = {
   init: function () {
-    this.appendValueInput("Z")
-      .setCheck("Number")
-      .appendField("set z index to");
+    this.appendValueInput("Z").setCheck("Number").appendField("set z index to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("layers_blocks");
@@ -80,7 +78,9 @@ Blockly.Blocks["layers_setZIndex"] = {
   },
 };
 
-javascriptGenerator.forBlock["layers_setZIndex"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["layers_setZIndex"] = function (
+  block: Blockly.Block,
+) {
   const z = javascriptGenerator.valueToCode(block, "Z", Order.ATOMIC) || "0";
   return `context.dispatch({ type: 'REORDER_SPRITE', id: context.spriteId, newIndex: Math.max(0, ${z}) });\n`;
 };
@@ -98,4 +98,4 @@ javascriptGenerator.forBlock["layers_getZIndex"] = function () {
   return ["context.sprite.zIndex", Order.ATOMIC];
 };
 
-export { };
+export {};

@@ -59,7 +59,7 @@ export const blockVisibilityConfig: BlockVisibilityConfig = {
 
 export function isBlockVisibleFor(
   blockType: string,
-  sourceType: BlockSourceType
+  sourceType: BlockSourceType,
 ): boolean {
   const config = blockVisibilityConfig[blockType];
 
@@ -83,17 +83,17 @@ export function isBlockVisibleFor(
 
 export function filterBlocksForSource(
   blockTypes: string[],
-  sourceType: BlockSourceType
+  sourceType: BlockSourceType,
 ): string[] {
   return blockTypes.filter((blockType) =>
-    isBlockVisibleFor(blockType, sourceType)
+    isBlockVisibleFor(blockType, sourceType),
   );
 }
 
 export function getVisibleBlocksForSource(
-  sourceType: BlockSourceType
+  sourceType: BlockSourceType,
 ): string[] {
   return Object.keys(blockVisibilityConfig).filter((blockType) =>
-    isBlockVisibleFor(blockType, sourceType)
+    isBlockVisibleFor(blockType, sourceType),
   );
 }

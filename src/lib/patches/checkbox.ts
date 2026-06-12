@@ -1,4 +1,4 @@
-import * as Blockly from 'blockly';
+import * as Blockly from "blockly";
 
 interface CheckboxOptions extends Blockly.FieldConfig {
   checked?: boolean;
@@ -115,11 +115,12 @@ export class Checkbox extends Blockly.FieldCheckbox {
 }
 
 try {
-  if ((Blockly as any).fieldRegistry?.get?.("field_checkbox")) { /* i hate you typescript youre making me put random comments raauughhh */ }
+  if ((Blockly as any).fieldRegistry?.get?.("field_checkbox")) {
+    /* i hate you typescript youre making me put random comments raauughhh */
+  }
 
   Blockly.fieldRegistry.register("field_checkbox", Checkbox as any);
-}
-catch {
+} catch {
   /* ts pmo */
 }
 

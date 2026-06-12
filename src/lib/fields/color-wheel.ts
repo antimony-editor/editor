@@ -1,4 +1,4 @@
-import { DropDownDiv, fieldRegistry, Field } from 'blockly';
+import { DropDownDiv, fieldRegistry, Field } from "blockly";
 import iro from "@jaames/iro";
 
 type ColorPickerOptions = Parameters<typeof iro.ColorPicker>[1];
@@ -6,95 +6,109 @@ type ColorPickerOptions = Parameters<typeof iro.ColorPicker>[1];
 const defaultColor = "#89abdb";
 
 export default class ColorWheelField extends Field {
-    static SERIALIZABLE = true;
-    SERIALIZABLE = true;
-    private width: number;
-    private pickerOptions: ColorPickerOptions;
+  static SERIALIZABLE = true;
+  SERIALIZABLE = true;
+  private width: number;
+  private pickerOptions: ColorPickerOptions;
 
-    constructor(color = defaultColor, width = 150, options: ColorPickerOptions = {}) {
-        super(color);
-        this.width = width;
-        this.pickerOptions = options;
-    }
+  constructor(
+    color = defaultColor,
+    width = 150,
+    options: ColorPickerOptions = {},
+  ) {
+    super(color);
+    this.width = width;
+    this.pickerOptions = options;
+  }
 
-    static fromJson(options: Record<string, unknown>) {
-        const color = typeof options.color === 'string' ? (options.color as string) : defaultColor;
-        const width = typeof options.width === 'number' ? (options.width as number) : 150;
-        const opts = typeof options.options === 'object' && options.options !== null ? (options.options as ColorPickerOptions) : {};
-        return new ColorWheelField(color, width, opts);
-    }
+  static fromJson(options: Record<string, unknown>) {
+    const color =
+      typeof options.color === "string"
+        ? (options.color as string)
+        : defaultColor;
+    const width =
+      typeof options.width === "number" ? (options.width as number) : 150;
+    const opts =
+      typeof options.options === "object" && options.options !== null
+        ? (options.options as ColorPickerOptions)
+        : {};
+    return new ColorWheelField(color, width, opts);
+  }
 
-    getText() {
-        return "iiii"; // this is a hack to make blockly make the field wider, ugly. ik.
-    }
+  getText() {
+    return "iiii"; // this is a hack to make blockly make the field wider, ugly. ik.
+  }
 
-    protected showEditor_() {
-        const editor = document.createElement("div");
-        DropDownDiv.getContentDiv().appendChild(editor);
-        editor.classList.add("blockly-color-wheel-container");
+  protected showEditor_() {
+    const editor = document.createElement("div");
+    DropDownDiv.getContentDiv().appendChild(editor);
+    editor.classList.add("blockly-color-wheel-container");
 
-        const colorPicker = iro.ColorPicker(editor, {
-            width: this.width,
-            color: (this.getValue() as string) ?? defaultColor,
-            ...this.pickerOptions,
-        });
+    const colorPicker = iro.ColorPicker(editor, {
+      width: this.width,
+      color: (this.getValue() as string) ?? defaultColor,
+      ...this.pickerOptions,
+    });
 
-        const input = document.createElement("input");
-        input.type = "text";
-        input.className = "blockly-color-wheel-input";
-        input.value = (this.getValue() as string) ?? defaultColor;
-        input.style.marginTop = "8px";
-        input.style.width = `${Math.min(this.width, 200)}px`;
-        input.style.padding = "6px";
-        input.style.borderRadius = "4px";
-        input.style.border = "1px solid rgba(0,0,0,0.12)";
-        editor.appendChild(input);
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "blockly-color-wheel-input";
+    input.value = (this.getValue() as string) ?? defaultColor;
+    input.style.marginTop = "8px";
+    input.style.width = `${Math.min(this.width, 200)}px`;
+    input.style.padding = "6px";
+    input.style.borderRadius = "4px";
+    input.style.border = "1px solid rgba(0,0,0,0.12)";
+    editor.appendChild(input);
 
-        const setFromPicker = (color: iro.Color) => {
-            const hex = color.hexString;
-            input.value = hex;
-            this.setValue(hex);
-            this.render_();
-        };
+    const setFromPicker = (color: iro.Color) => {
+      const hex = color.hexString;
+      input.value = hex;
+      this.setValue(hex);
+      this.render_();
+    };
 
-        colorPicker.on("color:change", setFromPicker);
+    colorPicker.on("color:change", setFromPicker);
 
-        const sanitize = (v: string) => {
-            if (!v) return null;
-            let s = v.trim();
-            if (!s.startsWith('#')) s = `#${s}`;
-            const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(s);
-            return m ? (m[1].length === 3 ? s : s.toUpperCase()) : null;
-        };
+    const sanitize = (v: string) => {
+      if (!v) return null;
+      let s = v.trim();
+      if (!s.startsWith("#")) s = `#${s}`;
+      const m = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(s);
+      return m ? (m[1].length === 3 ? s : s.toUpperCase()) : null;
+    };
 
-        const applyInput = () => {
-            const val = sanitize(input.value);
-            if (val) {
-                colorPicker.color.hexString = val;
-                this.setValue(val);
-                this.render_();
-                input.value = val;
-            } else {
-                input.value = colorPicker.color.hexString ?? ((this.getValue() as string) ?? defaultColor);
-            }
-        };
+    const applyInput = () => {
+      const val = sanitize(input.value);
+      if (val) {
+        colorPicker.color.hexString = val;
+        this.setValue(val);
+        this.render_();
+        input.value = val;
+      } else {
+        input.value =
+          colorPicker.color.hexString ??
+          (this.getValue() as string) ??
+          defaultColor;
+      }
+    };
 
-        input.addEventListener('blur', applyInput);
-        input.addEventListener('keyup', (ev: KeyboardEvent) => {
-            if (ev.key === 'Enter') applyInput();
-        });
+    input.addEventListener("blur", applyInput);
+    input.addEventListener("keyup", (ev: KeyboardEvent) => {
+      if (ev.key === "Enter") applyInput();
+    });
 
-        DropDownDiv.showPositionedByField(this, () => {
-            editor.remove();
-        });
-    }
+    DropDownDiv.showPositionedByField(this, () => {
+      editor.remove();
+    });
+  }
 
-    protected render_() {
-        super.render_();
-        const color = (this.getValue() as string) ?? defaultColor;
-        this.borderRect_?.style.setProperty("fill", color);
-        this.textElement_?.style.setProperty("fill", "transparent");
-    }
+  protected render_() {
+    super.render_();
+    const color = (this.getValue() as string) ?? defaultColor;
+    this.borderRect_?.style.setProperty("fill", color);
+    this.textElement_?.style.setProperty("fill", "transparent");
+  }
 }
 
 fieldRegistry.register("color_wheel", ColorWheelField as never);

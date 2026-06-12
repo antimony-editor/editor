@@ -118,7 +118,7 @@ body {
   min-height: 0;
 }
 
-.right-column>.panel {
+.right-column > .panel {
   flex: 1;
   min-height: 0;
 }
@@ -524,7 +524,7 @@ body {
   padding: var(--space-md);
 }
 
-.properties-section+.properties-section {
+.properties-section + .properties-section {
   border-top: 2px dashed var(--border-subtle);
 }
 
@@ -785,7 +785,9 @@ body {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
 }
 
 .primary-btn:hover {
@@ -1051,14 +1053,14 @@ body {
   stroke: rgba(0, 0, 0, 0.25) !important;
 }
 
-.blocklyEditableText>rect {
+.blocklyEditableText > rect {
   fill: rgba(0, 0, 0, 0.25) !important;
   stroke: none !important;
   rx: 3 !important;
   ry: 3 !important;
 }
 
-.blocklyEditableText>text {
+.blocklyEditableText > text {
   fill: var(--text-primary) !important;
 }
 
@@ -1286,7 +1288,9 @@ body {
   color: var(--text-muted);
   cursor: pointer;
   font-size: 20px;
-  transition: color 0.08s, transform 0.08s;
+  transition:
+    color 0.08s,
+    transform 0.08s;
   line-height: 1;
 }
 
@@ -1442,8 +1446,12 @@ body {
 }
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-spin-slow {
@@ -1479,7 +1487,9 @@ body {
   border-radius: var(--radius-md);
   color: var(--text-primary);
   text-decoration: none;
-  transition: border-color 0.12s, background 0.12s;
+  transition:
+    border-color 0.12s,
+    background 0.12s;
 }
 
 .credit-row:hover {
