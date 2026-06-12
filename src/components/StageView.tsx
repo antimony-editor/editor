@@ -1,5 +1,13 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import { Play, Square, Pause, Video, Maximize, X, Download } from "lucide-react";
+import {
+  Play,
+  Square,
+  Pause,
+  Video,
+  Maximize,
+  X,
+  Download,
+} from "lucide-react";
 import {
   Stage,
   Layer,
@@ -580,7 +588,10 @@ export default function StageView() {
   const [isRecording, setIsRecording] = useState(false);
   const [isEncoding, setIsEncoding] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
-  const [exportedVideo, setExportedVideo] = useState<{ url: string; name: string } | null>(null);
+  const [exportedVideo, setExportedVideo] = useState<{
+    url: string;
+    name: string;
+  } | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
@@ -610,7 +621,9 @@ export default function StageView() {
       sources: [
         {
           src: exportedVideo.url,
-          type: exportedVideo.name.endsWith(".mp4") ? "video/mp4" : "video/webm",
+          type: exportedVideo.name.endsWith(".mp4")
+            ? "video/mp4"
+            : "video/webm",
         },
       ],
     };
@@ -701,7 +714,9 @@ export default function StageView() {
         const expectedMs = (frameCounter / fps) * 1000;
         const actualMs = performance.now() - exportStartTime;
         if (actualMs < expectedMs) {
-          await new Promise((resolve) => setTimeout(resolve, expectedMs - actualMs));
+          await new Promise((resolve) =>
+            setTimeout(resolve, expectedMs - actualMs),
+          );
         }
 
         if (frameCounter > fps * 300) break;
@@ -1494,12 +1509,25 @@ export default function StageView() {
 
       {exportedVideo && (
         <div className="modal-overlay" onClick={() => setExportedVideo(null)}>
-          <div className="modal-content stage-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header" style={{ position: "relative", justifyContent: "center" }}>
-              <h2 style={{ position: "absolute", left: "var(--space-lg)" }}>Export Complete</h2>
+          <div
+            className="modal-content stage-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="modal-header"
+              style={{ position: "relative", justifyContent: "center" }}
+            >
+              <h2 style={{ position: "absolute", left: "var(--space-lg)" }}>
+                Export Complete
+              </h2>
               <button
                 className="primary-btn"
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0 1rem" }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  padding: "0 1rem",
+                }}
                 onClick={() => {
                   const a = document.createElement("a");
                   a.href = exportedVideo.url;
@@ -1518,23 +1546,55 @@ export default function StageView() {
                 <X size={18} />
               </button>
             </div>
-            <div className="modal-body stage-modal-body" style={{ background: "#000", minHeight: "400px", display: "block" }}>
+            <div
+              className="modal-body stage-modal-body"
+              style={{
+                background: "#000",
+                minHeight: "400px",
+                display: "block",
+              }}
+            >
               {exportedVideo.name.endsWith(".gif") ? (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
                   <img
                     src={exportedVideo.url}
                     alt="Exported GIF"
-                    style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "100%",
+                      objectFit: "contain",
+                    }}
                   />
                 </div>
               ) : (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ width: "80%", height: "80%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "80%",
+                      height: "80%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <div style={{ width: "100%", maxWidth: virtualWidth }}>
-                      <Plyr
-                        source={plyrSource!}
-                        options={plyrOptions}
-                      />
+                      <Plyr source={plyrSource!} options={plyrOptions} />
                     </div>
                   </div>
                 </div>
