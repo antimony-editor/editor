@@ -53,7 +53,7 @@ export class ChameleonConnectionChecker
       );
 
       if (isPrevConnected || isNextConnected) {
-        return true; 
+        return true;
       }
     }
 
@@ -75,5 +75,5 @@ Blockly.registry.register(
   Blockly.registry.Type.CONNECTION_CHECKER,
   Blockly.registry.DEFAULT,
   ChameleonConnectionChecker,
-  true 
+  true,
 );

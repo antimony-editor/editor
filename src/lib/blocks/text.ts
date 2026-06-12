@@ -16,9 +16,7 @@ javascriptGenerator.forBlock["text"] = function (block: Blockly.Block) {
 
 Blockly.Blocks["text_setText"] = {
   init: function () {
-    this.appendValueInput("TEXT")
-      .setCheck("String")
-      .appendField("set text to");
+    this.appendValueInput("TEXT").setCheck("String").appendField("set text to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("text_blocks");
@@ -27,6 +25,7 @@ Blockly.Blocks["text_setText"] = {
 };
 
 javascriptGenerator.forBlock["text_setText"] = function (block: Blockly.Block) {
-  const text = javascriptGenerator.valueToCode(block, "TEXT", Order.ATOMIC) || "''";
+  const text =
+    javascriptGenerator.valueToCode(block, "TEXT", Order.ATOMIC) || "''";
   return `context.sprite.text = ${text};\n`;
 };

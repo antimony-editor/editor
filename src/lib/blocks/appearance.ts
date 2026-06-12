@@ -32,9 +32,7 @@ javascriptGenerator.forBlock["appearance_hide"] = function () {
 
 Blockly.Blocks["appearance_setSize"] = {
   init: function () {
-    this.appendValueInput("SIZE")
-      .setCheck("Number")
-      .appendField("set size to");
+    this.appendValueInput("SIZE").setCheck("Number").appendField("set size to");
     this.appendDummyInput().appendField("%");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -43,8 +41,11 @@ Blockly.Blocks["appearance_setSize"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_setSize"] = function (block: Blockly.Block) {
-  const size = javascriptGenerator.valueToCode(block, "SIZE", Order.ATOMIC) || "100";
+javascriptGenerator.forBlock["appearance_setSize"] = function (
+  block: Blockly.Block,
+) {
+  const size =
+    javascriptGenerator.valueToCode(block, "SIZE", Order.ATOMIC) || "100";
   return `context.sprite._originalWidth = context.sprite._originalWidth ?? context.sprite.width;
 context.sprite._originalHeight = context.sprite._originalHeight ?? context.sprite.height;
 context.sprite.width = context.sprite._originalWidth * (${size} / 100);
@@ -60,12 +61,17 @@ Blockly.Blocks["appearance_setOpacity"] = {
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("appearance_blocks");
-    this.setTooltip("Set how transparent the sprite is (0 = invisible, 100 = opaque)");
+    this.setTooltip(
+      "Set how transparent the sprite is (0 = invisible, 100 = opaque)",
+    );
   },
 };
 
-javascriptGenerator.forBlock["appearance_setOpacity"] = function (block: Blockly.Block) {
-  const opacity = javascriptGenerator.valueToCode(block, "OPACITY", Order.ATOMIC) || "100";
+javascriptGenerator.forBlock["appearance_setOpacity"] = function (
+  block: Blockly.Block,
+) {
+  const opacity =
+    javascriptGenerator.valueToCode(block, "OPACITY", Order.ATOMIC) || "100";
   return `context.sprite.opacity = ${opacity} / 100;\n`;
 };
 
@@ -81,7 +87,9 @@ Blockly.Blocks["appearance_setColor"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_setColor"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["appearance_setColor"] = function (
+  block: Blockly.Block,
+) {
   const color = block.getFieldValue("COLOR");
   return `context.sprite.color = ${JSON.stringify(color)};\n`;
 };
@@ -99,8 +107,11 @@ Blockly.Blocks["appearance_changeSize"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_changeSize"] = function (block: Blockly.Block) {
-  const change = javascriptGenerator.valueToCode(block, "CHANGE", Order.ATOMIC) || "10";
+javascriptGenerator.forBlock["appearance_changeSize"] = function (
+  block: Blockly.Block,
+) {
+  const change =
+    javascriptGenerator.valueToCode(block, "CHANGE", Order.ATOMIC) || "10";
   return `context.sprite.width *= (1 + ${change} / 100); context.sprite.height *= (1 + ${change} / 100);\n`;
 };
 
@@ -114,7 +125,10 @@ Blockly.Blocks["appearance_getSize"] = {
 };
 
 javascriptGenerator.forBlock["appearance_getSize"] = function () {
-  return ["(context.sprite._originalWidth ? (context.sprite.width / context.sprite._originalWidth) * 100 : 100)", Order.ATOMIC];
+  return [
+    "(context.sprite._originalWidth ? (context.sprite.width / context.sprite._originalWidth) * 100 : 100)",
+    Order.ATOMIC,
+  ];
 };
 
 Blockly.Blocks["appearance_getOpacity"] = {
@@ -139,7 +153,7 @@ Blockly.Blocks["appearance_flip"] = {
           ["horizontally", "x"],
           ["vertically", "y"],
         ]),
-        "DIRECTION"
+        "DIRECTION",
       );
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -148,7 +162,9 @@ Blockly.Blocks["appearance_flip"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_flip"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["appearance_flip"] = function (
+  block: Blockly.Block,
+) {
   const direction = block.getFieldValue("DIRECTION");
   if (direction === "x") {
     return `context.sprite.flipX = !context.sprite.flipX;\n`;
@@ -169,8 +185,11 @@ Blockly.Blocks["appearance_setImageIndex"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_setImageIndex"] = function (block: Blockly.Block) {
-  const index = javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
+javascriptGenerator.forBlock["appearance_setImageIndex"] = function (
+  block: Blockly.Block,
+) {
+  const index =
+    javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
   return `context.sprite.imageIndex = ${index};\n`;
 };
 
@@ -186,8 +205,11 @@ Blockly.Blocks["appearance_setImageName"] = {
   },
 };
 
-javascriptGenerator.forBlock["appearance_setImageName"] = function (block: Blockly.Block) {
-  const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
+javascriptGenerator.forBlock["appearance_setImageName"] = function (
+  block: Blockly.Block,
+) {
+  const name =
+    javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
   return `context.sprite.imageName = ${name};\n`;
 };
 
@@ -244,4 +266,4 @@ javascriptGenerator.forBlock["appearance_getImageCount"] = function () {
   return ["context.sprite.imageCount", Order.ATOMIC];
 };
 
-export { };
+export {};
