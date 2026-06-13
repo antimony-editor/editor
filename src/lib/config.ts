@@ -233,6 +233,10 @@ function getValueInputsForBlock(blockType: string) {
 }
 
 function shouldSkipShadowForInput(blockType: string, inputName: string) {
+  if (blockType === "functions_lambda") {
+    return inputName === "ARG";
+  }
+
   if (blockType === "controls_if") {
     return inputName === "IF0";
   }

@@ -219,6 +219,10 @@
     <block type="audio_isPlaying"></block>
   </category>
   <category name="Variables" categorystyle="variable_blocks" custom="VARIABLE"></category>
-  <category name="Functions" categorystyle="procedure_blocks" custom="PROCEDURE"></category>
+  <category name="Functions" categorystyle="procedure_blocks">
+    <block type="functions_lambda"><value name="ARG"><block type="functions_argument"></block></value></block>
+    <block type="functions_return"><value name="VALUE"><shadow type="math_number"><field name="NUM">1</field></shadow></value></block>
+    <block type="functions_execute"><value name="FUNC"></value><value name="ARG"><shadow type="text"><field name="TEXT">foo</field></shadow></value></block>
+  </category>
     <category name="Other" categorystyle="other_blocks"></category>
 </xml>

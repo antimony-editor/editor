@@ -72,6 +72,30 @@ function ensureForLoopVariableBlocks(
   }
 }
 
+function ensureLambdaArgumentBlocks(
+  workspace: Blockly.WorkspaceSvg | Blockly.Workspace,
+) {
+  for (const block of workspace.getAllBlocks(false)) {
+    if (block.type !== "functions_lambda") continue;
+    const input = block.getInput("ARG");
+    if (!input || input.connection?.targetBlock()) continue;
+
+    const argumentBlock = workspace.newBlock("functions_argument");
+    const renderedArgumentBlock = argumentBlock as unknown as {
+      initSvg?: () => void;
+      render?: () => void;
+    };
+    renderedArgumentBlock.initSvg?.();
+    renderedArgumentBlock.render?.();
+    argumentBlock.moveBy(0, 0);
+
+    const outputConnection = argumentBlock.outputConnection;
+    if (outputConnection && input.connection) {
+      outputConnection.connect(input.connection);
+    }
+  }
+}
+
 function getFlyoutWorkspace(workspace: Blockly.WorkspaceSvg) {
   return workspace.getFlyout()?.getWorkspace() ?? null;
 }
@@ -207,6 +231,7 @@ export default function BlocklyEditor() {
 
     const handleWorkspaceChange = (e: Blockly.Events.Abstract) => {
       ensureForLoopVariableBlocks(workspace);
+      ensureLambdaArgumentBlocks(workspace);
       syncShadowColours(workspace);
       const fw = getFlyoutWorkspace(workspace);
       if (fw) syncShadowColours(fw);
