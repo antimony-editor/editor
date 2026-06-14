@@ -734,7 +734,14 @@ export default function StageView() {
     try {
       const captureFrame = async () => {
         try {
-          const bitmap = await createImageBitmap(canvas);
+          const bitmap = await createImageBitmap(
+            canvas,
+            0,
+            0,
+            physicalWidth,
+            physicalHeight,
+            { colorSpaceConversion: "none" },
+          );
           videoFrames.push(bitmap);
 
           const samples = runtime.getAudioSamples(1 / fps, sampleRate);

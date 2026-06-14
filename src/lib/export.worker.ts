@@ -69,7 +69,13 @@ self.onmessage = async (e: MessageEvent) => {
       codec: isMP4 ? "avc" : "vp9",
       bitrate: options.bitrate,
       latencyMode: options.quality,
-    });
+      colorSpace: {
+        primaries: "bt709",
+        transfer: "bt709",
+        matrix: "bt709",
+        fullRange: true,
+      },
+    } as any);
 
     const hasAudio = Array.isArray(audioSamples) && audioSamples.length > 0;
 
@@ -79,7 +85,7 @@ self.onmessage = async (e: MessageEvent) => {
           sampleRate,
           numberOfChannels: 2,
           bitrate: 192000,
-        })
+        } as any)
       : null;
 
     output.addVideoTrack(videoSource);
@@ -92,7 +98,13 @@ self.onmessage = async (e: MessageEvent) => {
       const sample = new VideoSample(bitmap, {
         timestamp,
         duration: frameDuration,
-      });
+        colorSpace: {
+          primaries: "bt709",
+          transfer: "bt709",
+          matrix: "bt709",
+          fullRange: true,
+        },
+      } as any);
 
       await videoSource.add(sample, { keyFrame: i % 60 === 0 });
       sample.close();
