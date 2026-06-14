@@ -309,6 +309,17 @@ export function buildToolboxForSource(sourceType: BlockSourceType): Element {
     }
   }
 
+  for (const category of Array.from(toolbox.querySelectorAll("category"))) {
+    const hasBlocks = category.querySelector("block") !== null;
+    const isDynamic =
+      category.hasAttribute("custom") ||
+      category.getAttribute("name") === "Variables" ||
+      category.getAttribute("name") === "Functions";
+    if (!hasBlocks && !isDynamic) {
+      category.remove();
+    }
+  }
+
   return toolbox;
 }
 

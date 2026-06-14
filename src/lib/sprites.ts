@@ -18,8 +18,15 @@ export interface TextSpriteData {
 
 export const DEFAULT_MEDIA_SRC = "default_sprite.svg";
 export const DEFAULT_SOUND_SRC = "default_sound.mp3";
+export const DEFAULT_VIDEO_SRC = "default_video.mp4";
 
 export interface MediaImage {
+  id: string;
+  name: string;
+  src: string;
+}
+
+export interface MediaVideo {
   id: string;
   name: string;
   src: string;
@@ -39,9 +46,21 @@ export interface MediaSpriteData {
   currentSoundId: string | null;
 }
 
-export type SpriteData = TextSpriteData | MediaSpriteData;
+export interface VideoSpriteData {
+  videos: MediaVideo[];
+  currentVideoId: string | null;
+  sounds: MediaSound[];
+  currentSoundId: string | null;
+  videoPlaying: boolean;
+  videoPlaybackRate: number;
+  videoVolume: number;
+  videoLoop: boolean;
+  videoCurrentTime: number;
+}
 
-export type SpriteType = "text" | "media";
+export type SpriteData = TextSpriteData | MediaSpriteData | VideoSpriteData;
+
+export type SpriteType = "text" | "media" | "video";
 
 export interface Sprite {
   id: string;
@@ -91,6 +110,10 @@ export function generateSpriteId(): string {
 
 export function generateMediaImageId(): string {
   return `image_${Date.now()}_${nextId++}`;
+}
+
+export function generateMediaVideoId(): string {
+  return `video_${Date.now()}_${nextId++}`;
 }
 
 export function generateMediaSoundId(): string {
@@ -157,6 +180,41 @@ export function createMediaSprite(name: string): Sprite {
       sounds: [{ id: soundId, name: "Sound 1", src: DEFAULT_SOUND_SRC }],
       currentSoundId: soundId,
     } as MediaSpriteData,
+  };
+}
+
+export function createVideoSprite(name: string): Sprite {
+  const videoId = generateMediaVideoId();
+  const soundId = generateMediaSoundId();
+  return {
+    id: generateSpriteId(),
+    name,
+    type: "video",
+    x: 0,
+    y: 0,
+    width: 480,
+    height: 270,
+    rotation: 0,
+    rotationOriginX: 0.5,
+    rotationOriginY: 0.5,
+    opacity: 1,
+    visible: true,
+    locked: false,
+    zIndex: 0,
+    tweenMode: DEFAULT_TWEEN_MODE,
+    tweenModes: {},
+    blocklyXml: "",
+    data: {
+      videos: [{ id: videoId, name: "Video 1", src: DEFAULT_VIDEO_SRC }],
+      currentVideoId: videoId,
+      sounds: [{ id: soundId, name: "Sound 1", src: DEFAULT_SOUND_SRC }],
+      currentSoundId: soundId,
+      videoPlaying: false,
+      videoPlaybackRate: 1,
+      videoVolume: 1,
+      videoLoop: false,
+      videoCurrentTime: 0,
+    } as VideoSpriteData,
   };
 }
 
@@ -277,6 +335,10 @@ export function isTextData(data: SpriteData): data is TextSpriteData {
 
 export function isMediaData(data: SpriteData): data is MediaSpriteData {
   return "images" in data && "currentImageId" in data;
+}
+
+export function isVideoData(data: SpriteData): data is VideoSpriteData {
+  return "videos" in data && "currentVideoId" in data;
 }
 
 export function getSpriteRotationOrigin(

@@ -1,9 +1,11 @@
-export type BlockSourceType = "text" | "sprite" | "stage" | "all";
+export type BlockSourceType = "text" | "sprite" | "video" | "stage" | "all";
 
 export function getSourceTypeForSprite(
-  spriteType: "text" | "media",
+  spriteType: "text" | "media" | "video",
 ): BlockSourceType {
-  return spriteType === "text" ? "text" : "sprite";
+  if (spriteType === "text") return "text";
+  if (spriteType === "video") return "video";
+  return "sprite";
 }
 
 export interface BlockVisibilityConfig {
@@ -14,24 +16,24 @@ export interface BlockVisibilityConfig {
 }
 
 export const blockVisibilityConfig: BlockVisibilityConfig = {
-  motion_moveRight: { visibleFor: ["sprite", "text"] },
-  motion_moveLeft: { visibleFor: ["sprite", "text"] },
-  motion_moveUp: { visibleFor: ["sprite", "text"] },
-  motion_moveDown: { visibleFor: ["sprite", "text"] },
-  motion_rotate: { visibleFor: ["sprite", "text"] },
-  motion_goToPosition: { visibleFor: ["sprite", "text"] },
-  motion_positionX: { visibleFor: ["sprite", "text"] },
-  motion_positionY: { visibleFor: ["sprite", "text"] },
+  motion_moveRight: { visibleFor: ["sprite", "text", "video"] },
+  motion_moveLeft: { visibleFor: ["sprite", "text", "video"] },
+  motion_moveUp: { visibleFor: ["sprite", "text", "video"] },
+  motion_moveDown: { visibleFor: ["sprite", "text", "video"] },
+  motion_rotate: { visibleFor: ["sprite", "text", "video"] },
+  motion_goToPosition: { visibleFor: ["sprite", "text", "video"] },
+  motion_positionX: { visibleFor: ["sprite", "text", "video"] },
+  motion_positionY: { visibleFor: ["sprite", "text", "video"] },
 
-  appearance_show: { visibleFor: ["sprite", "text"] },
-  appearance_hide: { visibleFor: ["sprite", "text"] },
-  appearance_setSize: { visibleFor: ["sprite", "text"] },
-  appearance_setOpacity: { visibleFor: ["sprite", "text"] },
+  appearance_show: { visibleFor: ["sprite", "text", "video"] },
+  appearance_hide: { visibleFor: ["sprite", "text", "video"] },
+  appearance_setSize: { visibleFor: ["sprite", "text", "video"] },
+  appearance_setOpacity: { visibleFor: ["sprite", "text", "video"] },
   appearance_setColor: { visibleFor: ["text"] },
-  appearance_changeSize: { visibleFor: ["sprite", "text"] },
-  appearance_getSize: { visibleFor: ["sprite", "text"] },
-  appearance_getOpacity: { visibleFor: ["sprite", "text"] },
-  appearance_flip: { visibleFor: ["sprite"] },
+  appearance_changeSize: { visibleFor: ["sprite", "text", "video"] },
+  appearance_getSize: { visibleFor: ["sprite", "text", "video"] },
+  appearance_getOpacity: { visibleFor: ["sprite", "text", "video"] },
+  appearance_flip: { visibleFor: ["sprite", "video"] },
   appearance_setImageIndex: { visibleFor: ["sprite"] },
   appearance_setImageName: { visibleFor: ["sprite"] },
   appearance_nextImage: { visibleFor: ["sprite"] },
@@ -39,20 +41,32 @@ export const blockVisibilityConfig: BlockVisibilityConfig = {
   appearance_getImageName: { visibleFor: ["sprite"] },
   appearance_getImageCount: { visibleFor: ["sprite"] },
 
-  effects_shake: { visibleFor: ["sprite"] },
-  effects_spin: { visibleFor: ["sprite"] },
-  effects_pulse: { visibleFor: ["sprite"] },
-  effects_tween: { visibleFor: ["sprite", "text"] },
-  effects_setTweenMode: { visibleFor: ["sprite", "text"] },
-  effects_setPropertyTweenMode: { visibleFor: ["sprite", "text"] },
-  effects_resetPropertyTweenMode: { visibleFor: ["sprite", "text"] },
+  video_play: { visibleFor: ["video"] },
+  video_pause: { visibleFor: ["video"] },
+  video_setPlaybackRate: { visibleFor: ["video"] },
+  video_setVolume: { visibleFor: ["video"] },
+  video_setLoop: { visibleFor: ["video"] },
+  video_setCurrentTime: { visibleFor: ["video"] },
+  video_getCurrentTime: { visibleFor: ["video"] },
+  video_getDuration: { visibleFor: ["video"] },
+  video_setVideoIndex: { visibleFor: ["video"] },
+  video_setVideoName: { visibleFor: ["video"] },
+  video_nextVideo: { visibleFor: ["video"] },
 
-  layers_sendToFront: { visibleFor: ["sprite"] },
-  layers_sendToBack: { visibleFor: ["sprite"] },
-  layers_sendForward: { visibleFor: ["sprite"] },
-  layers_sendBackward: { visibleFor: ["sprite"] },
-  layers_setZIndex: { visibleFor: ["sprite"] },
-  layers_getZIndex: { visibleFor: ["sprite"] },
+  effects_shake: { visibleFor: ["sprite", "video"] },
+  effects_spin: { visibleFor: ["sprite", "video"] },
+  effects_pulse: { visibleFor: ["sprite", "video"] },
+  effects_tween: { visibleFor: ["sprite", "text", "video"] },
+  effects_setTweenMode: { visibleFor: ["sprite", "text", "video"] },
+  effects_setPropertyTweenMode: { visibleFor: ["sprite", "text", "video"] },
+  effects_resetPropertyTweenMode: { visibleFor: ["sprite", "text", "video"] },
+
+  layers_sendToFront: { visibleFor: ["sprite", "video"] },
+  layers_sendToBack: { visibleFor: ["sprite", "video"] },
+  layers_sendForward: { visibleFor: ["sprite", "video"] },
+  layers_sendBackward: { visibleFor: ["sprite", "video"] },
+  layers_setZIndex: { visibleFor: ["sprite", "video"] },
+  layers_getZIndex: { visibleFor: ["sprite", "video"] },
 
   text_setText: { visibleFor: ["text"] },
 };

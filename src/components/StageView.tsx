@@ -24,6 +24,7 @@ import {
   useSprites,
   isTextData,
   isMediaData,
+  isVideoData,
   type Sprite,
 } from "../lib/sprites";
 import { buildFontStack } from "../lib/fonts";
@@ -166,13 +167,11 @@ function StageGrid({
 }
 
 function StageROT({ width, height }: { width: number; height: number }) {
-  // maybe?
   const lines = useMemo(() => {
     const elements: React.ReactNode[] = [];
     const Wthird = width / 3;
     const Hthird = height / 3;
     const rotColor = "rgba(41, 248, 34, 0.56)";
-    // X
     for (let x = 1; x <= 2; x++) {
       elements.push(
         <Line
@@ -184,7 +183,6 @@ function StageROT({ width, height }: { width: number; height: number }) {
         />,
       );
     }
-    // Y
     for (let y = 1; y <= 2; y++) {
       elements.push(
         <Line
@@ -213,6 +211,9 @@ function SpriteRenderer({
   snapToGrid,
   gridSize,
   isPlaying,
+  isPaused,
+  isPlayingRef,
+  videoShouldPlayRefs,
 }: {
   sprite: Sprite;
   isSelected: boolean;
@@ -223,10 +224,14 @@ function SpriteRenderer({
   snapToGrid: boolean;
   gridSize: number;
   isPlaying: boolean;
+  isPaused: boolean;
+  isPlayingRef: React.MutableRefObject<boolean>;
+  videoShouldPlayRefs: React.MutableRefObject<Map<string, { current: boolean }>>;
 }) {
   const { toCanvasX, toCanvasY, fromCanvasX, fromCanvasY } = stageCoords;
   const nodeRef = useRef<Konva.Node | null>(null);
   const trRef = useRef<Konva.Transformer | null>(null);
+  const videoShouldPlayRef = useRef<boolean>(false);
   const { dispatch } = useSprites();
   const mediaData = isMediaData(sprite.data) ? sprite.data : null;
   const activeImage = mediaData
@@ -234,16 +239,25 @@ function SpriteRenderer({
         (image) => image.id === mediaData.currentImageId,
       ) ?? mediaData.images[0])
     : null;
-  const mediaSrc = activeImage?.src ?? "";
+
+  const videoData = isVideoData(sprite.data) ? sprite.data : null;
+  const activeVideo = videoData
+    ? (videoData.videos.find(
+        (v) => v.id === videoData.currentVideoId,
+      ) ?? videoData.videos[0])
+    : null;
+
+  const mediaSrc = (activeImage?.src || activeVideo?.src) || "";
   const [mediaElement, setMediaElement] = useState<
     HTMLImageElement | HTMLVideoElement | null
   >(null);
 
   const isVideo = useMemo(() => {
+    if (sprite.type === "video") return true;
     if (!mediaSrc) return false;
     if (mediaSrc.startsWith("data:video/")) return true;
     return /\.(mp4|webm|ogg|mov)$/i.test(mediaSrc);
-  }, [mediaSrc]);
+  }, [mediaSrc, sprite.type]);
 
   useEffect(() => {
     if (!mediaSrc) {
@@ -256,14 +270,19 @@ function SpriteRenderer({
     if (isVideo) {
       const video = document.createElement("video");
       video.src = mediaSrc;
-      video.muted = true;
-      video.loop = true;
       video.playsInline = true;
+      video.loop = false;
       video.crossOrigin = "anonymous";
+      video.muted = false;
 
       const onCanPlay = () => {
+        video.removeEventListener("canplay", onCanPlay);
         if (mounted) {
+		  video.currentTime = 0;
           setMediaElement(video);
+          requestAnimationFrame(() => {
+            nodeRef.current?.getLayer()?.batchDraw();
+          });
         }
       };
       video.addEventListener("canplay", onCanPlay);
@@ -292,43 +311,62 @@ function SpriteRenderer({
   }, [mediaSrc, isVideo]);
 
   useEffect(() => {
+    if (isVideo && mediaElement instanceof HTMLVideoElement && isVideoData(sprite.data)) {
+      if (mediaElement.volume !== sprite.data.videoVolume) mediaElement.volume = sprite.data.videoVolume;
+      if (mediaElement.loop !== sprite.data.videoLoop) mediaElement.loop = sprite.data.videoLoop;
+      if (mediaElement.playbackRate !== sprite.data.videoPlaybackRate) mediaElement.playbackRate = sprite.data.videoPlaybackRate;
+      if (mediaElement.muted !== (sprite.data.videoVolume === 0)) mediaElement.muted = sprite.data.videoVolume === 0;
+    }
+  }, [mediaElement, isVideo, sprite.data]);
+
+  useEffect(() => {
     if (isVideo && mediaElement instanceof HTMLVideoElement) {
+      let rafId: number;
+
+      const onEnded = () => {
+        if (!mediaElement.loop) {
+          videoShouldPlayRef.current = false;
+        }
+      };
+      mediaElement.addEventListener("ended", onEnded);
+
       if (isPlaying) {
         const updateVideo = () => {
-          if (!isPlaying) return;
-
+          if (!isPlayingRef.current) {
+            mediaElement.pause();
+            return;
+          }
           const rt = (window as any).RUNTIME;
           if (rt && rt.isStepping) {
             mediaElement.currentTime = rt.virtualTime / 1000;
           } else {
-            if (mediaElement.paused) mediaElement.play().catch(() => {});
+            const shouldPlay = videoShouldPlayRef.current && !isPaused;
+            if (shouldPlay && mediaElement.paused) mediaElement.play().catch(() => {});
+            else if (!shouldPlay && !mediaElement.paused) mediaElement.pause();
           }
-
-          const layer = nodeRef.current?.getLayer();
-          if (layer) layer.batchDraw();
-
-          if (isPlaying && !rt.isStepping) {
-            requestAnimationFrame(updateVideo);
-          }
+          nodeRef.current?.getLayer()?.batchDraw();
+          rafId = requestAnimationFrame(updateVideo);
         };
-
-        const rt = (window as any).RUNTIME;
-        if (rt && rt.isStepping) {
-          mediaElement.currentTime = rt.virtualTime / 1000;
-        } else {
-          requestAnimationFrame(updateVideo);
-        }
+        rafId = requestAnimationFrame(updateVideo);
       } else {
         mediaElement.pause();
-        mediaElement.currentTime = 0;
       }
+
+      return () => {
+        if (rafId) cancelAnimationFrame(rafId);
+        mediaElement.removeEventListener("ended", onEnded);
+      };
     }
-  }, [isPlaying, mediaElement, isVideo]);
+  }, [isPlaying, isPaused, mediaElement, isVideo]);
 
   useEffect(() => {
+    videoShouldPlayRefs.current.set(sprite.id, videoShouldPlayRef);
     onNodeReady(sprite.id, nodeRef.current);
-    return () => onNodeReady(sprite.id, null);
-  }, [onNodeReady, sprite.id]);
+    return () => {
+      videoShouldPlayRefs.current.delete(sprite.id);
+      onNodeReady(sprite.id, null);
+    };
+  }, [onNodeReady, sprite.id, videoShouldPlayRefs]);
 
   useEffect(() => {
     if (isSelected && showTransformer && trRef.current && nodeRef.current) {
@@ -493,7 +531,7 @@ function SpriteRenderer({
         wrap="word"
       />
     );
-  } else if (isMediaData(sprite.data)) {
+  } else if (isMediaData(sprite.data) || isVideoData(sprite.data)) {
     element = (
       <Group
         {...commonProps}
@@ -570,6 +608,7 @@ export default function StageView() {
   const fpsRef = useRef<HTMLDivElement>(null);
   const fullScreenFpsRef = useRef<HTMLDivElement>(null);
   const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
+  const videoShouldPlayRefs = useRef(new Map<string, { current: boolean }>());
   const [normalStageSize, setNormalStageSize] = useState({
     width: 0,
     height: 0,
@@ -1060,10 +1099,58 @@ export default function StageView() {
 
     runtime.setFps(settings.fps);
     pendingPlaybackChangesRef.current.clear();
+    for (const ref of videoShouldPlayRefs.current.values()) ref.current = false;
     setIsPlayingWithRef(true);
     setIsPaused(false);
 
     state.sprites.forEach((sprite) => {
+      const spriteData: Record<string, unknown> = {
+        x: sprite.x,
+        y: sprite.y,
+        rotation: sprite.rotation,
+        width: sprite.width,
+        height: sprite.height,
+        opacity: sprite.opacity,
+        visible: sprite.visible,
+        zIndex: sprite.zIndex,
+        tweenMode: sprite.tweenMode,
+        tweenModes: { ...sprite.tweenModes },
+      };
+
+      if (sprite.type === "text" && isTextData(sprite.data)) {
+        spriteData.color = sprite.data.color;
+        spriteData.text = sprite.data.content;
+        spriteData.fontSize = sprite.data.fontSize;
+      }
+      if (sprite.type === "media" && isMediaData(sprite.data)) {
+        const media = sprite.data;
+        const imageIndex = Math.max(
+          0,
+          media.images.findIndex((image) => image.id === media.currentImageId),
+        );
+        spriteData.imageIndex = imageIndex + 1;
+        spriteData.imageName = media.images[imageIndex]?.name ?? "";
+        spriteData.imageCount = media.images.length;
+      }
+      if (sprite.type === "video" && isVideoData(sprite.data)) {
+        const video = sprite.data;
+        const videoIndex = Math.max(
+          0,
+          video.videos.findIndex((v) => v.id === video.currentVideoId),
+        );
+        spriteData.videoIndex = videoIndex + 1;
+        spriteData.videoName = video.videos[videoIndex]?.name ?? "";
+        spriteData.videoCount = video.videos.length;
+        spriteData.videoPlaying = video.videoPlaying;
+        spriteData.videoPlaybackRate = video.videoPlaybackRate;
+        spriteData.videoVolume = video.videoVolume;
+        spriteData.videoLoop = video.videoLoop;
+        spriteData.videoCurrentTime = video.videoCurrentTime;
+
+        const shouldPlayRef = videoShouldPlayRefs.current.get(sprite.id);
+        if (shouldPlayRef) shouldPlayRef.current = video.videoPlaying;
+      }
+
       const applyLiveSprite = () => {
         const node = spriteNodeRefs.current.get(sprite.id);
         if (!node) return;
@@ -1096,38 +1183,19 @@ export default function StageView() {
         node.getLayer()?.batchDraw();
       };
 
-      const spriteData: Record<string, unknown> = {
-        x: sprite.x,
-        y: sprite.y,
-        rotation: sprite.rotation,
-        width: sprite.width,
-        height: sprite.height,
-        opacity: sprite.opacity,
-        visible: sprite.visible,
-        zIndex: sprite.zIndex,
-        tweenMode: sprite.tweenMode,
-        tweenModes: { ...sprite.tweenModes },
-      };
-
-      if (sprite.type === "text" && isTextData(sprite.data)) {
-        spriteData.color = sprite.data.color;
-        spriteData.text = sprite.data.content;
-        spriteData.fontSize = sprite.data.fontSize;
-      }
-      if (sprite.type === "media" && isMediaData(sprite.data)) {
-        const media = sprite.data;
-        const imageIndex = Math.max(
-          0,
-          media.images.findIndex((image) => image.id === media.currentImageId),
-        );
-        spriteData.imageIndex = imageIndex + 1;
-        spriteData.imageName = media.images[imageIndex]?.name ?? "";
-        spriteData.imageCount = media.images.length;
-      }
-
       const spriteProxy = new Proxy(spriteData, {
         get: (target, property) => {
           const current = spritesRef.current.find((s) => s.id === sprite.id);
+          if (property === "play") {
+            return () => {
+              (spriteProxy as any).videoPlaying = true;
+            };
+          }
+          if (property === "pause") {
+            return () => {
+              (spriteProxy as any).videoPlaying = false;
+            };
+          }
           if (property === "zIndex") {
             return target.zIndex ?? current?.zIndex;
           }
@@ -1166,6 +1234,37 @@ export default function StageView() {
               media.images.find((entry) => entry.id === media.currentImageId) ??
               media.images[0];
             return image?.name ?? "";
+          }
+          if (property === "videoCount") {
+            return current && isVideoData(current.data)
+              ? current.data.videos.length
+              : 0;
+          }
+          if (property === "videoIndex") {
+            if (!current || !isVideoData(current.data)) return 0;
+            const video = current.data;
+            const index = video.videos.findIndex(
+              (v) => v.id === video.currentVideoId,
+            );
+            return Math.max(0, index) + 1;
+          }
+          if (property === "videoName") {
+            if (!current || !isVideoData(current.data)) return "";
+            const video = current.data;
+            const v =
+              video.videos.find((entry) => entry.id === video.currentVideoId) ??
+              video.videos[0];
+            return v?.name ?? "";
+          }
+          if (property === "videoDuration") {
+            const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+            const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+            return video?.duration || 0;
+          }
+          if (property === "videoCurrentTime") {
+            const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+            const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+            return video?.currentTime || target.videoCurrentTime || 0;
           }
           if (property === "sounds") {
             return current?.data.sounds ?? [];
@@ -1271,6 +1370,140 @@ export default function StageView() {
             }
             return true;
           }
+          if (property === "videoIndex") {
+            if (
+              current &&
+              isVideoData(current.data) &&
+              current.data.videos.length > 0
+            ) {
+              const video = current.data;
+              const index = Math.max(
+                0,
+                Math.min(
+                  video.videos.length - 1,
+                  Math.round(Number(value) || 1) - 1,
+                ),
+              );
+              const nextData = {
+                ...video,
+                currentVideoId: video.videos[index].id,
+              };
+              target.videoIndex = index + 1;
+              target.videoName = video.videos[index].name;
+              target.videoCount = video.videos.length;
+              dispatch({
+                type: "UPDATE_SPRITE",
+                id: sprite.id,
+                changes: { data: nextData },
+              });
+              queuePlaybackStateUpdate(sprite.id, { data: nextData });
+            }
+            return true;
+          }
+          if (property === "videoName") {
+            if (
+              current &&
+              isVideoData(current.data) &&
+              current.data.videos.length > 0
+            ) {
+              const video = current.data;
+              const requested = String(value);
+              const index = video.videos.findIndex(
+                (v) => v.name === requested,
+              );
+              if (index !== -1) {
+                const nextData = {
+                  ...video,
+                  currentVideoId: video.videos[index].id,
+                };
+                target.videoIndex = index + 1;
+                target.videoName = video.videos[index].name;
+                target.videoCount = video.videos.length;
+                dispatch({
+                  type: "UPDATE_SPRITE",
+                  id: sprite.id,
+                  changes: { data: nextData },
+                });
+                queuePlaybackStateUpdate(sprite.id, { data: nextData });
+              }
+            }
+            return true;
+          }
+          if (property === "videoPlaying") {
+            if (current && isVideoData(current.data)) {
+              const playing = Boolean(value);
+              target.videoPlaying = playing;
+              const shouldPlayRef = videoShouldPlayRefs.current.get(sprite.id);
+              if (shouldPlayRef) shouldPlayRef.current = playing;
+              const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+              const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+              if (video) {
+                if (playing) {
+                  video.muted = current.data.videoVolume === 0;
+                  video.play().catch(() => {});
+                } else video.pause();
+              }
+              queuePlaybackStateUpdate(sprite.id, {
+                data: { ...current.data, videoPlaying: playing },
+              });
+            }
+            return true;
+          }
+          if (property === "videoPlaybackRate") {
+            if (current && isVideoData(current.data)) {
+              const rate = Number(value);
+              target.videoPlaybackRate = rate;
+              const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+              const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+              if (video) video.playbackRate = rate;
+              queuePlaybackStateUpdate(sprite.id, {
+                data: { ...current.data, videoPlaybackRate: rate },
+              });
+            }
+            return true;
+          }
+          if (property === "videoVolume") {
+            if (current && isVideoData(current.data)) {
+              const volume = Math.max(0, Math.min(1, Number(value)));
+              target.videoVolume = volume;
+              const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+              const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+              if (video) {
+                video.volume = volume;
+                video.muted = volume === 0;
+              }
+              queuePlaybackStateUpdate(sprite.id, {
+                data: { ...current.data, videoVolume: volume },
+              });
+            }
+            return true;
+          }
+          if (property === "videoLoop") {
+            if (current && isVideoData(current.data)) {
+              const loop = Boolean(value);
+              target.videoLoop = loop;
+              const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+              const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+              if (video) video.loop = loop;
+              queuePlaybackStateUpdate(sprite.id, {
+                data: { ...current.data, videoLoop: loop },
+              });
+            }
+            return true;
+          }
+          if (property === "videoCurrentTime") {
+            if (current && isVideoData(current.data)) {
+              const time = Number(value);
+              target.videoCurrentTime = time;
+              const node = spriteNodeRefs.current.get(sprite.id) as Konva.Group;
+              const video = node?.findOne("Image")?.image() as HTMLVideoElement;
+              if (video) video.currentTime = time;
+              queuePlaybackStateUpdate(sprite.id, {
+                data: { ...current.data, videoCurrentTime: time },
+              });
+            }
+            return true;
+          }
           if (typeof property === "string" && property in target) {
             if (property === "width" && current && isTextData(current.data)) {
               const scale = Number(value) / Number(target.width);
@@ -1306,8 +1539,6 @@ export default function StageView() {
     await runtime.start();
     if (generation === playGenerationRef.current) {
       flushPlaybackStateUpdates();
-      setIsPlayingWithRef(false);
-      setIsPaused(false);
     }
   };
 
@@ -1328,6 +1559,32 @@ export default function StageView() {
     setIsPlayingWithRef(false);
     setIsPaused(false);
     runtime.stop();
+
+    document.querySelectorAll("video").forEach((v) => {
+      try {
+        v.pause();
+        v.currentTime = 0;
+      } catch (e) {}
+    });
+
+    for (const ref of videoShouldPlayRefs.current.values()) {
+      ref.current = false;
+    }
+
+    state.sprites.forEach((sprite) => {
+      if (isVideoData(sprite.data)) {
+        if (sprite.data.videoPlaying || sprite.data.videoCurrentTime !== 0) {
+          dispatch({
+            type: "UPDATE_SPRITE",
+            id: sprite.id,
+            changes: {
+              data: { ...sprite.data, videoPlaying: false, videoCurrentTime: 0 },
+            },
+          });
+        }
+      }
+    });
+
     flushPlaybackStateUpdates();
   };
 
@@ -1338,8 +1595,7 @@ export default function StageView() {
   );
   const showGrid =
     settings.showGrid && !(isPlaying && !isPaused) && !isRecording;
-  const showROT = settings.showROT && !(isPlaying && !isPaused) && !isRecording; // rule of thirds
-  //const showROT = true; // tmp dev
+  const showROT = settings.showROT && !(isPlaying && !isPaused) && !isRecording;
   const showTransformers = (!isPlaying || isPaused) && !isRecording;
 
   const stageElement = (
@@ -1387,6 +1643,9 @@ export default function StageView() {
             snapToGrid={settings.snapToGrid}
             gridSize={settings.gridSize}
             isPlaying={isPlaying}
+            isPaused={isPaused}
+            isPlayingRef={isPlayingRef}
+            videoShouldPlayRefs={videoShouldPlayRefs}
           />
         ))}
       </Layer>

@@ -1,21 +1,26 @@
 import { useState } from "react";
-import { Type, Image, HelpCircle, X, Copy } from "lucide-react";
+import { Type, Image, Video, HelpCircle, X, Copy } from "lucide-react";
 import {
   useSprites,
   createTextSprite,
   createMediaSprite,
+  createVideoSprite,
 } from "../lib/sprites";
 
 export default function SpritePanel() {
   const { state, dispatch } = useSprites();
   const [showMenu, setShowMenu] = useState(false);
 
-  const handleAdd = (type: "text" | "media") => {
+  const handleAdd = (type: "text" | "media" | "video") => {
     const count = state.sprites.filter((s) => s.type === type).length + 1;
-    const sprite =
-      type === "text"
-        ? createTextSprite(`Text ${count}`)
-        : createMediaSprite(`Media ${count}`);
+    let sprite;
+    if (type === "text") {
+      sprite = createTextSprite(`Text ${count}`);
+    } else if (type === "media") {
+      sprite = createMediaSprite(`Image ${count}`);
+    } else {
+      sprite = createVideoSprite(`Video ${count}`);
+    }
     dispatch({ type: "ADD_SPRITE", sprite });
     setShowMenu(false);
   };
@@ -26,6 +31,8 @@ export default function SpritePanel() {
         return <Type size={16} />;
       case "media":
         return <Image size={16} />;
+      case "video":
+        return <Video size={16} />;
       default:
         return <HelpCircle size={16} />;
     }
@@ -61,7 +68,7 @@ export default function SpritePanel() {
               </div>
               <div className="sprite-card-info">
                 <div className="sprite-card-name">{sprite.name}</div>
-                <div className="sprite-card-type">{sprite.type}</div>
+                <div className="sprite-card-type">{sprite.type === "media" ? "image" : sprite.type}</div>
               </div>
               <div className="sprite-card-actions">
                 <button
@@ -108,7 +115,16 @@ export default function SpritePanel() {
               <span style={{ color: "var(--accent)", display: "flex" }}>
                 <Image size={14} />
               </span>{" "}
-              Media
+              Image
+            </button>
+            <button
+              className="add-sprite-option"
+              onClick={() => handleAdd("video")}
+            >
+              <span style={{ color: "var(--accent)", display: "flex" }}>
+                <Video size={14} />
+              </span>{" "}
+              Video
             </button>
           </div>
         )}

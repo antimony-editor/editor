@@ -407,12 +407,58 @@ function normalizeSpriteData(
     };
   };
 
+  const normalizeVideos = (videos: any, currentVideoId: any) => {
+    const normalizedVideos = Array.isArray(videos)
+      ? videos.map((video: any, index: number) => ({
+          id: String(video.id || `${spriteId}_video_${index + 1}`),
+          name: String(video.name || `Video ${index + 1}`),
+          src: String(video.src || ""),
+        }))
+      : [];
+    const normalizedCurrentVideoId = normalizedVideos.some(
+      (video: any) => video.id === currentVideoId,
+    )
+      ? currentVideoId
+      : normalizedVideos.length > 0
+        ? normalizedVideos[0].id
+        : null;
+    return {
+      videos: normalizedVideos,
+      currentVideoId: normalizedCurrentVideoId,
+    };
+  };
+
   if (type === "text") {
     const { sounds, currentSoundId } = normalizeSounds(
       data.sounds,
       data.currentSoundId,
     );
     return { type, data: { ...data, sounds, currentSoundId } };
+  }
+  if (type === "video") {
+    const { sounds, currentSoundId } = normalizeSounds(
+      data.sounds,
+      data.currentSoundId,
+    );
+    const { videos, currentVideoId } = normalizeVideos(
+      data.videos,
+      data.currentVideoId,
+    );
+    return {
+      type,
+      data: {
+        ...data,
+        sounds,
+        currentSoundId,
+        videos,
+        currentVideoId,
+        videoPlaying: data.videoPlaying ?? false,
+        videoPlaybackRate: data.videoPlaybackRate ?? 1,
+        videoVolume: data.videoVolume ?? 1,
+        videoLoop: data.videoLoop ?? true,
+        videoCurrentTime: data.videoCurrentTime ?? 0,
+      },
+    };
   }
   if (type === "media") {
     const images = Array.isArray(data.images)
@@ -463,11 +509,14 @@ function normalizeSpriteData(
       src: String(data.src || DEFAULT_MEDIA_SRC),
     };
     const { sounds, currentSoundId } = normalizeSounds([], null);
+    const { videos, currentVideoId } = normalizeVideos([], null);
     return {
       type: "media",
       data: {
         images: [image],
         currentImageId: image.id,
+        videos,
+        currentVideoId,
         sounds,
         currentSoundId,
       },
@@ -479,8 +528,9 @@ function normalizeSpriteData(
     src: DEFAULT_MEDIA_SRC,
   };
   const { sounds, currentSoundId } = normalizeSounds([], null);
+  const { videos, currentVideoId } = normalizeVideos([], null);
   return {
     type: "media",
-    data: { images: [image], currentImageId: image.id, sounds, currentSoundId },
+    data: { images: [image], currentImageId: image.id, videos, currentVideoId, sounds, currentSoundId },
   };
 }
