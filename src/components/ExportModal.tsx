@@ -60,7 +60,7 @@ export default function ExportModal({
           {!isEncoding && (
             <>
               <div className="export-warning">
-                Note: You may hear slight audio distortion during the recording
+                You may hear slight audio distortion during the recording
                 process. This will not be present in the final exported video.
               </div>
               <section className="settings-section">
