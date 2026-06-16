@@ -1545,25 +1545,27 @@ export default function StageView() {
             }
             return true;
           }
-          if (typeof property === "string" && property in target) {
+
+          if (typeof property === "string") {
             if (property === "width" && current && isTextData(current.data)) {
-              const scale = Number(value) / Number(target.width);
-
-              const newFontSize = Math.max(1, current.data.fontSize * scale);
-
-              target.fontSize = newFontSize;
-
-              queuePlaybackStateUpdate(sprite.id, {
-                data: {
-                  ...current.data,
-                  fontSize: newFontSize,
-                },
-              });
+              const oldWidth = Number(target.width || sprite.width);
+              if (oldWidth > 0) {
+                const scale = Number(value) / oldWidth;
+                const newFontSize = Math.max(1, current.data.fontSize * scale);
+                target.fontSize = newFontSize;
+                queuePlaybackStateUpdate(sprite.id, {
+                  data: { ...current.data, fontSize: newFontSize },
+                });
+              }
             }
 
             target[property] = value;
-            applyLiveSprite();
-            queuePlaybackStateUpdate(sprite.id, { [property]: value });
+
+            const updatableProps = ["x", "y", "width", "height", "rotation", "opacity", "visible", "zIndex"];
+            if (updatableProps.includes(property)) {
+              applyLiveSprite();
+              queuePlaybackStateUpdate(sprite.id, { [property]: value });
+            }
           }
           return true;
         },
