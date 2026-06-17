@@ -25,17 +25,10 @@ export default function BrowserCompatibilityModal({
           </button>
         </div>
         <div className="modal-body browser-compat-modal-body">
-          <div className="browser-compat-warning">
-            <AlertTriangle size={18} />
             <p>
-              Antimony is built and tested primarily for Chromium-based browsers.
+              Antimony is built and tested primarily for Chromium-based browsers, such as Google Chrome, Microsoft Edge, Opera, etc. 
               You may encounter bugs and compatibility issues in other browsers.
             </p>
-          </div>
-          <p className="browser-compat-suggestion">
-            For the most reliable experience, consider using the Antimony desktop
-            app instead of your current browser.
-          </p>
           <button className="btn primary browser-compat-dismiss-btn" onClick={onClose}>
             Continue anyway
           </button>
