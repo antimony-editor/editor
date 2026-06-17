@@ -11,9 +11,11 @@ import {
   type ProjectSettings,
 } from "./settings";
 import { DEFAULT_MEDIA_SRC } from "./sprites";
+import { activeExtensions } from "./extensions/manager";
+import type { RegisteredExtension } from "./extensions/types";
 
 const MAGIC = "ANTIMONY";
-const VERSION = 3;
+const VERSION = 4;
 
 interface Section {
   name: string;
@@ -75,6 +77,13 @@ export async function serializeProject(
     name: "settings",
     data: encoder.encode(JSON.stringify(settings)),
   });
+
+  if (activeExtensions.length > 0) {
+    sections.push({
+      name: "extensions",
+      data: encoder.encode(JSON.stringify(activeExtensions)),
+    });
+  }
 
   const headerSize = 14;
   const sectionEntrySize = 24;
@@ -215,6 +224,7 @@ export async function deserializeProject(buffer: ArrayBuffer): Promise<{
   projectName: string;
   state: SpriteState;
   settings: ProjectSettings;
+  extensions: RegisteredExtension[];
 }> {
   const view = new DataView(buffer);
   const decoder = new TextDecoder();
@@ -229,6 +239,7 @@ export async function deserializeProject(buffer: ArrayBuffer): Promise<{
   let projectName = "Untitled Project";
   let state: SpriteState = { sprites: [], selectedSpriteId: null, loadKey: 0 };
   let settings = DEFAULT_PROJECT_SETTINGS;
+  let extensions: RegisteredExtension[] = [];
 
   let manifestPos = 14;
   for (let i = 0; i < sectionCount; i++) {
@@ -254,12 +265,18 @@ export async function deserializeProject(buffer: ArrayBuffer): Promise<{
       } catch {
         settings = DEFAULT_PROJECT_SETTINGS;
       }
+    } else if (name === "extensions") {
+      try {
+        extensions = JSON.parse(decoder.decode(data));
+      } catch {
+        extensions = [];
+      }
     }
 
     manifestPos += 24;
   }
 
-  return { projectName, state, settings };
+  return { projectName, state, settings, extensions };
 }
 
 function deserializeState(data: Uint8Array, fileVersion: number): SpriteState {

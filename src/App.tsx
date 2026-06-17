@@ -26,6 +26,7 @@ import {
 } from "./lib/browser";
 import runtime from "./lib/runtime";
 import { serializeProject, deserializeProject } from "./lib/projectFormat";
+import { registerExtension, clearExtensions } from "./lib/extensions/manager";
 import {
   DEFAULT_PROJECT_SETTINGS,
   ProjectSettingsContext,
@@ -189,13 +190,26 @@ export default function App() {
         try {
           const buffer = re.target?.result as ArrayBuffer;
           const project = await deserializeProject(buffer);
+          
+          clearExtensions();
+
+          if (project.extensions && project.extensions.length > 0) {
+            for (const ext of project.extensions) {
+              try {
+                await registerExtension(ext.code, ext.trusted);
+              } catch (e) {
+                console.warn("failed to restore this extension:", ext.id, e);
+              }
+            }
+          }
+
           setProjectName(project.projectName);
           setProjectSettings(project.settings);
           dispatch({ type: "LOAD_PROJECT", state: project.state });
           setIsDirty(false);
         } catch (err) {
-          console.error("Failed to load project:", err);
-          alert("Failed to load project file. Invalid format.");
+          console.error("failed to load this project:", err);
+          alert("There was an error loading the project file. The format is likely invalid.");
         }
       };
       reader.readAsArrayBuffer(file);

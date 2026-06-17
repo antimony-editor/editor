@@ -10,12 +10,10 @@ export type ExtensionItem = {
 }
 
 export const extensions:ExtensionItem[] = [
-    /*
     {
-        name: "test",
-        desc: "this is a test!",
-        creator:"Antimony Team",
-        jsFile:"test.js"
+        name: "Camera",
+        desc: "2D Camera system for scrolling and zooming.",
+        creator: "Antimony Team",
+        jsFile: "camera.js"
     }
-    */
 ]

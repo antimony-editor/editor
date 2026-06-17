@@ -169,6 +169,31 @@ class Runtime {
   private spritesProvider: (() => Sprite[]) | null = null;
   private nextMonitoringTime = 0;
 
+  private cameras: Map<string, { x: number; y: number; zoom: number; rotation: number }> = new Map([
+    ["default", { x: 0, y: 0, zoom: 1, rotation: 0 }]
+  ]);
+  private activeCameraId: string = "default";
+
+  public getCamera(id: string) {
+    return this.cameras.get(id) || { x: 0, y: 0, zoom: 1, rotation: 0 };
+  }
+
+  public getActiveCamera() {
+    return this.getCamera(this.activeCameraId);
+  }
+
+  public setCamera(id: string, camera: Partial<{ x: number; y: number; zoom: number; rotation: number }>) {
+    const current = this.getCamera(id);
+    this.cameras.set(id, { ...current, ...camera });
+  }
+
+  public switchCamera(id: string) {
+    this.activeCameraId = id;
+    if (!this.cameras.has(id)) {
+      this.cameras.set(id, { x: 0, y: 0, zoom: 1, rotation: 0 });
+    }
+  }
+
   private getAudioContext() {
     if (!this.audioContext) {
       if (!AudioCtxClass) {
@@ -1297,8 +1322,10 @@ class Runtime {
   }
 }
 
-const runtime = new Runtime();
+const runtime = (typeof window !== "undefined" && window.RUNTIME) ? window.RUNTIME : new Runtime();
 
-window.RUNTIME = window.RUNTIME ?? runtime;
+if (typeof window !== "undefined") {
+  window.RUNTIME = runtime;
+}
 
 export default runtime;

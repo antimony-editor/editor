@@ -64,6 +64,20 @@ export function subscribeExtensionChanges(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+export function clearExtensions() {
+  extensionBridges.forEach((bridge) => bridge.terminate());
+  extensionBridges.clear();
+  
+  for (const key in extensionHandlers) {
+    delete extensionHandlers[key];
+  }
+  
+  activeExtensions.length = 0;
+  categoryEntries.length = 0;
+  
+  emitExtensionChange();
+}
+
 function menuItems(items: Extract<ExtensionFieldSpec, { kind: "menu" }>["items"]) {
   return items.map((item) =>
     typeof item === "string" ? [item, item] : [item.text, item.value],

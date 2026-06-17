@@ -1,7 +1,8 @@
-import {Dispatch, SetStateAction, useState} from "react";
+import {Dispatch, SetStateAction} from "react";
 import {ExtensionItem, extensions} from "../lib/extensions/builtinExtensions";
 import "../styles/editor.css";
 import {ChevronLeft} from "lucide-react";
+import { registerExtension } from "../lib/extensions/manager";
 
 export default function ExtensionMenu({showMenu}:{showMenu:Dispatch<SetStateAction<boolean>>}) {
     return (
@@ -23,14 +24,15 @@ function renderExtension(ext: ExtensionItem, showMenu:Dispatch<SetStateAction<bo
         extT = "ext-nothumb.png";
     }
     return (
-        <div className="extension-item" onClick={() => {
+        <div className="extension-item" onClick={async () => {
             showMenu(false);
-            fetch("extensions/js/" + ext.jsFile).then((res) => {
-                res.text().then((js) => {
-                    // TODO: replace with a better system, this is fine for now
-                    eval(js);
-                })
-            })
+            try {
+                const res = await fetch("extensions/js/" + ext.jsFile);
+                const js = await res.text();
+                await registerExtension(js, true);
+            } catch (e) {
+                console.error("failed to load this extension:", e);
+            }
             }} key={ext.name}>
             <img src={"extensions/thumbs/" +extT} alt={ext.name} style = {{maxWidth: "100%", maxHeight: "100%"}} />
             <h2>{ext.name}</h2>

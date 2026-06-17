@@ -622,6 +622,7 @@ export default function StageView() {
   const parentRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const layerRef = useRef<Konva.Layer>(null);
+  const worldGroupRef = useRef<Konva.Group>(null);
   const fpsRef = useRef<HTMLDivElement>(null);
   const fullScreenFpsRef = useRef<HTMLDivElement>(null);
   const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
@@ -653,6 +654,38 @@ export default function StageView() {
     isPlayingRef.current = val;
   }, []);
 
+  const virtualWidth = settings.width;
+  const virtualHeight = settings.height;
+
+  useEffect(() => {
+    if (!isPlaying || isPaused) {
+      if (!isPlaying && worldGroupRef.current) {
+        worldGroupRef.current.position({ x: 0, y: 0 });
+        worldGroupRef.current.scale({ x: 1, y: 1 });
+        worldGroupRef.current.rotation(0);
+        worldGroupRef.current.offset({ x: 0, y: 0 });
+      }
+      return;
+    }
+    let rafId: number;
+    const update = () => {
+      const group = worldGroupRef.current;
+      if (group && runtime) {
+        const cam = runtime.getActiveCamera();
+        const vcx = virtualWidth / 2;
+        const vcy = virtualHeight / 2;
+        
+        group.offset({ x: cam.x + vcx, y: vcy - cam.y });
+        group.position({ x: vcx, y: vcy });
+        group.scale({ x: cam.zoom, y: cam.zoom });
+        group.rotation(-cam.rotation);
+      }
+      rafId = requestAnimationFrame(update);
+    };
+    rafId = requestAnimationFrame(update);
+    return () => cancelAnimationFrame(rafId);
+  }, [isPlaying, isPaused, virtualWidth, virtualHeight]);
+
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenParentRef = useRef<HTMLDivElement>(null);
@@ -666,8 +699,6 @@ export default function StageView() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
-  const virtualWidth = settings.width;
-  const virtualHeight = settings.height;
   const stageSize = isFullScreen ? fullScreenStageSize : normalStageSize;
   const stageCoords = useMemo(
     () => createStageCoords(virtualWidth, virtualHeight),
@@ -1685,23 +1716,25 @@ export default function StageView() {
           />
         )}
         {showROT && <StageROT width={virtualWidth} height={virtualHeight} />}
-        {sorted.map((sprite) => (
-          <SpriteRenderer
-            key={sprite.id}
-            sprite={sprite}
-            isSelected={state.selectedSpriteId === sprite.id}
-            showTransformer={showTransformers}
-            onSelect={() => dispatch({ type: "SELECT_SPRITE", id: sprite.id })}
-            onNodeReady={handleSpriteNodeReady}
-            stageCoords={stageCoords}
-            snapToGrid={settings.snapToGrid}
-            gridSize={settings.gridSize}
-            isPlaying={isPlaying}
-            isPaused={isPaused}
-            isPlayingRef={isPlayingRef}
-            videoShouldPlayRefs={videoShouldPlayRefs}
-          />
-        ))}
+        <Group ref={worldGroupRef}>
+          {sorted.map((sprite) => (
+            <SpriteRenderer
+              key={sprite.id}
+              sprite={sprite}
+              isSelected={state.selectedSpriteId === sprite.id}
+              showTransformer={showTransformers}
+              onSelect={() => dispatch({ type: "SELECT_SPRITE", id: sprite.id })}
+              onNodeReady={handleSpriteNodeReady}
+              stageCoords={stageCoords}
+              snapToGrid={settings.snapToGrid}
+              gridSize={settings.gridSize}
+              isPlaying={isPlaying}
+              isPaused={isPaused}
+              isPlayingRef={isPlayingRef}
+              videoShouldPlayRefs={videoShouldPlayRefs}
+            />
+          ))}
+        </Group>
       </Layer>
     </Stage>
   );
