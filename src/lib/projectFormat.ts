@@ -28,10 +28,48 @@ export async function serializeProject(
   const encoder = new TextEncoder();
   const sections: Section[] = [];
 
+  const cleanSprites = [];
+  for (const sprite of state.sprites) {
+    const cleanSounds = [];
+    if (sprite.data && sprite.data.sounds) {
+      for (const sound of sprite.data.sounds) {
+        if (sound.src && sound.src.startsWith("blob:")) {
+          try {
+            const response = await fetch(sound.src);
+            const blob = await response.blob();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result ?? ""));
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            cleanSounds.push({ ...sound, src: dataUrl });
+          } catch (e) {
+            cleanSounds.push(sound);
+          }
+        } else {
+          cleanSounds.push(sound);
+        }
+      }
+    }
+    if (sprite.data && sprite.data.sounds) {
+      cleanSprites.push({
+        ...sprite,
+        data: {
+          ...sprite.data,
+          sounds: cleanSounds,
+        },
+      });
+    } else {
+      cleanSprites.push(sprite);
+    }
+  }
+  const cleanState = { ...state, sprites: cleanSprites };
+
   const metadata = `name:${projectName}\nversion:${VERSION}`;
   sections.push({ name: "metadata", data: encoder.encode(metadata) });
 
-  const stateBuffer = serializeState(state, encoder);
+  const stateBuffer = serializeState(cleanState, encoder);
   sections.push({ name: "state", data: stateBuffer });
   sections.push({
     name: "settings",

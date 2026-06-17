@@ -807,7 +807,7 @@ export default function StageView() {
       setExportProgress(0);
 
       const worker = new Worker(
-        new URL("../lib/export.worker.ts", import.meta.url),
+        new URL("../workers/export.worker.ts", import.meta.url),
         { type: "module" },
       );
 

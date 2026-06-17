@@ -271,6 +271,10 @@ class Runtime {
     }
   }
 
+  setDecodedAudio(src: string, buffer: AudioBuffer) {
+    this.audioBufferCache.set(src, buffer);
+  }
+
   async decodeAudio(src: string): Promise<AudioBuffer | null> {
     const cached = this.audioBufferCache.get(src);
     if (cached) {
@@ -777,17 +781,18 @@ class Runtime {
     return this.playLive(src, id, loop, volume, rate);
   }
 
-  /** Play a sound in the editor independent of the run lifecycle (e.g. previews). */
   async previewSound(
     src: string,
     id: string,
     volume: number = 1,
+    startOffsetSec: number = 0,
+    durationSec?: number,
   ): Promise<void> {
     if (!src) return;
 
     await this.ensureAudioRunning();
 
-    return this.playLive(src, id, false, clamp01(volume), 1, true);
+    return this.playLive(src, id, false, clamp01(volume), 1, true, startOffsetSec, durationSec);
   }
 
   private async playLive(
@@ -797,6 +802,8 @@ class Runtime {
     volume: number,
     rate: number,
     ignoreStopped: boolean = false,
+    startOffsetSec: number = 0,
+    durationSec?: number,
   ): Promise<void> {
     const epoch = this.epoch;
     const buffer = await this.decodeAudio(src);
@@ -843,7 +850,6 @@ class Runtime {
           source.disconnect();
           gain.disconnect();
         } catch {
-          // ignore
         }
       };
 
@@ -853,7 +859,12 @@ class Runtime {
       };
 
       try {
-        source.start();
+        const start = Math.max(0, Math.min(buffer.duration, startOffsetSec));
+        if (durationSec !== undefined) {
+          source.start(0, start, Math.max(0, Math.min(buffer.duration - start, durationSec)));
+        } else {
+          source.start(0, start);
+        }
       } catch {
         cleanup();
         resolve();

@@ -95,31 +95,38 @@ self.onmessage = async (e: MessageEvent) => {
     for (let i = 0; i < frames.length; i++) {
       const bitmap = frames[i] as ImageBitmap;
       const timestamp = i * frameDuration;
-      const sample = new VideoSample(bitmap, {
-        timestamp,
-        duration: frameDuration,
-        colorSpace: {
-          primaries: "bt709",
-          transfer: "bt709",
-          matrix: "bt709",
-          fullRange: true,
-        },
-      } as any);
+      let sample: VideoSample | null = null;
+      let audioSample: AudioSample | null = null;
 
-      await videoSource.add(sample, { keyFrame: i % 60 === 0 });
-      sample.close();
-      bitmap.close();
-      if (audioSource && audioSamples[i]) {
-        const pcm = audioSamples[i] as Float32Array;
-        const audioSample = new AudioSample({
-          format: "f32-planar",
-          sampleRate,
-          numberOfChannels: 2,
+      try {
+        sample = new VideoSample(bitmap, {
           timestamp,
-          data: pcm.buffer,
-        });
-        await audioSource.add(audioSample);
-        audioSample.close();
+          duration: frameDuration,
+          colorSpace: {
+            primaries: "bt709",
+            transfer: "bt709",
+            matrix: "bt709",
+            fullRange: true,
+          },
+        } as any);
+
+        await videoSource.add(sample, { keyFrame: i % 60 === 0 });
+
+        if (audioSource && audioSamples[i]) {
+          const pcm = audioSamples[i] as Float32Array;
+          audioSample = new AudioSample({
+            format: "f32-planar",
+            sampleRate,
+            numberOfChannels: 2,
+            timestamp,
+            data: pcm.buffer,
+          });
+          await audioSource.add(audioSample);
+        }
+      } finally {
+        if (sample) sample.close();
+        if (audioSample) audioSample.close();
+        bitmap.close();
       }
 
       if (i % 10 === 0) {
@@ -130,8 +137,8 @@ self.onmessage = async (e: MessageEvent) => {
       }
     }
 
-    videoSource.close();
-    if (audioSource) audioSource.close();
+    await videoSource.close();
+    if (audioSource) await audioSource.close();
     await output.finalize();
 
     const buffer = target.buffer as ArrayBuffer;
