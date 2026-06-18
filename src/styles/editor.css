@@ -871,9 +871,9 @@ body {
 }
 
 .media-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
   gap: var(--space-sm);
+  flex-shrink: 0;
 }
 
 .media-actions .properties-btn {
@@ -1898,17 +1898,18 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   display: block;
-  cursor: text;
-  background: rgba(62, 126, 245, 0.05);
-  border: 1px solid rgba(62, 126, 245, 0.3);
+  cursor: default;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 2px 4px;
   transition: background 0.15s, border-color 0.15s;
 }
 
 .asset-card-name:hover {
-  background: rgba(62, 126, 245, 0.1);
-  border-color: rgba(62, 126, 245, 0.5);
+  background: rgba(62, 126, 245, 0.06);
+  border-color: rgba(62, 126, 245, 0.25);
+  cursor: text;
 }
 
 .asset-card-name-input {
@@ -1921,8 +1922,9 @@ body {
   width: 100%;
   text-align: center;
   outline: none;
-  padding: 0;
+  padding: 2px 4px;
   font-family: inherit;
+  line-height: 1.4;
 }
 
 .asset-sidebar-footer {
@@ -2070,8 +2072,79 @@ body {
   height: 160px;
   border-radius: var(--radius-md);
   overflow: hidden;
+  transition: box-shadow 0.15s;
 }
 
+.audio-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.audio-tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s,
+    color 0.12s;
+}
+
+.audio-tool-btn:hover:not(:disabled) {
+  background: var(--bg-surface);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.audio-tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.audio-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-subtle);
+  margin: 0 var(--space-xs);
+  flex-shrink: 0;
+}
+
+.audio-toolbar-spacer {
+  flex: 1;
+}
+
+.audio-time-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  padding: 0 var(--space-xs);
+}
+
+.audio-time-secondary {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.audio-time-total {
+  color: var(--text-muted);
+  font-weight: 400;
+}
 
 .contexify {
   position: fixed;
@@ -2563,13 +2636,12 @@ body {
 }
 
 .extension-item {
-  background:var(--bg-secondary);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: 10px;
   cursor: pointer;
   width: 200px;
-  padding: 10px;
 }
 
 .welcome-modal-overlay {
