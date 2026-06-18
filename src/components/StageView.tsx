@@ -28,12 +28,13 @@ import {
   isVideoData,
   type Sprite,
 } from "../lib/sprites";
-import { buildFontStack } from "../lib/fonts";
+import { buildFontStack, loadGoogleFont } from "../lib/fonts";
 import { useProjectSettings } from "../lib/settings";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import runtime, { type SpriteContext } from "../lib/runtime";
 import ExportModal, { type ExportOptions } from "./ExportModal";
+import { isChromiumBrowser } from "../lib/browser";
 import { Plyr } from "plyr-react";
 import "plyr/dist/plyr.css";
 
@@ -248,6 +249,12 @@ function SpriteRenderer({
   const { toCanvasX, toCanvasY, fromCanvasX, fromCanvasY } = stageCoords;
   const nodeRef = useRef<Konva.Node | null>(null);
   const trRef = useRef<Konva.Transformer | null>(null);
+
+  useEffect(() => {
+    if (isTextData(sprite.data)) {
+      loadGoogleFont(sprite.data.fontFamily);
+    }
+  }, [sprite.data]);
   const videoShouldPlayRef = useRef<boolean>(false);
   const { dispatch } = useSprites();
   const mediaData = isMediaData(sprite.data) ? sprite.data : null;
@@ -858,6 +865,7 @@ export default function StageView() {
             width: physicalWidth,
             height: physicalHeight,
             fps,
+            isChromium: isChromiumBrowser(),
           },
           [...videoFrames, ...audioSamples.map((a) => a.buffer)],
         );

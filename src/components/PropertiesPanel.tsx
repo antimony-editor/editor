@@ -12,6 +12,10 @@ import { useEffect, useState } from "react";
 import {
   getAvailableFonts,
   COMMON_FONTS,
+  WEB_SAFE_FONTS,
+  GOOGLE_FONTS,
+  loadGoogleFont,
+  buildFontStack,
   detectAvailableFonts,
   requestFontAccess,
   getFontPermissionState,
@@ -21,7 +25,7 @@ export default function PropertiesPanel() {
   const { state, dispatch } = useSprites();
   const sprite = state.sprites.find((s) => s.id === state.selectedSpriteId);
 
-  if (!sprite) return;
+  if (!sprite) return null;
 
   const [fonts, setFonts] = useState<string[]>([]);
   const [fontPermission, setFontPermission] = useState<
@@ -47,24 +51,23 @@ export default function PropertiesPanel() {
         const state = await getFontPermissionState();
         if (!mounted) return;
         setFontPermission(state);
+        
+        const safe = WEB_SAFE_FONTS;
+        const google = GOOGLE_FONTS;
+        const system = ["system-ui", "sans-serif", "serif", "monospace"];
+
         if (state === "granted") {
           const found = await detectAvailableFonts(COMMON_FONTS);
           if (!mounted) return;
-          setFonts([...found, "system-ui", "sans-serif", "serif", "monospace"]);
+          setFonts(Array.from(new Set([...safe, ...found, ...google, ...system])));
           return;
         }
         const fallback = getAvailableFonts(COMMON_FONTS);
         if (!mounted) return;
-        setFonts([
-          ...fallback,
-          "system-ui",
-          "sans-serif",
-          "serif",
-          "monospace",
-        ]);
+        setFonts(Array.from(new Set([...safe, ...fallback, ...google, ...system])));
       } catch {
         if (!mounted) return;
-        setFonts(["Inter", "Arial", "Georgia", "monospace"]);
+        setFonts(Array.from(new Set([...WEB_SAFE_FONTS, "Inter", "Arial", "Georgia", "monospace", ...GOOGLE_FONTS])));
       }
     })();
     return () => {
@@ -77,13 +80,15 @@ export default function PropertiesPanel() {
     try {
       const list = await requestFontAccess();
       if (list && list.length) {
-        setFonts([
-          ...Array.from(new Set(list)),
+        setFonts(Array.from(new Set([
+          ...WEB_SAFE_FONTS,
+          ...list,
+          ...GOOGLE_FONTS,
           "system-ui",
           "sans-serif",
           "serif",
           "monospace",
-        ]);
+        ])));
         setFontPermission("granted");
       } else {
         setFontPermission("denied");
@@ -222,17 +227,30 @@ export default function PropertiesPanel() {
                     <select
                       className="properties-select"
                       value={d.fontFamily}
-                      onChange={(e) =>
-                        updateData({ fontFamily: e.target.value })
-                      }
-                      disabled={fontPermission !== "granted"}
-                      style={{ minWidth: 160 }}
+                      onChange={(e) => {
+                        const f = e.target.value;
+                        loadGoogleFont(f);
+                        updateData({ fontFamily: f });
+                      }}
+                      style={{
+                        minWidth: 160,
+                        fontFamily: buildFontStack(d.fontFamily),
+                      }}
                     >
                       {!fonts.includes(d.fontFamily) && d.fontFamily ? (
-                        <option value={d.fontFamily}>{d.fontFamily}</option>
+                        <option
+                          value={d.fontFamily}
+                          style={{ fontFamily: buildFontStack(d.fontFamily) }}
+                        >
+                          {d.fontFamily}
+                        </option>
                       ) : null}
                       {fonts.map((f) => (
-                        <option key={f} value={f}>
+                        <option
+                          key={f}
+                          value={f}
+                          style={{ fontFamily: buildFontStack(f) }}
+                        >
                           {f}
                         </option>
                       ))}
@@ -244,7 +262,7 @@ export default function PropertiesPanel() {
                         disabled={requestingFonts}
                         title="Request permission to access local fonts"
                       >
-                        {requestingFonts ? "Unlocking..." : "Unlock Fonts"}
+                        {requestingFonts ? "Unlocking..." : "Use Device Fonts"}
                       </button>
                     )}
                   </div>

@@ -11,7 +11,7 @@ import {
 import { GIFEncoder, quantize, applyPalette } from "gifenc";
 
 self.onmessage = async (e: MessageEvent) => {
-  const { options, frames, audioSamples, sampleRate, fps, width, height } =
+  const { options, frames, audioSamples, sampleRate, fps, width, height, isChromium } =
     e.data;
 
   try {
@@ -81,7 +81,7 @@ self.onmessage = async (e: MessageEvent) => {
 
     const audioSource = hasAudio
       ? new AudioSampleSource({
-          codec: isMP4 ? "aac" : "opus",
+          codec: (isMP4 && isChromium) ? "aac" : "opus",
           sampleRate,
           numberOfChannels: 2,
           bitrate: 192000,
