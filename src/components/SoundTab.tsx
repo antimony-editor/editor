@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import "../styles/editor.css";
 import { useSprites, generateMediaSoundId } from "../lib/sprites";
 import { AudioLines, Play, Square, Plus, Trash2, Replace, Volume2, Scissors, Undo2, Redo2 } from "lucide-react";
 import { Menu, Item, useContextMenu } from "react-contexify";

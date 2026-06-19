@@ -34,6 +34,7 @@ import {
   type ProjectSettings,
 } from "./lib/settings";
 import "./styles/editor.css";
+import "./styles/asset-tab.css";
 
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";

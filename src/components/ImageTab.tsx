@@ -1,7 +1,6 @@
 import { useState } from "react";
-import "../styles/editor.css";
 import { useSprites } from "../lib/sprites";
-import { Plus, Trash2, Replace, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Replace, ImageIcon, Search } from "lucide-react";
 import {
   isMediaData,
   type MediaSpriteData,
@@ -212,8 +211,8 @@ export default function ImageTab() {
                 <button className="properties-btn" onClick={() => handleReplaceImage(activeItem.id)}>
                   <Replace size={14} /> Replace
                 </button>
-                <button 
-                  className="properties-btn danger" 
+                <button
+                  className="properties-btn danger"
                   disabled={sprite.data.images.length <= 1}
                   onClick={() => handleDeleteImage(activeItem.id)}
                 >

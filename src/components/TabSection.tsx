@@ -1,6 +1,5 @@
 import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
 import BlocklyEditor from "./BlocklyEditor";
-import "../styles/editor.css";
 import { Code, Image as ImageIcon, Video, Volume2, Spline } from "lucide-react";
 import { useSprites } from "../lib/sprites";
 import SoundTab from "./SoundTab";

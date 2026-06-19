@@ -1,6 +1,5 @@
 import {Dispatch, SetStateAction} from "react";
 import {ExtensionItem, extensions} from "../lib/extensions/builtinExtensions";
-import "../styles/editor.css";
 import {ChevronLeft} from "lucide-react";
 import { registerExtension } from "../lib/extensions/manager";
 

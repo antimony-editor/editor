@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import "../styles/editor.css";
 import { useSprites } from "../lib/sprites";
 import { Plus } from "lucide-react";
 import {
