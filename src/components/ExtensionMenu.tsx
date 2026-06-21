@@ -10,7 +10,7 @@ export default function ExtensionMenu({showMenu}:{showMenu:Dispatch<SetStateActi
                 <ChevronLeft style={{cursor:"pointer", position: "absolute", left: "10px"}} onClick={() => showMenu(false)}/>
                 <div className= "header-project-name"> Extensions</div>
             </div>
-            <div style={{padding: "10px", gap: "10px"}}>
+            <div style={{padding: "10px", gap: "10px", display: "flex"}}>
                 {extensions.map((ext) => renderExtension(ext, showMenu))}
             </div>
         </div>
