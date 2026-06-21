@@ -113,6 +113,7 @@ export interface SpriteContext {
   spriteId?: string;
   dispatch?: Dispatch<SpriteAction>;
   getSprites?: () => Sprite[];
+  getStageSize?: () => { width: number; height: number };
   [key: string]: unknown;
 }
 
@@ -174,6 +175,15 @@ class Runtime {
   ]);
   private activeCameraId: string = "default";
 
+  private mouseX = 0;
+  private mouseY = 0;
+  private mouseDown = false;
+  private pressedKeys: Set<string> = new Set();
+  private justPressedKeys: Set<string> = new Set();
+  private inputTargetEl: HTMLElement | null = null;
+  private inputListenersAttached = false;
+  private timerStart = 0;
+
   public getCamera(id: string) {
     return this.cameras.get(id) || { x: 0, y: 0, zoom: 1, rotation: 0 };
   }
@@ -192,6 +202,194 @@ class Runtime {
     if (!this.cameras.has(id)) {
       this.cameras.set(id, { x: 0, y: 0, zoom: 1, rotation: 0 });
     }
+  }
+
+  attachInputTarget(el: HTMLElement) {
+    if (this.inputTargetEl === el) return;
+    this.detachInput();
+    this.inputTargetEl = el;
+    this.setupInputListeners();
+  }
+
+  private toLocalCoords(clientX: number, clientY: number) {
+    const el = this.inputTargetEl;
+    const stage = this.getStageSize();
+
+    if (!el) return { x: 0, y: 0 };
+
+    const rect = el.getBoundingClientRect();
+
+    return {
+      x:
+        ((clientX - rect.left) / rect.width) * stage.width -
+        stage.width / 2,
+      y:
+        stage.height / 2 -
+        ((clientY - rect.top) / rect.height) * stage.height,
+    };
+  }
+
+  private onMouseMove = (e: MouseEvent) => {
+    const { x, y } = this.toLocalCoords(e.clientX, e.clientY);
+    this.mouseX = x;
+    this.mouseY = y;
+  };
+
+  private onMouseDown = (e: MouseEvent) => {
+    const { x, y } = this.toLocalCoords(e.clientX, e.clientY);
+    this.mouseX = x;
+    this.mouseY = y;
+    this.mouseDown = true;
+  };
+
+  private onMouseUp = () => {
+    this.mouseDown = false;
+  };
+
+  private onKeyDown = (e: KeyboardEvent) => {
+    const key = e.key.toLowerCase();
+    if (!this.pressedKeys.has(key)) {
+      this.justPressedKeys.add(key);
+    }
+    this.pressedKeys.add(key);
+  };
+
+  private onKeyUp = (e: KeyboardEvent) => {
+    this.pressedKeys.delete(e.key.toLowerCase());
+  };
+
+  private setupInputListeners() {
+    if (this.inputListenersAttached || typeof window === "undefined") return;
+    window.addEventListener("mousemove", this.onMouseMove);
+    window.addEventListener("mousedown", this.onMouseDown);
+    window.addEventListener("mouseup", this.onMouseUp);
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
+    this.inputListenersAttached = true;
+  }
+
+  detachInput() {
+    if (!this.inputListenersAttached || typeof window === "undefined") return;
+    window.removeEventListener("mousemove", this.onMouseMove);
+    window.removeEventListener("mousedown", this.onMouseDown);
+    window.removeEventListener("mouseup", this.onMouseUp);
+    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+    this.inputListenersAttached = false;
+    this.inputTargetEl = null;
+  }
+
+  getMouseX() {
+    return this.mouseX;
+  }
+
+  getMouseY() {
+    return this.mouseY;
+  }
+
+  isMouseDown() {
+    return this.mouseDown;
+  }
+
+  isKeyPressed(key: string) {
+    return this.pressedKeys.has(key.toLowerCase());
+  }
+
+  isKeyJustPressed(key: string) {
+    return this.justPressedKeys.has(key.toLowerCase());
+  }
+
+  isAnyKeyPressed() {
+    return this.pressedKeys.size > 0;
+  }
+
+  clearJustPressed() {
+    this.justPressedKeys.clear();
+  }
+
+  resetTimer() {
+    this.timerStart = this.isStepping ? this.virtualTime : performance.now();
+  }
+
+  getTimer() {
+    const now = this.isStepping ? this.virtualTime : performance.now();
+    return Math.max(0, now - this.timerStart) / 1000;
+  }
+
+  getStageSize(): { width: number; height: number } {
+    for (const context of this.sprites.values()) {
+      if (context.getStageSize) {
+        return context.getStageSize();
+      }
+    }
+    return { width: 480, height: 360 };
+  }
+
+  getSpriteContextByName(name: string): SpriteContext | null {
+    const spritesSnapshot = this.spritesProvider?.() ?? [];
+    const match = spritesSnapshot.find((s) => s.name === name);
+    if (!match) return null;
+    return this.sprites.get(match.id) ?? null;
+  }
+
+  getSpriteByName(name: string): Sprite | null {
+    const spritesSnapshot = this.spritesProvider?.() ?? [];
+    return spritesSnapshot.find((s) => s.name === name) ?? null;
+  }
+
+  getSpriteContext(spriteId: string): SpriteContext | null {
+    return this.sprites.get(spriteId) ?? null;
+  }
+
+  distanceToSprite(
+    from: { x: number; y: number },
+    targetName: string,
+  ): number {
+    const target = this.getSpriteByName(targetName);
+    if (!target) return Infinity;
+    return Math.hypot(from.x - target.x, from.y - target.y);
+  }
+
+  isTouchingPoint(
+    sprite: { x: number; y: number; width: number; height: number },
+    pointX: number,
+    pointY: number,
+  ): boolean {
+    return (
+      Math.abs(pointX - sprite.x) <= sprite.width / 2 &&
+      Math.abs(pointY - sprite.y) <= sprite.height / 2
+    );
+  }
+
+  isTouchingSprite(
+    sprite: { x: number; y: number; width: number; height: number },
+    targetName: string,
+  ): boolean {
+    const target = this.getSpriteByName(targetName);
+    if (!target) return false;
+    return (
+      Math.abs(sprite.x - target.x) <= (sprite.width + target.width) / 2 &&
+      Math.abs(sprite.y - target.y) <= (sprite.height + target.height) / 2
+    );
+  }
+
+  isTouchingEdge(sprite: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }): boolean {
+    const stage = this.getStageSize();
+    const left = sprite.x - sprite.width / 2;
+    const right = sprite.x + sprite.width / 2;
+    const top = sprite.y - sprite.height / 2;
+    const bottom = sprite.y + sprite.height / 2;
+    return (
+      left <= -stage.width / 2 ||
+      right >= stage.width / 2 ||
+      top <= -stage.height / 2 ||
+      bottom >= stage.height / 2
+    );
   }
 
   private getAudioContext() {
@@ -1301,6 +1499,7 @@ class Runtime {
       for (const waiter of waiters) {
         waiter.resolve();
       }
+      this.justPressedKeys.clear();
     });
   }
 
@@ -1367,6 +1566,8 @@ class Runtime {
     this.stopped = false;
     this.paused = false;
     this.lastFrameTime = performance.now();
+    this.resetTimer();
+    this.justPressedKeys.clear();
 
     try {
       const ctx = await this.ensureAudioRunning();

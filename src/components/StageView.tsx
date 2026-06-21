@@ -1143,6 +1143,16 @@ export default function StageView() {
   }, [settings.fps]);
 
   useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    runtime.attachInputTarget(stage.container());
+
+    return () => runtime.detachInput();
+  }, [isFullScreen, stageSize.width, stageSize.height]);
+
+
+  useEffect(() => {
     const layer = layerRef.current;
     if (!layer) return;
 

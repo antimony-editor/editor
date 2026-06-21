@@ -1,4 +1,4 @@
-  <xml xmlns="https://developers.google.com/blockly/xml">
+<xml xmlns="https://developers.google.com/blockly/xml">
   <category name="Logic" categorystyle="logic_blocks">
     <block type="logic_compare">
       <value name="A">
@@ -215,6 +215,26 @@
     <sep gap="50"></sep>
     <block type="layers_setZIndex"><value name="Z"><shadow type="math_number"><field name="NUM">0</field></shadow></value></block>
     <block type="layers_getZIndex"></block>
+  </category>
+  <category name="Sensors" categorystyle="sensors_blocks">
+    <block type="sensors_mouseX"></block>
+    <block type="sensors_mouseY"></block>
+    <block type="sensors_mouseDown"></block>
+    <sep gap="50"></sep>
+    <block type="sensors_keyPressed"><value name="KEY"><shadow type="text"><field name="TEXT">a</field></shadow></value></block>
+    <block type="sensors_keyJustPressed"><value name="KEY"><shadow type="text"><field name="TEXT">a</field></shadow></value></block>
+    <sep gap="50"></sep>
+    <block type="sensors_resetTimer"></block>
+    <block type="sensors_getTimer"></block>
+    <sep gap="50"></sep>
+    <block type="sensors_distanceToMouse"></block>
+    <block type="sensors_distanceToSprite"><value name="NAME"><shadow type="text"><field name="TEXT">Sprite 1</field></shadow></value></block>
+    <block type="sensors_touchingMouse"></block>
+    <block type="sensors_touchingSprite"><value name="NAME"><shadow type="text"><field name="TEXT">Sprite 1</field></shadow></value></block>
+    <block type="sensors_touchingEdge"></block>
+    <sep gap="50"></sep>
+    <block type="sensors_stageWidth"></block>
+    <block type="sensors_stageHeight"></block>
   </category>
   <category name="Audio" categorystyle="audio_blocks">
     <block type="audio_play"></block>

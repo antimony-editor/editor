@@ -72,6 +72,21 @@ export const blockVisibilityConfig: BlockVisibilityConfig = {
   layers_setZIndex: { visibleFor: ["sprite", "video"] },
   layers_getZIndex: { visibleFor: ["sprite", "video"] },
 
+  sensors_mouseX: { visibleFor: ["sprite", "text", "video"] },
+  sensors_mouseY: { visibleFor: ["sprite", "text", "video"] },
+  sensors_mouseDown: { visibleFor: ["sprite", "text", "video"] },
+  sensors_keyPressed: { visibleFor: ["sprite", "text", "video"] },
+  sensors_keyJustPressed: { visibleFor: ["sprite", "text", "video"] },
+  sensors_resetTimer: { visibleFor: ["sprite", "text", "video"] },
+  sensors_getTimer: { visibleFor: ["sprite", "text", "video"] },
+  sensors_distanceToMouse: { visibleFor: ["sprite", "text", "video"] },
+  sensors_distanceToSprite: { visibleFor: ["sprite", "text", "video"] },
+  sensors_touchingMouse: { visibleFor: ["sprite", "text", "video"] },
+  sensors_touchingSprite: { visibleFor: ["sprite", "text", "video"] },
+  sensors_touchingEdge: { visibleFor: ["sprite", "text", "video"] },
+  sensors_stageWidth: { visibleFor: ["sprite", "text", "video"] },
+  sensors_stageHeight: { visibleFor: ["sprite", "text", "video"] },
+
   text_setText: { visibleFor: ["text"] },
 };
 
