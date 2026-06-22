@@ -76,6 +76,17 @@ body {
   height: 100%;
 }
 
+input[type="color"] {
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -619,15 +630,6 @@ body {
   cursor: pointer;
   padding: 0;
   overflow: hidden;
-}
-
-.properties-color-swatch input[type="color"] {
-  width: 42px;
-  height: 42px;
-  border: none;
-  padding: 0;
-  margin: -8px;
-  cursor: pointer;
 }
 
 .properties-slider {
@@ -1592,33 +1594,15 @@ body {
 }
 
 .settings-color-field {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
   position: relative;
-  flex: 1;
-  max-width: 160px;
-  min-width: 0;
+  width: 100%;
 }
 
 .settings-color-field input[type="color"] {
-  position: absolute;
-  left: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  cursor: pointer;
-  flex-shrink: 0;
-  z-index: 1;
-}
-
-.settings-color-field .settings-input {
-  width: 100%;
-  max-width: 160px;
-  padding-left: 32px;
-  flex: none;
+  margin-left: auto;
 }
 
 .settings-toggle {
@@ -2369,7 +2353,7 @@ body {
   display: inline-block;
   opacity: 0;
   transform: translateY(20px) scale(0.8);
-  animation: 
+  animation:
     char-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     char-float 3s ease-in-out infinite 0.6s;
 }

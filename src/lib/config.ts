@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import toolboxXml from "./toolbox.xml?raw";
 import { isBlockVisibleFor, type BlockSourceType } from "./blockVisibility";
 import { appendExtensionCategories } from "./extensions/manager";
+import { DARK_THEME, type ThemeColors } from "./themes";
 
 const blockColors = {
   logic_blocks: "#6f8ff7",
@@ -19,37 +20,39 @@ const blockColors = {
   effects_blocks: "#FFAB19",
   layers_blocks: "#4CBFE6",
   audio_blocks: "#D65CD6",
-  sensors_blocks: "#FF6680",
+  sensors_blocks: "#FF6680"
 };
 
 function mapValues<K extends string, V, R>(
   obj: Record<K, V>,
-  fn: (value: V) => R,
+  fn: (value: V) => R
 ): Record<K, R> {
   return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [k, fn(v as V)]),
+    Object.entries(obj).map(([k, v]) => [k, fn(v as V)])
   ) as Record<K, R>;
 }
 
-const theme = Blockly.Theme.defineTheme("modern_dark", {
-  name: "modern_dark",
-  base: Blockly.Themes.Classic,
-  blockStyles: mapValues(blockColors, (colour) => ({ colourPrimary: colour })),
-  categoryStyles: mapValues(blockColors, (colour) => ({ colour })),
-  componentStyles: {
-    workspaceBackgroundColour: "#0F0F0F",
-    toolboxBackgroundColour: "#1c1c20",
-    toolboxForegroundColour: "#E0E0E0",
-    flyoutBackgroundColour: "#1A1A1A",
-    flyoutForegroundColour: "#E0E0E0",
-    insertionMarkerColour: "#FFFFFF",
-    insertionMarkerOpacity: 0.2,
-    scrollbarColour: "#2A2A2A",
-    scrollbarOpacity: 0.5,
-    cursorColour: "#FFFFFF",
-  },
-  startHats: false,
-});
+export function buildBlocklyTheme(colors: ThemeColors): Blockly.Theme {
+  return Blockly.Theme.defineTheme("editor", {
+    name: "editor",
+    base: Blockly.Themes.Classic,
+    blockStyles: mapValues(blockColors, colour => ({ colourPrimary: colour })),
+    categoryStyles: mapValues(blockColors, colour => ({ colour })),
+    componentStyles: {
+      workspaceBackgroundColour: colors.bgApp,
+      toolboxBackgroundColour: colors.bgSecondary,
+      toolboxForegroundColour: colors.textPrimary,
+      flyoutBackgroundColour: colors.bgSecondary,
+      flyoutForegroundColour: colors.textPrimary,
+      insertionMarkerColour: colors.accent,
+      insertionMarkerOpacity: 0.2,
+      scrollbarColour: colors.bgTertiary,
+      scrollbarOpacity: 0.5,
+      cursorColour: colors.accent
+    },
+    startHats: false
+  });
+}
 
 export function initAllBlocks() {
   import.meta.glob("./patches/**/*.ts", { eager: true });
@@ -68,24 +71,20 @@ const shadowDefaultsByType: Record<string, ShadowTemplate> = {
   Number: { type: "math_number", fields: { NUM: 0 } },
   String: { type: "text", fields: { TEXT: "" } },
   Array: { type: "lists_create_empty" },
-  Colour: { type: "colour_picker", fields: { COLOUR: "#89abdb" } },
+  Colour: { type: "colour_picker", fields: { COLOUR: "#89abdb" } }
 };
 
 const fallbackShadowTemplate: ShadowTemplate = {
   type: "text",
-  fields: { TEXT: "" },
+  fields: { TEXT: "" }
 };
 
 function findChildElement(element: Element, selector: string) {
   return element.querySelector(`:scope > ${selector}`);
 }
 
-function getExistingShadowTemplate(
-  valueElement: Element | null,
-): ShadowTemplate | null {
-  const shadowElement = valueElement
-    ? findChildElement(valueElement, "shadow")
-    : null;
+function getExistingShadowTemplate(valueElement: Element | null): ShadowTemplate | null {
+  const shadowElement = valueElement ? findChildElement(valueElement, "shadow") : null;
 
   if (!shadowElement) {
     return null;
@@ -100,7 +99,7 @@ function getExistingShadowTemplate(
   const fields: Record<string, ShadowFieldValue> = {};
 
   for (const fieldElement of Array.from(
-    shadowElement.querySelectorAll(":scope > field"),
+    shadowElement.querySelectorAll(":scope > field")
   )) {
     const fieldName = fieldElement.getAttribute("name");
 
@@ -114,7 +113,7 @@ function getExistingShadowTemplate(
 
 function getShadowTemplateForChecks(
   checks: string[] | null,
-  existing: ShadowTemplate | null,
+  existing: ShadowTemplate | null
 ) {
   if (checks) {
     for (const check of checks) {
@@ -133,7 +132,7 @@ function appendShadowElement(
   xmlDocument: XMLDocument,
   namespace: string,
   valueElement: Element,
-  template: ShadowTemplate,
+  template: ShadowTemplate
 ) {
   const shadowElement = xmlDocument.createElementNS(namespace, "shadow");
   shadowElement.setAttribute("type", template.type);
@@ -167,7 +166,7 @@ function getValueInputsForBlock(blockType: string) {
         check: null as string[] | null,
         getCheck() {
           return this.check;
-        },
+        }
       };
       const input = {
         name,
@@ -181,7 +180,7 @@ function getValueInputsForBlock(blockType: string) {
         },
         appendField() {
           return input;
-        },
+        }
       };
       this.inputList.push(input);
       return input;
@@ -193,7 +192,7 @@ function getValueInputsForBlock(blockType: string) {
         },
         appendField() {
           return this;
-        },
+        }
       };
     },
     appendStatementInput(_name: string) {
@@ -203,7 +202,7 @@ function getValueInputsForBlock(blockType: string) {
         },
         appendField() {
           return this;
-        },
+        }
       };
     },
     setColour() {},
@@ -215,19 +214,16 @@ function getValueInputsForBlock(blockType: string) {
     appendField() {
       return this;
     },
-    interpolate_() {},
+    interpolate_() {}
   };
 
   try {
     blockDef.init?.call(mockBlock);
     return mockBlock.inputList
-      .filter(
-        (input) =>
-          input.connection?.type === Blockly.ConnectionType.INPUT_VALUE,
-      )
-      .map((input) => ({
+      .filter(input => input.connection?.type === Blockly.ConnectionType.INPUT_VALUE)
+      .map(input => ({
         name: input.name,
-        checks: input.connection.getCheck() ?? null,
+        checks: input.connection.getCheck() ?? null
       }));
   } catch {
     return [];
@@ -286,7 +282,7 @@ function normalizeToolboxXml(toolboxRoot: Element) {
 
       const template = getShadowTemplateForChecks(
         input.checks,
-        getExistingShadowTemplate(valueElement),
+        getExistingShadowTemplate(valueElement)
       );
       appendShadowElement(xmlDocument, namespace, valueElement, template);
     }
@@ -298,7 +294,7 @@ function normalizeToolboxXml(toolboxRoot: Element) {
 initAllBlocks();
 
 const toolboxDom = normalizeToolboxXml(
-  new DOMParser().parseFromString(toolboxXml, "text/xml").documentElement,
+  new DOMParser().parseFromString(toolboxXml, "text/xml").documentElement
 );
 
 export function buildToolboxForSource(sourceType: BlockSourceType): Element {
@@ -329,16 +325,16 @@ export function buildToolboxForSource(sourceType: BlockSourceType): Element {
 
 export const workspaceConfig: Blockly.BlocklyOptions = {
   renderer: "zelos",
-  theme: theme,
+  theme: buildBlocklyTheme(DARK_THEME),
   toolbox: toolboxDom,
   trashcan: true,
   move: {
     scrollbars: {
       horizontal: true,
-      vertical: true,
+      vertical: true
     },
     drag: true,
-    wheel: true,
+    wheel: true
   },
   zoom: {
     controls: true,
@@ -347,11 +343,11 @@ export const workspaceConfig: Blockly.BlocklyOptions = {
     maxScale: 2,
     minScale: 0.4,
     scaleSpeed: 1.1,
-    pinch: true,
+    pinch: true
   },
   grid: {
     spacing: 30,
     length: 1,
-    colour: "#222",
-  },
+    colour: "#222"
+  }
 };

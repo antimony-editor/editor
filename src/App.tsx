@@ -33,6 +33,7 @@ import {
   ProjectSettingsContext,
   type ProjectSettings,
 } from "./lib/settings";
+import { getThemeColors, applyTheme } from "./lib/themes";
 import "./styles/editor.css";
 import "./styles/asset-tab.css";
 
@@ -170,6 +171,14 @@ export default function App() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
+
+  useEffect(() => {
+    const colors = getThemeColors(
+      projectSettings.theme.preset,
+      projectSettings.theme.custom,
+    );
+    applyTheme(colors);
+  }, [projectSettings.theme]);
 
   const handleSeeJS = () => {
     setGeneratedJS(runtime.compile().trim());

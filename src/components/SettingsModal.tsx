@@ -1,5 +1,6 @@
-import { Monitor, Gauge, Palette, Grid3x3, X } from "lucide-react";
-import { RESOLUTION_PRESETS, type ProjectSettings } from "../lib/settings";
+import { Monitor, Gauge, Palette, Grid3x3, Paintbrush, X } from "lucide-react";
+import { RESOLUTION_PRESETS, type ProjectSettings, type ThemePreset } from "../lib/settings";
+import { DARK_THEME, LIGHT_THEME, type ThemeColorKey } from "../lib/themes";
 
 interface SettingsModalProps {
   settings: ProjectSettings;
@@ -186,6 +187,72 @@ export default function SettingsModal({
                 onClick={() => update({ showROT: !settings.showROT })}
               />
             </div>
+          </section>
+
+          <section className="settings-section">
+            <div className="settings-section-title">
+              <Paintbrush size={16} />
+              <span>Theme</span>
+            </div>
+            <div className="settings-row">
+              <span className="settings-label">Preset</span>
+              <select
+                className="settings-select"
+                value={settings.theme.preset}
+                onChange={(e) => {
+                  const preset = e.target.value as ThemePreset;
+                  if (preset === "custom") {
+                    const base = settings.theme.preset === "light" ? LIGHT_THEME : DARK_THEME;
+                    update({ theme: { preset, custom: { ...base } } });
+                  } else {
+                    update({ theme: { preset, custom: {} } });
+                  }
+                }}
+              >
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            {settings.theme.preset === "custom" && (
+              <>
+                {(
+                  [
+                    ["Main background", "bgApp"],
+                    ["Panel background", "bgPrimary"],
+                    ["Card background", "bgSecondary"],
+                    ["Elevated surface", "bgTertiary"],
+                    ["Accent color", "accent"],
+                    ["Text color", "textPrimary"],
+                    ["Secondary text", "textSecondary"],
+                    ["Border color", "borderDefault"],
+                  ] as [string, ThemeColorKey][]
+                ).map(([label, key]) => (
+                  <div className="settings-row" key={key}>
+                    <span className="settings-label">{label}</span>
+                    <div className="settings-color-field">
+                      <input
+                        type="color"
+                        value={settings.theme.custom[key] || DARK_THEME[key]}
+                        onChange={(e) => {
+                          const custom = { ...settings.theme.custom, [key]: e.target.value };
+                          update({ theme: { ...settings.theme, custom } });
+                        }}
+                      />
+                      <input
+                        className="settings-input"
+                        type="text"
+                        value={settings.theme.custom[key] || DARK_THEME[key]}
+                        onChange={(e) => {
+                          const custom = { ...settings.theme.custom, [key]: e.target.value };
+                          update({ theme: { ...settings.theme, custom } });
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
           </section>
         </div>
       </div>

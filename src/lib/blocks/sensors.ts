@@ -7,7 +7,7 @@ Blockly.Blocks["sensors_mouseX"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the mouse pointer's x position on the stage");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_mouseX"] = function () {
@@ -20,7 +20,7 @@ Blockly.Blocks["sensors_mouseY"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the mouse pointer's y position on the stage");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_mouseY"] = function () {
@@ -33,77 +33,78 @@ Blockly.Blocks["sensors_mouseDown"] = {
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
     this.setTooltip("True while the mouse button is held down");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_mouseDown"] = function () {
   return ["window.RUNTIME.isMouseDown()", Order.ATOMIC];
 };
 
-Blockly.Blocks["sensors_keyPressed"] = {
+Blockly.Blocks["sensors_keyPressed_preset"] = {
   init: function () {
-    this.appendValueInput("KEY")
-      .setCheck("String")
+    this.appendDummyInput()
       .appendField("key")
-      .appendField(new Blockly.FieldDropdown([
-        ["space", "space"],
-        ["up arrow", "arrowup"],
-        ["down arrow", "arrowdown"],
-        ["left arrow", "arrowleft"],
-        ["right arrow", "arrowright"],
-        ["any", "any"],
-        ["custom", "custom"],
-      ]), "PRESET")
-      .appendField("pressed?");
+      .appendField(
+        new Blockly.FieldDropdown([
+          ["space", "space"],
+          ["up arrow", "arrowup"],
+          ["down arrow", "arrowdown"],
+          ["left arrow", "arrowleft"],
+          ["right arrow", "arrowright"],
+          ["any", "any"]
+        ]),
+        "PRESET"
+      )
+      .appendField(
+        new Blockly.FieldDropdown([
+          ["pressed", "isPressed"],
+          ["just pressed", "justPressed"]
+        ]),
+        "TYPE"
+      )
+      .appendField("?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
-    this.setTooltip("True while the given key is held down");
-  },
+    this.setTooltip("Check preset key states");
+  }
 };
 
-javascriptGenerator.forBlock["sensors_keyPressed"] = function (
-  block: Blockly.Block,
-) {
+Blockly.Blocks["sensors_keyPressed_custom"] = {
+  init: function () {
+    this.appendValueInput("KEY").setCheck("String").appendField("key");
+    this.appendDummyInput()
+      .appendField(
+        new Blockly.FieldDropdown([
+          ["pressed", "isPressed"],
+          ["just pressed", "justPressed"]
+        ]),
+        "TYPE"
+      )
+      .appendField("?");
+    this.setOutput(true, "Boolean");
+    this.setStyle("sensors_blocks");
+    this.setTooltip("Check a custom key state");
+  }
+};
+
+javascriptGenerator.forBlock["sensors_keyPressed_preset"] = function (block) {
   const preset = block.getFieldValue("PRESET");
-  const custom =
-    javascriptGenerator.valueToCode(block, "KEY", Order.ATOMIC) || "''";
+  const type = block.getFieldValue("TYPE");
+
   if (preset === "any") {
     return ["window.RUNTIME.isAnyKeyPressed()", Order.ATOMIC];
   }
-  const key = preset === "custom" ? custom : JSON.stringify(preset);
-  return [`window.RUNTIME.isKeyPressed(${key})`, Order.ATOMIC];
+
+  const functionName = type === "justPressed" ? "isKeyJustPressed" : "isKeyPressed";
+  return [`window.RUNTIME.${functionName}(${JSON.stringify(preset)})`, Order.ATOMIC];
 };
 
-Blockly.Blocks["sensors_keyJustPressed"] = {
-  init: function () {
-    this.appendValueInput("KEY")
-      .setCheck("String")
-      .appendField("key")
-      .appendField(new Blockly.FieldDropdown([
-        ["space", "space"],
-        ["up arrow", "arrowup"],
-        ["down arrow", "arrowdown"],
-        ["left arrow", "arrowleft"],
-        ["right arrow", "arrowright"],
-        ["custom", "custom"],
-      ]), "PRESET")
-      .appendField("just pressed?");
-    this.setOutput(true, "Boolean");
-    this.setStyle("sensors_blocks");
-    this.setTooltip(
-      "True for a single frame, the moment the key is first pressed",
-    );
-  },
-};
+javascriptGenerator.forBlock["sensors_keyPressed_custom"] = function (block) {
+  const type = block.getFieldValue("TYPE");
+  const key = javascriptGenerator.valueToCode(block, "KEY", Order.ATOMIC) || "''";
 
-javascriptGenerator.forBlock["sensors_keyJustPressed"] = function (
-  block: Blockly.Block,
-) {
-  const preset = block.getFieldValue("PRESET");
-  const custom =
-    javascriptGenerator.valueToCode(block, "KEY", Order.ATOMIC) || "''";
-  const key = preset === "custom" ? custom : JSON.stringify(preset);
-  return [`window.RUNTIME.isKeyJustPressed(${key})`, Order.ATOMIC];
+  const functionName = type === "justPressed" ? "isKeyJustPressed" : "isKeyPressed";
+  return [`window.RUNTIME.${functionName}(${key})`, Order.ATOMIC];
 };
 
 Blockly.Blocks["sensors_resetTimer"] = {
@@ -113,7 +114,7 @@ Blockly.Blocks["sensors_resetTimer"] = {
     this.setNextStatement(true, null);
     this.setStyle("sensors_blocks");
     this.setTooltip("Reset the stage timer back to zero");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_resetTimer"] = function () {
@@ -126,7 +127,7 @@ Blockly.Blocks["sensors_getTimer"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the number of seconds since the timer was reset");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_getTimer"] = function () {
@@ -139,36 +140,30 @@ Blockly.Blocks["sensors_distanceToMouse"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the distance between this sprite and the mouse pointer");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_distanceToMouse"] = function () {
   return [
     "Math.hypot(context.sprite.x - window.RUNTIME.getMouseX(), context.sprite.y - window.RUNTIME.getMouseY())",
-    Order.ATOMIC,
+    Order.ATOMIC
   ];
 };
 
 Blockly.Blocks["sensors_distanceToSprite"] = {
   init: function () {
-    this.appendValueInput("NAME")
-      .setCheck("String")
-      .appendField("distance to sprite");
+    this.appendValueInput("NAME").setCheck("String").appendField("distance to sprite");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the distance between this sprite and another sprite by name");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_distanceToSprite"] = function (
-  block: Blockly.Block,
+  block: Blockly.Block
 ) {
-  const name =
-    javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
-  return [
-    `window.RUNTIME.distanceToSprite(context.sprite, ${name})`,
-    Order.ATOMIC,
-  ];
+  const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
+  return [`window.RUNTIME.distanceToSprite(context.sprite, ${name})`, Order.ATOMIC];
 };
 
 Blockly.Blocks["sensors_touchingMouse"] = {
@@ -177,36 +172,28 @@ Blockly.Blocks["sensors_touchingMouse"] = {
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
     this.setTooltip("True if the mouse pointer is over this sprite");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_touchingMouse"] = function () {
   return [
     "window.RUNTIME.isTouchingPoint(context.sprite, window.RUNTIME.getMouseX(), window.RUNTIME.getMouseY())",
-    Order.ATOMIC,
+    Order.ATOMIC
   ];
 };
 
 Blockly.Blocks["sensors_touchingSprite"] = {
   init: function () {
-    this.appendValueInput("NAME")
-      .setCheck("String")
-      .appendField("touching sprite");
+    this.appendValueInput("NAME").setCheck("String").appendField("touching sprite");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
     this.setTooltip("True if this sprite is overlapping another sprite by name");
-  },
+  }
 };
 
-javascriptGenerator.forBlock["sensors_touchingSprite"] = function (
-  block: Blockly.Block,
-) {
-  const name =
-    javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
-  return [
-    `window.RUNTIME.isTouchingSprite(context.sprite, ${name})`,
-    Order.ATOMIC,
-  ];
+javascriptGenerator.forBlock["sensors_touchingSprite"] = function (block: Blockly.Block) {
+  const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
+  return [`window.RUNTIME.isTouchingSprite(context.sprite, ${name})`, Order.ATOMIC];
 };
 
 Blockly.Blocks["sensors_touchingEdge"] = {
@@ -215,7 +202,7 @@ Blockly.Blocks["sensors_touchingEdge"] = {
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
     this.setTooltip("True if this sprite is touching the edge of the stage");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_touchingEdge"] = function () {
@@ -228,7 +215,7 @@ Blockly.Blocks["sensors_stageWidth"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the width of the stage");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_stageWidth"] = function () {
@@ -241,7 +228,7 @@ Blockly.Blocks["sensors_stageHeight"] = {
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
     this.setTooltip("Get the height of the stage");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["sensors_stageHeight"] = function () {

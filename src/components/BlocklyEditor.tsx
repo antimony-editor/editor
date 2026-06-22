@@ -29,7 +29,10 @@ import {
   initAllBlocks,
   workspaceConfig,
   buildToolboxForSource,
+  buildBlocklyTheme,
 } from "../lib/config";
+import { useProjectSettings } from "../lib/settings";
+import { getThemeColors } from "../lib/themes";
 import { getSourceTypeForSprite } from "../lib/blockVisibility";
 import {
   MOTION_CATEGORY_NAME,
@@ -302,6 +305,17 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
       : "all";
     workspace.updateToolbox(buildToolboxForSource(sourceType));
   }, [selectedSprite?.type, selectedSpriteId]);
+
+  const { settings } = useProjectSettings();
+
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    const colors = getThemeColors(settings.theme.preset, settings.theme.custom);
+    const blocklyTheme = buildBlocklyTheme(colors);
+    workspace.setTheme(blocklyTheme);
+  }, [settings.theme]);
 
   return (
     <div className="blockly-area panel">

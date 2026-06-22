@@ -15,8 +15,8 @@ defineExpandableBlock({
   maxItemCount: Infinity,
   emptyLabel: "create empty dictionary",
   firstInputLabel: "create dictionary with",
-  inputsInline: false,
-  tooltip: "Create a dictionary (JavaScript object) with any number of key-value pairs.",
+  inputsInline: true,
+  tooltip: "Create a dictionary with any number of key-value pairs.",
   slots: [
     {
       prefix: "KEY",
