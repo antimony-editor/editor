@@ -229,9 +229,9 @@
     <block type="sensors_getTimer"></block>
     <sep gap="50"></sep>
     <block type="sensors_distanceToMouse"></block>
-    <block type="sensors_distanceToSource"><value name="NAME"><shadow type="text"><field name="TEXT">Source 1</field></shadow></value></block>
+    <block type="sensors_distanceToSprite"><value name="NAME"><shadow type="text"><field name="TEXT">Sprite 1</field></shadow></value></block>
     <block type="sensors_touchingMouse"></block>
-    <block type="sensors_touchingSource"><value name="NAME"><shadow type="text"><field name="TEXT">Source 1</field></shadow></value></block>
+    <block type="sensors_touchingSprite"><value name="NAME"><shadow type="text"><field name="TEXT">Sprite 1</field></shadow></value></block>
     <block type="sensors_touchingEdge"></block>
     <sep gap="50"></sep>
     <block type="sensors_stageWidth"></block>

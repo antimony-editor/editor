@@ -139,7 +139,7 @@ Blockly.Blocks["sensors_distanceToMouse"] = {
     this.appendDummyInput().appendField("distance to mouse pointer");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
-    this.setTooltip("Get the distance between this source and the mouse pointer");
+    this.setTooltip("Get the distance between this sprite and the mouse pointer");
   }
 };
 
@@ -150,28 +150,28 @@ javascriptGenerator.forBlock["sensors_distanceToMouse"] = function () {
   ];
 };
 
-Blockly.Blocks["sensors_distanceToSource"] = {
+Blockly.Blocks["sensors_distanceToSprite"] = {
   init: function () {
-    this.appendValueInput("NAME").setCheck("String").appendField("distance to source");
+    this.appendValueInput("NAME").setCheck("String").appendField("distance to sprite");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
-    this.setTooltip("Get the distance between this source and another source by name");
+    this.setTooltip("Get the distance between this sprite and another sprite by name");
   }
 };
 
-javascriptGenerator.forBlock["sensors_distanceToSource"] = function (
+javascriptGenerator.forBlock["sensors_distanceToSprite"] = function (
   block: Blockly.Block
 ) {
   const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
-  return [`window.RUNTIME.distanceToSource(context.sprite, ${name})`, Order.ATOMIC];
+  return [`window.RUNTIME.distanceToSprite(context.sprite, ${name})`, Order.ATOMIC];
 };
 
-Blockly.Blocks["sensors_touchingSource"] = {
+Blockly.Blocks["sensors_touchingMouse"] = {
   init: function () {
     this.appendDummyInput().appendField("touching mouse pointer?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
-    this.setTooltip("True if the mouse pointer is over this source");
+    this.setTooltip("True if the mouse pointer is over this sprite");
   }
 };
 
@@ -184,10 +184,10 @@ javascriptGenerator.forBlock["sensors_touchingMouse"] = function () {
 
 Blockly.Blocks["sensors_touchingSprite"] = {
   init: function () {
-    this.appendValueInput("NAME").setCheck("String").appendField("touching source");
+    this.appendValueInput("NAME").setCheck("String").appendField("touching sprite");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
-    this.setTooltip("True if this source is overlapping another source by name");
+    this.setTooltip("True if this sprite is overlapping another sprite by name");
   }
 };
 
@@ -201,7 +201,7 @@ Blockly.Blocks["sensors_touchingEdge"] = {
     this.appendDummyInput().appendField("touching edge of stage?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
-    this.setTooltip("True if this source is touching the edge of the stage");
+    this.setTooltip("True if this sprite is touching the edge of the stage");
   }
 };
 
