@@ -21,7 +21,6 @@ defineExpandableBlock({
     {
       prefix: "KEY",
       check: "String",
-      appendLabels: [":"],
       shadow: (index) => ({
         type: "text",
         fields: { TEXT: dictDefaultKeys[index] ?? "key" },
@@ -33,6 +32,7 @@ defineExpandableBlock({
         type: "text",
         fields: { TEXT: dictDefaultValues[index] ?? "value" },
       }),
+      appendLabels: [":"],
     },
   ],
 });
