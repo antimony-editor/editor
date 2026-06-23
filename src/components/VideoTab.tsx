@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useSprites } from "../lib/sprites";
-import { Plus } from "lucide-react";
+import { Plus, Replace, Trash2 } from "lucide-react";
 import {
   isMediaData,
   isVideoData,
@@ -205,80 +205,97 @@ export default function VideoTab() {
     input.click();
   };
 
+  const handleDeleteVideo = (id: string) => {
+    if (!sprite || !isVideoData(sprite.data) || sprite.data.videos.length <= 1) return;
+    const nextVideos = sprite.data.videos.filter((v: MediaVideo) => v.id !== id);
+    dispatch({
+      type: "UPDATE_SPRITE",
+      id: sprite.id,
+      changes: {
+        data: {
+          ...sprite.data,
+          videos: nextVideos,
+          currentVideoId: sprite.data.currentVideoId === id ? nextVideos[0].id : sprite.data.currentVideoId,
+        },
+      },
+    });
+    setVideoIDX(0);
+  };
+
   return (
-    <div className="sound-tab">
-      <div className="sound-tab-side">
-        {sprite.data.videos.map((v, i) => (
-          <button
-            key={v.id}
-            className={i === videoIDX ? "sound-tab-sound-selected" : "sound-tab-sound"}
-            onClick={() => setVideoIDX(i)}
-            onContextMenu={(e) => {
-              e.preventDefault();
-              show({ event: e, props: { video: v } });
-            }}
-          >
-            <VideoThumbnail src={v.src} />
-            <span>{v.name}</span>
-          </button>
-        ))}
-        <Menu id={MENU_ID}>
-          <Item onClick={(e) => {
-            const newName = prompt("New name?", e.props.video.name);
-            if (newName) updateVideo(e.props.video.id, { name: newName });
-          }}>Rename</Item>
-          <Item onClick={(e) => replaceVideo(e.props.video.id)}>Replace</Item>
-          {isVideoData(sprite.data) && sprite.data.videos.length > 1 && (
-            <Item
-              onClick={(e) => {
-                if (!sprite || !isVideoData(sprite.data)) return;
-                const nextVideos = sprite.data.videos.filter((v: MediaVideo) => v.id !== e.props.video.id);
-                dispatch({
-                  type: "UPDATE_SPRITE",
-                  id: sprite.id,
-                  changes: {
-                    data: {
-                      ...sprite.data,
-                      videos: nextVideos,
-                      currentVideoId: sprite.data.currentVideoId === e.props.video.id ? nextVideos[0].id : sprite.data.currentVideoId
-                    }
-                  }
-                });
-                setVideoIDX(0);
+    <div className="asset-tab">
+      <div className="asset-sidebar">
+        <div className="asset-list">
+          {sprite.data.videos.map((v, i) => (
+            <div
+              key={v.id}
+              className={`asset-card ${i === videoIDX ? "selected" : ""}`}
+              onClick={() => setVideoIDX(i)}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                show({ event: e, props: { video: v } });
               }}
-              style={{ color: "red" }}
             >
-              Delete
-            </Item>
-          )}
-        </Menu>
-        <button className="sound-tab-sound-new" onClick={addNewVideo}>
-          <Plus style={{ height: "40px", width: "40px" }} />
-          <span>Add video</span>
-        </button>
+              <div className="asset-card-preview">
+                <VideoThumbnail src={v.src} />
+              </div>
+              <div className="asset-card-info">
+                <span className="asset-card-name">{v.name}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="asset-sidebar-footer">
+          <button className="add-sprite-btn" onClick={addNewVideo}>
+            <Plus size={14} /> Add Video
+          </button>
+        </div>
       </div>
-      <div className="sound-tab-editor">
-        {!activeItem ? (
-          <div style={{ display: "flex", width: "100%", height: "100%", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}>
-            Select a video to preview
-          </div>
-        ) : (
-          <div className="sound-tab-editor-inner">
-            <div className="properties-row" style={{ gap: 'var(--space-md)' }}>
-              <span className="properties-label" style={{ width: 'auto' }}>Name</span>
+
+      <div className="asset-editor">
+        {activeItem ? (
+          <>
+            <div className="asset-editor-header">
               <input
                 className="asset-editor-name-input"
                 type="text"
                 value={activeItem.name}
                 onChange={(e) => updateVideo(activeItem.id, { name: e.target.value })}
               />
+              <div className="media-actions">
+                <button className="properties-btn" onClick={() => replaceVideo(activeItem.id)}>
+                  <Replace size={14} /> Replace
+                </button>
+                <button
+                  className="properties-btn danger"
+                  disabled={sprite.data.videos.length <= 1}
+                  onClick={() => handleDeleteVideo(activeItem.id)}
+                >
+                  <Trash2 size={14} /> Delete
+                </button>
+              </div>
             </div>
-            <div style={{ marginTop: "1rem", width: "100%", maxWidth: "600px" }}>
-              {plyrSource && <Plyr source={plyrSource} options={{ autoplay: false, pip: false } as any} />}
+            <div className="asset-editor-body">
+              <div className="asset-main-preview">
+                {plyrSource && <Plyr source={plyrSource} options={{ autoplay: false, pip: false } as any} />}
+              </div>
             </div>
+          </>
+        ) : (
+          <div className="asset-empty-state">
+            <p>Select a video to preview</p>
           </div>
         )}
       </div>
+
+      <Menu id={MENU_ID}>
+        <Item onClick={(e) => {
+          const newName = prompt("New name?", e.props.video.name);
+          if (newName) updateVideo(e.props.video.id, { name: newName });
+        }}>Rename</Item>
+        <Item onClick={(e) => replaceVideo(e.props.video.id)}>Replace</Item>
+        <Item onClick={(e) => handleDeleteVideo(e.props.video.id)} style={{ color: "var(--danger)" }}>Delete</Item>
+      </Menu>
     </div>
   );
 }
