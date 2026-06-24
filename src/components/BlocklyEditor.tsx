@@ -245,20 +245,32 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
     workspace.addChangeListener(handleWorkspaceChange);
     flyoutWorkspace?.addChangeListener(handleWorkspaceChange);
 
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastWidth = blocklyDiv.offsetWidth;
+    let lastHeight = blocklyDiv.offsetHeight;
+
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
 
       const { width, height } = entry.contentRect;
-
       if (width === 0 || height === 0) return;
+      if (width === lastWidth && height === lastHeight) return;
 
-      Blockly.svgResize(workspace);
+      lastWidth = width;
+      lastHeight = height;
+
+      if (resizeTimer !== null) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        resizeTimer = null;
+        Blockly.svgResize(workspace);
+      }, 50);
     });
 
     observer.observe(blocklyDiv);
 
     return () => {
+      if (resizeTimer !== null) clearTimeout(resizeTimer);
       toolboxObserver?.disconnect();
       observer.disconnect();
       unsubscribeExtensions();
