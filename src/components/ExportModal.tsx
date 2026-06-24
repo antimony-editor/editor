@@ -126,33 +126,43 @@ const FUN_FACTS = [
 FUN_FACTS.push(`There are ${FUN_FACTS.length} different fun facts.`);
 
 function useFunFact(active: boolean) {
-  const [index, setIndex] = useState(() => Math.floor(Math.random() * FUN_FACTS.length));
-  const [visible, setVisible] = useState(true);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [index, setIndex] = useState(() => Math.floor(Math.random() * FUN_FACTS.length));
+    const [visible, setVisible] = useState(true);
+    const timerRef = useRef < ReturnType < typeof setTimeout > | null > (null);
 
-  useEffect(() => {
-    if (!active) return;
+    useEffect(() => {
+        if (!active) return;
 
-    const schedulNext = (factIndex: number) => {
-      const delay = Math.min(12000, Math.max(4000, FUN_FACTS[factIndex].length * 50));
-      timerRef.current = setTimeout(() => {
-        setVisible(false);
-        setTimeout(() => {
-          setIndex((prev) => {
-            const next = (prev + 1) % FUN_FACTS.length;
-            schedulNext(next);
-            return next;
-          });
-          setVisible(true);
-        }, 400);
-      }, delay);
+        const schedulNext = (factIndex: number) => {
+            const delay = Math.min(12000, Math.max(4000, FUN_FACTS[factIndex].length * 50));
+            timerRef.current = setTimeout(() => {
+                setVisible(false);
+                setTimeout(() => {
+                    setIndex((prev) => {
+                        let next = prev;
+
+                        while (next === prev) {
+                            next = Math.floor(Math.random() * FUN_FACTS.length);
+                        }
+
+                        schedulNext(next);
+                        return next;
+                    });
+                    setVisible(true);
+                }, 400);
+            }, delay);
+        };
+
+        schedulNext(index);
+        return () => {
+            if (timerRef.current) clearTimeout(timerRef.current);
+        };
+    }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    return {
+        fact: FUN_FACTS[index],
+        visible
     };
-
-    schedulNext(index);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return { fact: FUN_FACTS[index], visible };
 }
 
 interface ExportModalProps {
