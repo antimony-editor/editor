@@ -2,6 +2,17 @@ import { X, Gauge, FileVideo, Loader2, HardDrive, Video, Lightbulb, Square } fro
 import { useState, useEffect, useRef } from "react";
 
 const FUN_FACTS = [
+  "Antimony uses Blockly as the main code workspace!",
+  "This is a fun fact.",
+  "The Antimony Editor repository was created May 24th, 2026.",
+  "Antimony has a Discord server!",
+  "The native language of Antimony's creator is Spanish.",
+  "The combination of Pepsi and milk is called Pilk.",
+  "There are 31 different tweens.",
+  "Antimony is an open-source project.",
+  "Wait, I forgot what to say.",
+  "Extensions are useful to add even more features to the editor.",
+  "I like visual coding! And blocks!",
   "A group of flamingos is called a flamboyance.",
   "Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that was still perfectly edible.",
   "The shortest war in history lasted 38 to 45 minutes; between Britain and Zanzibar in 1896.",
@@ -39,18 +50,11 @@ const FUN_FACTS = [
   "Identical twins don't share fingerprints; womb conditions during development make each one unique.",
   "The world's first novel is generally credited to Murasaki Shikibu, a Japanese noblewoman who wrote The Tale of Genji in the 11th century.",
   "France's longest land border isn't in Europe; it's between French Guiana and Brazil.",
-  "In 2015, a New Zealand man won the French Scrabble championship after memorizing the entire French dictionary in nine weeks; he didn't speak French.",
-  "If you folded a piece of paper 42 times, the resulting thickness would exceed the distance from Earth to the Moon.",
-  "Dragonflies are nature's most effective hunters: they catch their prey roughly 97% of the time.",
-  "Trees communicate through underground fungal networks known as the Wood Wide Web, sharing nutrients and warning signals.",
-  "Dolphins have unique signature whistles that function like names; they respond when they hear their own called.",
-  "The brain of a fruit fly, no larger than a poppy seed, contains roughly 140,000 neurons and 54 million connections.",
-  "A cloud typically weighs around a million tonnes, yet floats because it's slightly less dense than the air around it.",
-  "Competitive art was an official Olympic sport from 1912 to 1948; medals were awarded for architecture, painting, and sculpture.",
   "You can't hum while holding your nose closed.",
   "The Moon appears upside down in the Southern Hemisphere; the familiar 'Man in the Moon' looks more like a rabbit from there.",
-  "San Marino, founded in 301 AD, is the world's oldest republic still in existence.",
+  "San Marino, founded in 301 AD, is the world's oldest republic still in existence."
 ];
+FUN_FACTS.push(`There are ${FUN_FACTS.length} different fun facts.`);
 
 function useFunFact(active: boolean) {
   const [index, setIndex] = useState(() => Math.floor(Math.random() * FUN_FACTS.length));
