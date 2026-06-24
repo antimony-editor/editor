@@ -9,7 +9,7 @@ const credits = [
   {
     name: "Dotun",
     url: "https://afkdev.me",
-    roles: "Co-Owner, Lead Developer, Designer",
+    roles: "Co-Owner, Lead Developer, Designer, Domain Host",
   },
   {
     name: "Ash",
