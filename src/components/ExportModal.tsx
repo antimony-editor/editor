@@ -7,6 +7,7 @@ const FUN_FACTS = [
     "Antimony's birthdate is on May 24th, 2026.",
     "Antimony has a Discord server!",
     "The native language of Antimony's creator is Spanish.",
+	"Antimony is an Argentine-born product! ¡Vamos los pibes!",
     "The combination of Pepsi and milk is called Pilk.",
     "There are 31 different tweens.",
     "Antimony is an open-source project.",
