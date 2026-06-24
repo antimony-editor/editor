@@ -170,7 +170,7 @@ function useFunFact(active: boolean) {
 
           if (
             RARE_FACT_INDEX !== -1 &&
-            Math.random() < 0.04 &&
+            Math.random() < 0.01 &&
             factIndex !== RARE_FACT_INDEX
           ) {
             next = RARE_FACT_INDEX;
