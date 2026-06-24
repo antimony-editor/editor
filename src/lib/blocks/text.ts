@@ -16,6 +16,7 @@ javascriptGenerator.forBlock["text"] = function (block: Blockly.Block) {
 
 Blockly.Blocks["text_setText"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendValueInput("TEXT").setCheck("String").appendField("set text to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);

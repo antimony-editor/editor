@@ -4,13 +4,10 @@ export {
   buildToolboxForSource,
 } from "./config";
 export {
-  blockVisibilityConfig,
   isBlockVisibleFor,
-  filterBlocksForSource,
-  getVisibleBlocksForSource,
   getSourceTypeForSprite,
 } from "./blockVisibility";
-export type { BlockSourceType, BlockVisibilityConfig } from "./blockVisibility";
+export type { BlockSourceType } from "./blockVisibility";
 export {
   registerExtension,
   activeExtensions,

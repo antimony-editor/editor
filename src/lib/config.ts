@@ -1,6 +1,6 @@
 import * as Blockly from "blockly";
-import toolboxXml from "./toolbox.xml?raw";
-import { isBlockVisibleFor, type BlockSourceType } from "./blockVisibility";
+import generateToolboxXml from "./toolbox";
+import { type BlockSourceType } from "./blockVisibility";
 import { appendExtensionCategories } from "./extensions/manager";
 import { DARK_THEME, type ThemeColors } from "./themes";
 
@@ -205,6 +205,7 @@ function getValueInputsForBlock(blockType: string) {
         }
       };
     },
+    setMediaTypes() {},
     setColour() {},
     setTooltip() {},
     setHelpUrl() {},
@@ -293,19 +294,10 @@ function normalizeToolboxXml(toolboxRoot: Element) {
 
 initAllBlocks();
 
-const toolboxDom = normalizeToolboxXml(
-  new DOMParser().parseFromString(toolboxXml, "text/xml").documentElement
-);
-
 export function buildToolboxForSource(sourceType: BlockSourceType): Element {
-  const toolbox = toolboxDom.cloneNode(true) as Element;
-
-  for (const block of Array.from(toolbox.querySelectorAll("block"))) {
-    const blockType = block.getAttribute("type");
-    if (blockType && !isBlockVisibleFor(blockType, sourceType)) {
-      block.remove();
-    }
-  }
+  const toolbox = normalizeToolboxXml(
+    new DOMParser().parseFromString(generateToolboxXml(sourceType), "text/xml").documentElement
+  );
 
   for (const category of Array.from(toolbox.querySelectorAll("category"))) {
     const hasBlocks = category.querySelector("block") !== null;
@@ -326,7 +318,7 @@ export function buildToolboxForSource(sourceType: BlockSourceType): Element {
 export const workspaceConfig: Blockly.BlocklyOptions = {
   renderer: "zelos",
   theme: buildBlocklyTheme(DARK_THEME),
-  toolbox: toolboxDom,
+  toolbox: buildToolboxForSource("all"),
   trashcan: true,
   move: {
     scrollbars: {

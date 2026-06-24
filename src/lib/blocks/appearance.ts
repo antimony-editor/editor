@@ -4,6 +4,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["appearance_show"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("show");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -18,6 +19,7 @@ javascriptGenerator.forBlock["appearance_show"] = function () {
 
 Blockly.Blocks["appearance_hide"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("hide");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -32,6 +34,7 @@ javascriptGenerator.forBlock["appearance_hide"] = function () {
 
 Blockly.Blocks["appearance_setSize"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("SIZE").setCheck("Number").appendField("set size to");
     this.appendDummyInput().appendField("%");
     this.setPreviousStatement(true, null);
@@ -54,6 +57,7 @@ context.sprite.height = context.sprite._originalHeight * (${size} / 100);\n`;
 
 Blockly.Blocks["appearance_setOpacity"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("OPACITY")
       .setCheck("Number")
       .appendField("set opacity to");
@@ -77,6 +81,7 @@ javascriptGenerator.forBlock["appearance_setOpacity"] = function (
 
 Blockly.Blocks["appearance_setColor"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendDummyInput()
       .appendField("set color to")
       .appendField(new ColorWheelField("#89abdb"), "COLOR");
@@ -96,6 +101,7 @@ javascriptGenerator.forBlock["appearance_setColor"] = function (
 
 Blockly.Blocks["appearance_changeSize"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("CHANGE")
       .setCheck("Number")
       .appendField("change size by");
@@ -117,6 +123,7 @@ javascriptGenerator.forBlock["appearance_changeSize"] = function (
 
 Blockly.Blocks["appearance_getSize"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("size %");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");
@@ -133,6 +140,7 @@ javascriptGenerator.forBlock["appearance_getSize"] = function () {
 
 Blockly.Blocks["appearance_getOpacity"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("opacity %");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");
@@ -146,6 +154,7 @@ javascriptGenerator.forBlock["appearance_getOpacity"] = function () {
 
 Blockly.Blocks["appearance_flip"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput()
       .appendField("flip")
       .appendField(
@@ -175,6 +184,7 @@ javascriptGenerator.forBlock["appearance_flip"] = function (
 
 Blockly.Blocks["appearance_setImageIndex"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendValueInput("INDEX")
       .setCheck("Number")
       .appendField("switch image to");
@@ -195,6 +205,7 @@ javascriptGenerator.forBlock["appearance_setImageIndex"] = function (
 
 Blockly.Blocks["appearance_setImageName"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendValueInput("NAME")
       .setCheck("String")
       .appendField("switch image named");
@@ -215,6 +226,7 @@ javascriptGenerator.forBlock["appearance_setImageName"] = function (
 
 Blockly.Blocks["appearance_nextImage"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendDummyInput().appendField("next image");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -229,6 +241,7 @@ javascriptGenerator.forBlock["appearance_nextImage"] = function () {
 
 Blockly.Blocks["appearance_getImageIndex"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendDummyInput().appendField("image number");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");
@@ -242,6 +255,7 @@ javascriptGenerator.forBlock["appearance_getImageIndex"] = function () {
 
 Blockly.Blocks["appearance_getImageName"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendDummyInput().appendField("image name");
     this.setOutput(true, "String");
     this.setStyle("appearance_blocks");
@@ -255,6 +269,7 @@ javascriptGenerator.forBlock["appearance_getImageName"] = function () {
 
 Blockly.Blocks["appearance_getImageCount"] = {
   init: function () {
+    this.setMediaTypes("sprite");
     this.appendDummyInput().appendField("image count");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");

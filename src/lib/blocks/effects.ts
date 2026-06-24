@@ -4,6 +4,7 @@ import { TWEEN_MODE_OPTIONS, TWEENABLE_PROPERTY_OPTIONS } from "../tween";
 
 Blockly.Blocks["effects_shake"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendValueInput("INTENSITY")
       .setCheck("Number")
       .appendField("shake with intensity");
@@ -35,6 +36,7 @@ javascriptGenerator.forBlock["effects_shake"] = function (
 
 Blockly.Blocks["effects_spin"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendValueInput("TIMES").setCheck("Number").appendField("spin");
     this.appendDummyInput().appendField("times");
     this.setPreviousStatement(true, null);
@@ -63,6 +65,7 @@ javascriptGenerator.forBlock["effects_spin"] = function (block: Blockly.Block) {
 
 Blockly.Blocks["effects_pulse"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("pulse");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -89,6 +92,7 @@ javascriptGenerator.forBlock["effects_pulse"] = function () {
 
 Blockly.Blocks["effects_tween"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput()
       .appendField("tween")
       .appendField(
@@ -122,6 +126,7 @@ javascriptGenerator.forBlock["effects_tween"] = function (
 
 Blockly.Blocks["effects_setTweenMode"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput()
       .appendField("set tween mode to")
       .appendField(new Blockly.FieldDropdown(TWEEN_MODE_OPTIONS), "MODE");
@@ -141,6 +146,7 @@ javascriptGenerator.forBlock["effects_setTweenMode"] = function (
 
 Blockly.Blocks["effects_setPropertyTweenMode"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput()
       .appendField("set tween mode for")
       .appendField(
@@ -166,6 +172,7 @@ javascriptGenerator.forBlock["effects_setPropertyTweenMode"] = function (
 
 Blockly.Blocks["effects_resetPropertyTweenMode"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput()
       .appendField("reset tween mode for")
       .appendField(

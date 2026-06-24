@@ -3,6 +3,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["sensors_mouseX"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("mouse x");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -16,6 +17,7 @@ javascriptGenerator.forBlock["sensors_mouseX"] = function () {
 
 Blockly.Blocks["sensors_mouseY"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("mouse y");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -29,6 +31,7 @@ javascriptGenerator.forBlock["sensors_mouseY"] = function () {
 
 Blockly.Blocks["sensors_mouseDown"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("mouse down?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
@@ -42,6 +45,7 @@ javascriptGenerator.forBlock["sensors_mouseDown"] = function () {
 
 Blockly.Blocks["sensors_keyPressed_preset"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput()
       .appendField("key")
       .appendField(
@@ -71,6 +75,7 @@ Blockly.Blocks["sensors_keyPressed_preset"] = {
 
 Blockly.Blocks["sensors_keyPressed_custom"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("KEY").setCheck("String").appendField("key");
     this.appendDummyInput()
       .appendField(
@@ -109,6 +114,7 @@ javascriptGenerator.forBlock["sensors_keyPressed_custom"] = function (block) {
 
 Blockly.Blocks["sensors_resetTimer"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("reset timer");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -123,6 +129,7 @@ javascriptGenerator.forBlock["sensors_resetTimer"] = function () {
 
 Blockly.Blocks["sensors_getTimer"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("timer");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -136,6 +143,7 @@ javascriptGenerator.forBlock["sensors_getTimer"] = function () {
 
 Blockly.Blocks["sensors_distanceToMouse"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("distance to mouse pointer");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -152,6 +160,7 @@ javascriptGenerator.forBlock["sensors_distanceToMouse"] = function () {
 
 Blockly.Blocks["sensors_distanceToSprite"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("NAME").setCheck("String").appendField("distance to sprite");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -168,6 +177,7 @@ javascriptGenerator.forBlock["sensors_distanceToSprite"] = function (
 
 Blockly.Blocks["sensors_touchingMouse"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("touching mouse pointer?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
@@ -184,6 +194,7 @@ javascriptGenerator.forBlock["sensors_touchingMouse"] = function () {
 
 Blockly.Blocks["sensors_touchingSprite"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("NAME").setCheck("String").appendField("touching sprite");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
@@ -198,6 +209,7 @@ javascriptGenerator.forBlock["sensors_touchingSprite"] = function (block: Blockl
 
 Blockly.Blocks["sensors_touchingEdge"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("touching edge of stage?");
     this.setOutput(true, "Boolean");
     this.setStyle("sensors_blocks");
@@ -211,6 +223,7 @@ javascriptGenerator.forBlock["sensors_touchingEdge"] = function () {
 
 Blockly.Blocks["sensors_stageWidth"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("stage width");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");
@@ -224,6 +237,7 @@ javascriptGenerator.forBlock["sensors_stageWidth"] = function () {
 
 Blockly.Blocks["sensors_stageHeight"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("stage height");
     this.setOutput(true, "Number");
     this.setStyle("sensors_blocks");

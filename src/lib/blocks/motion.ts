@@ -3,6 +3,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["motion_moveRight"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("STEPS").setCheck("Number").appendField("move right");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -23,6 +24,7 @@ javascriptGenerator.forBlock["motion_moveRight"] = function (
 
 Blockly.Blocks["motion_moveUp"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("STEPS").setCheck("Number").appendField("move up");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -63,6 +65,7 @@ javascriptGenerator.forBlock["motion_moveSteps"] = function (
 
 Blockly.Blocks["motion_rotate"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("ANGLE").setCheck("Number").appendField("turn");
     this.appendDummyInput().appendField("degrees");
     this.appendDummyInput().appendField(
@@ -114,6 +117,7 @@ javascriptGenerator.forBlock["motion_pointDirection"] = function (
 
 Blockly.Blocks["motion_goToPosition"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendValueInput("X").setCheck("Number").appendField("move to X");
     this.appendValueInput("Y").setCheck("Number").appendField("Y");
     this.setPreviousStatement(true, null);
@@ -154,6 +158,7 @@ javascriptGenerator.forBlock["motion_goTo"] = function (block: Blockly.Block) {
 
 Blockly.Blocks["motion_positionX"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("position X");
     this.setOutput(true, "Number");
     this.setStyle("motion_blocks");
@@ -167,6 +172,7 @@ javascriptGenerator.forBlock["motion_positionX"] = function () {
 
 Blockly.Blocks["motion_positionY"] = {
   init: function () {
+    this.setMediaTypes("sprite", "text", "video");
     this.appendDummyInput().appendField("position Y");
     this.setOutput(true, "Number");
     this.setStyle("motion_blocks");
@@ -281,6 +287,7 @@ javascriptGenerator.forBlock["motion_glideSecsTo"] = function (
 
 Blockly.Blocks["motion_setCharPosition"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendValueInput("INDEX").setCheck("Number").appendField("set position of char at position");
     this.appendValueInput("X").setCheck("Number").appendField("to X");
     this.appendValueInput("Y").setCheck("Number").appendField("Y");
@@ -302,6 +309,7 @@ javascriptGenerator.forBlock["motion_setCharPosition"] = function (
 
 Blockly.Blocks["motion_tweenCharPosition"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendValueInput("INDEX").setCheck("Number").appendField("tween char at position");
     this.appendValueInput("X").setCheck("Number").appendField("to X");
     this.appendValueInput("Y").setCheck("Number").appendField("Y");
@@ -326,6 +334,7 @@ javascriptGenerator.forBlock["motion_tweenCharPosition"] = function (
 
 Blockly.Blocks["motion_forEachCharacter_var"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendDummyInput().appendField("char num");
     this.setOutput(true, "Number");
     this.setStyle("motion_blocks");
@@ -338,6 +347,7 @@ javascriptGenerator.forBlock["motion_forEachCharacter_var"] = function () {
 
 Blockly.Blocks["motion_forEachCharacter"] = {
   init: function () {
+    this.setMediaTypes("text");
     this.appendValueInput("VAR").appendField("for each character");
     this.appendStatementInput("DO").setCheck(null);
     this.setStyle("motion_blocks");

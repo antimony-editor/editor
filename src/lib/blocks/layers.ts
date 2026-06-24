@@ -3,6 +3,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["layers_sendToFront"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("send to front");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -20,6 +21,7 @@ javascriptGenerator.forBlock["layers_sendToFront"] = function () {
 
 Blockly.Blocks["layers_sendToBack"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("send to back");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -34,6 +36,7 @@ javascriptGenerator.forBlock["layers_sendToBack"] = function () {
 
 Blockly.Blocks["layers_sendForward"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("send forward");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -52,6 +55,7 @@ javascriptGenerator.forBlock["layers_sendForward"] = function () {
 
 Blockly.Blocks["layers_sendBackward"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("send backward");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -70,6 +74,7 @@ javascriptGenerator.forBlock["layers_sendBackward"] = function () {
 
 Blockly.Blocks["layers_setZIndex"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendValueInput("Z").setCheck("Number").appendField("set z index to");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -87,6 +92,7 @@ javascriptGenerator.forBlock["layers_setZIndex"] = function (
 
 Blockly.Blocks["layers_getZIndex"] = {
   init: function () {
+    this.setMediaTypes("sprite", "video");
     this.appendDummyInput().appendField("z index");
     this.setOutput(true, "Number");
     this.setStyle("layers_blocks");

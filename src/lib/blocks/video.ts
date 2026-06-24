@@ -3,6 +3,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["video_play"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput().appendField("play video");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -17,6 +18,7 @@ javascriptGenerator.forBlock["video_play"] = function () {
 
 Blockly.Blocks["video_pause"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput().appendField("pause video");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
@@ -31,6 +33,7 @@ javascriptGenerator.forBlock["video_pause"] = function () {
 
 Blockly.Blocks["video_setPlaybackRate"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendValueInput("RATE")
       .setCheck("Number")
       .appendField("set video speed to");
@@ -48,6 +51,7 @@ javascriptGenerator.forBlock["video_setPlaybackRate"] = function (block: Blockly
 
 Blockly.Blocks["video_setVolume"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendValueInput("VOLUME")
       .setCheck("Number")
       .appendField("set video volume to");
@@ -66,6 +70,7 @@ javascriptGenerator.forBlock["video_setVolume"] = function (block: Blockly.Block
 
 Blockly.Blocks["video_setLoop"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput()
       .appendField("set video loop")
       .appendField(new Blockly.FieldCheckbox("TRUE"), "LOOP");
@@ -83,6 +88,7 @@ javascriptGenerator.forBlock["video_setLoop"] = function (block: Blockly.Block) 
 
 Blockly.Blocks["video_setCurrentTime"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendValueInput("TIME")
       .setCheck("Number")
       .appendField("set video time to");
@@ -101,6 +107,7 @@ javascriptGenerator.forBlock["video_setCurrentTime"] = function (block: Blockly.
 
 Blockly.Blocks["video_getCurrentTime"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput().appendField("video time");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");
@@ -114,6 +121,7 @@ javascriptGenerator.forBlock["video_getCurrentTime"] = function () {
 
 Blockly.Blocks["video_getDuration"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput().appendField("video duration");
     this.setOutput(true, "Number");
     this.setStyle("appearance_blocks");
@@ -127,6 +135,7 @@ javascriptGenerator.forBlock["video_getDuration"] = function () {
 
 Blockly.Blocks["video_setVideoIndex"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendValueInput("INDEX")
       .setCheck("Number")
       .appendField("switch video to");
@@ -144,6 +153,7 @@ javascriptGenerator.forBlock["video_setVideoIndex"] = function (block: Blockly.B
 
 Blockly.Blocks["video_setVideoName"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendValueInput("NAME")
       .setCheck("String")
       .appendField("switch video named");
@@ -161,6 +171,7 @@ javascriptGenerator.forBlock["video_setVideoName"] = function (block: Blockly.Bl
 
 Blockly.Blocks["video_nextVideo"] = {
   init: function () {
+    this.setMediaTypes("video");
     this.appendDummyInput().appendField("next video");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
