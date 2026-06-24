@@ -126,7 +126,8 @@ const FUN_FACTS = [
   "The average cumulus cloud travels at around 30 to 40 mph.",
   "There are more possible ways to shuffle a deck of cards than there have been seconds since the universe began.",
   "Your stomach gets a completely new lining every few days.",
-  "An ostrich's eye is bigger than its brain."
+  "An ostrich's eye is bigger than its brain.",
+  "hi im a fun fact :)"
 ];
 FUN_FACTS.push(`There are ${FUN_FACTS.length} different fun facts.`);
 
