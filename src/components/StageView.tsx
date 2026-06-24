@@ -939,7 +939,7 @@ export default function StageView() {
     setIsRecordModalOpen(true);
     setIsRecording(true);
     setIsEncoding(false);
-    setExportProgress(0);
+    setExportProgress(null);
     setExportFrameCount(0);
     abortRecordingRef.current = false;
     stopAndExportRef.current = false;
@@ -951,8 +951,6 @@ export default function StageView() {
       }
     }
 
-    let videoFrames: ImageBitmap[] = [];
-    let audioSamples: Float32Array[] = [];
     let frameCounter = 0;
     const sampleRate = 44100;
     const waitForNextFrame = () =>
@@ -996,33 +994,71 @@ export default function StageView() {
     };
 
     try {
-      const captureFrame = async () => {
-        try {
-          const bitmap = await createImageBitmap(
-            canvas,
-            0,
-            0,
-            captureWidth,
-            captureHeight,
-            {
-              colorSpaceConversion: "none",
-              resizeWidth: physicalWidth,
-              resizeHeight: physicalHeight,
-              resizeQuality: "high",
-            },
-          );
-          videoFrames.push(bitmap);
+      const worker = new Worker(
+        new URL("../workers/export.worker.ts", import.meta.url),
+        { type: "module" },
+      );
 
-          const samples = runtime.getAudioSamples(1 / fps, sampleRate);
-          audioSamples.push(samples);
+      let frameResolver: ((v?: any) => void) | null = null;
+      let doneResolver: ((b: ArrayBuffer) => void) | null = null;
+      let errorRejecter: ((e: any) => void) | null = null;
 
-          frameCounter++;
-          setExportFrameCount(frameCounter);
-        } catch (e) {
-          console.error(e);
+      worker.onmessage = (e) => {
+        if (e.data.type === "ready") {
+          if (frameResolver) frameResolver();
+        } else if (e.data.type === "frameDone") {
+          setExportFrameCount(e.data.progress);
+          if (frameResolver) frameResolver();
+        } else if (e.data.type === "done") {
+          if (doneResolver) doneResolver(e.data.buffer);
+        } else if (e.data.type === "error") {
+          if (errorRejecter) errorRejecter(new Error(e.data.error));
         }
       };
 
+      const initWorker = () =>
+        new Promise<void>((resolve, reject) => {
+          frameResolver = resolve;
+          errorRejecter = reject;
+          worker.postMessage({
+            type: "init",
+            payload: {
+              options,
+              sampleRate,
+              width: physicalWidth,
+              height: physicalHeight,
+              fps,
+              isChromium: isChromiumBrowser(),
+            },
+          });
+        });
+
+      const processFrameWorker = (bitmap: ImageBitmap, audioSample: Float32Array | null | undefined) =>
+        new Promise<void>((resolve, reject) => {
+          frameResolver = resolve;
+          errorRejecter = reject;
+          
+          const transfers: Transferable[] = [bitmap];
+          const audioPayload = audioSample ? [audioSample] : [];
+          
+          if (audioSample && audioSample.buffer) {
+            transfers.push(audioSample.buffer);
+          }
+
+          worker.postMessage(
+            { type: "frame", payload: { bitmap, audio: audioPayload } },
+            transfers,
+          );
+        });
+
+      const finalizeWorker = () =>
+        new Promise<ArrayBuffer>((resolve, reject) => {
+          doneResolver = resolve;
+          errorRejecter = reject;
+          worker.postMessage({ type: "finalize" });
+        });
+
+      await initWorker();
       await runtime.preloadSounds();
 
       let kickoffSettled = false;
@@ -1049,11 +1085,28 @@ export default function StageView() {
 
         layer.draw();
         await waitForNextFrame();
-        await captureFrame();
+
+        const bitmap = await createImageBitmap(
+          canvas,
+          0,
+          0,
+          captureWidth,
+          captureHeight,
+          {
+            colorSpaceConversion: "none",
+            resizeWidth: physicalWidth,
+            resizeHeight: physicalHeight,
+            resizeQuality: "high",
+          },
+        );
+
+        const samples = runtime.getAudioSamples(1 / fps, sampleRate);
+        await processFrameWorker(bitmap, samples as Float32Array | null | undefined);
+
+        frameCounter++;
 
         await runtime.step();
         await syncAndWaitForVideos(true);
-
         await Promise.resolve();
 
         if (
@@ -1069,49 +1122,21 @@ export default function StageView() {
       runtime.disableStepping();
 
       if (abortRecordingRef.current) {
-        videoFrames.forEach((f) => f.close());
-        videoFrames = [];
-        audioSamples = [];
+        worker.terminate();
         return;
       }
 
-      if (videoFrames.length === 0) {
+      if (frameCounter === 0) {
         throw new Error(
           "Nothing was recorded. Add a block to run when the video starts.",
         );
       }
 
       setIsEncoding(true);
-      setExportProgress(0);
-
-      const worker = new Worker(
-        new URL("../workers/export.worker.ts", import.meta.url),
-        { type: "module" },
-      );
-
-      const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        worker.onmessage = (e) => {
-          if (e.data.type === "progress") setExportProgress(e.data.progress);
-          else if (e.data.type === "done") resolve(e.data.buffer);
-          else if (e.data.type === "error") reject(new Error(e.data.error));
-        };
-        worker.onerror = reject;
-        worker.postMessage(
-          {
-            options,
-            frames: videoFrames,
-            audioSamples,
-            sampleRate,
-            width: physicalWidth,
-            height: physicalHeight,
-            fps,
-            isChromium: isChromiumBrowser(),
-          },
-          [...videoFrames, ...audioSamples.map((a) => a.buffer)],
-        );
-      });
-
+      setExportProgress(100);
+      const buffer = await finalizeWorker();
       worker.terminate();
+
       const now = new Date();
       const ts = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
       const fileName = `export_${ts}.${options.format}`;

@@ -21,7 +21,6 @@ import "blockly/blocks";
       if (gen.forBlock && gen.forBlock[t]) delete gen.forBlock[t];
     }
   } catch {
-    // ignore
   }
 })();
 import * as En from "blockly/msg/en";
@@ -41,7 +40,7 @@ import {
 import { ensureDefaultInputBlocks } from "../lib/blocks/defaultInputBlocks";
 import { subscribeExtensionChanges } from "../lib/extensions/manager";
 import { useSprites } from "../lib/sprites";
-import {Plus} from "lucide-react";
+import { Plus } from "lucide-react";
 
 function syncShadowColours(
   workspace: Blockly.WorkspaceSvg | Blockly.Workspace,
@@ -71,7 +70,7 @@ function applyMotionGoToFlyoutDefaults(
   });
 }
 
-export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateAction<boolean>>}) {
+export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStateAction<boolean>> }) {
   const blocklyDivRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const { state, dispatch } = useSprites();
@@ -104,8 +103,7 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
           for (const field of input.fieldRow) {
             if (field instanceof Blockly.FieldDropdown) {
               try {
-                // @ts-ignore
-                const options = field.getOptions(false);
+                const options = (field as any).getOptions(false);
                 const value = field.getValue();
 
                 if (
@@ -118,7 +116,6 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
                   field.setValue(value);
                 }
               } catch (e) {
-                console.warn("Failed to refresh dropdown field:", e);
               }
             }
           }
@@ -189,7 +186,6 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
         const dom = Blockly.utils.xml.textToDom(selectedSprite.blocklyXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
       } catch (e) {
-        console.error(e);
       }
       isSwappingRef.current = false;
     }
@@ -284,6 +280,13 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
     const workspace = workspaceRef.current;
     if (!workspace) return;
 
+    if (
+      loadedSpriteIdRef.current === selectedSpriteId &&
+      lastLoadKeyRef.current === state.loadKey
+    ) {
+      return;
+    }
+
     isSwappingRef.current = true;
     (workspace as any).spriteId = selectedSpriteId;
     (workspace as any).sprites = state.sprites;
@@ -295,7 +298,6 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
         const dom = Blockly.utils.xml.textToDom(currentXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
       } catch (e) {
-        console.error(e);
       }
     }
 
@@ -324,7 +326,7 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
   }, [selectedSprite?.type, selectedSpriteId]);
 
   const { settings } = useProjectSettings();
-useEffect(() => {
+  useEffect(() => {
     const workspace = workspaceRef.current;
     if (!workspace) return;
 
@@ -371,19 +373,18 @@ useEffect(() => {
             left: "0%",
             position: "absolute",
             width: "124px",
-            //height: "75px",
             padding: "10px",
             zIndex: 100,
             background: "var(--accent)",
-            cursor:"pointer",
+            cursor: "pointer",
             alignContent: "center",
             alignItems: "center",
             justifyContent: "center",
             display: "flex",
-            flexDirection:"column",
+            flexDirection: "column",
           }}
           onClick={() => showMenu(true)}>
-            <Plus style={{width: "35px", height: "35px"}}/>
+            <Plus style={{ width: "35px", height: "35px" }} />
             <div>Add an extension</div>
           </div>
       )}

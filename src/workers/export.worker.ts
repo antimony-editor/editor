@@ -42,134 +42,100 @@ function buildAudioPayload(
   return { data };
 }
 
+let config: any;
+let target: BufferTarget | null = null;
+let output: Output | null = null;
+let videoSource: VideoSampleSource | null = null;
+let audioSource: AudioSampleSource | null = null;
+let audioChunks: Float32Array[] = [];
+let gifEncoder: any = null;
+let gifCtx: OffscreenCanvasRenderingContext2D | null = null;
+let frameCounter = 0;
+
 self.onmessage = async (e: MessageEvent) => {
-  const { options, frames, audioSamples, sampleRate, fps, width, height, isChromium } =
-    e.data;
+  const { type, payload } = e.data;
 
   try {
-    if (!Array.isArray(frames) || frames.length === 0) {
-      throw new Error(
-        "Nothing was recorded. Add a block to run when the video starts.",
-      );
-    }
-
-    if (options.format === "gif") {
-      const encoder = GIFEncoder();
-      const frameDuration = 1000 / fps;
-
-      const canvas = new OffscreenCanvas(width, height);
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-
-      if (!ctx) {
-        throw new Error("couldn't get 2d context for GIF encoding");
-      }
-
-      for (let i = 0; i < frames.length; i++) {
-        const bitmap = frames[i] as ImageBitmap;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(bitmap, 0, 0, width, height);
-        bitmap.close();
-
-        const imageData = ctx.getImageData(0, 0, width, height);
-        const { data } = imageData;
-        const palette = quantize(data, 256);
-        const index = applyPalette(data, palette);
-
-        encoder.writeFrame(index, width, height, {
-          palette,
-          delay: frameDuration,
+    if (type === "init") {
+      config = payload;
+      if (config.options.format === "gif") {
+        gifEncoder = GIFEncoder();
+        const canvas = new OffscreenCanvas(config.width, config.height);
+        gifCtx = canvas.getContext("2d", { willReadFrequently: true });
+        if (!gifCtx) throw new Error("Could not initialize 2D context");
+      } else {
+        const isMP4 = config.options.format === "mp4";
+        target = new BufferTarget();
+        output = new Output({
+          format: isMP4 ? new Mp4OutputFormat() : new WebMOutputFormat(),
+          target,
         });
 
-        if (i % 5 === 0) {
-          self.postMessage({
-            type: "progress",
-            progress: (i / frames.length) * 100,
-          });
-        }
-      }
+        const now = new Date();
+        const timestamp = new Intl.DateTimeFormat("sv-SE", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          fractionalSecondDigits: 3,
+          timeZoneName: "longOffset",
+          hour12: false,
+        }).format(now);
 
-      encoder.finish();
-      const buffer = encoder.bytes().buffer;
-      (self as any).postMessage({ type: "done", buffer }, [buffer]);
-      return;
-    }
+        output.setMetadataTags({
+          comment: `Edited using Antimony (https://editor.antimony.cc) on ${timestamp}`,
+        });
 
-    const isMP4 = options.format === "mp4";
-    const frameDuration = 1 / fps;
-    const audioPayload = buildAudioPayload(audioSamples);
+        videoSource = new VideoSampleSource({
+          codec: isMP4 ? "avc" : "vp9",
+          bitrate: config.options.bitrate,
+          latencyMode: "realtime",
+          keyFrameInterval: Math.max(1, Math.round(config.fps)),
+          colorSpace: {
+            primaries: "bt709",
+            transfer: "bt709",
+            matrix: "bt709",
+            fullRange: true,
+          },
+        } as any);
 
-    const target = new BufferTarget();
-    const output = new Output({
-      format: isMP4 ? new Mp4OutputFormat() : new WebMOutputFormat(),
-      target,
-    });
-	
-	const now = new Date();
-
-    const timestamp = new Intl.DateTimeFormat("sv-SE", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      fractionalSecondDigits: 3,
-      timeZoneName: "longOffset",
-      hour12: false,
-    }).format(now);
-
-    output.setMetadataTags({
-      comment: `Edited using Antimony (https://editor.antimony.cc) on ${timestamp}`,
-    });
-
-    const videoSource = new VideoSampleSource({
-      codec: isMP4 ? "avc" : "vp9",
-      bitrate: options.bitrate,
-      latencyMode: "realtime",
-      keyFrameInterval: Math.max(1, Math.round(fps)),
-      colorSpace: {
-        primaries: "bt709",
-        transfer: "bt709",
-        matrix: "bt709",
-        fullRange: true,
-      },
-    } as any);
-
-    const audioSource = audioPayload
-      ? new AudioSampleSource({
-          codec: isMP4 && isChromium ? "aac" : "opus",
-          sampleRate,
+        audioSource = new AudioSampleSource({
+          codec: isMP4 && config.isChromium ? "aac" : "opus",
+          sampleRate: config.sampleRate,
           numberOfChannels: 2,
           bitrate: 192000,
-        } as any)
-      : null;
+        } as any);
 
-    output.addVideoTrack(videoSource);
-    if (audioSource) output.addAudioTrack(audioSource);
-    await output.start();
-
-    if (audioSource && audioPayload) {
-      const audioSample = new AudioSample({
-        format: "f32-planar",
-        sampleRate,
-        numberOfChannels: 2,
-        timestamp: 0,
-        data: audioPayload.data.buffer,
-      });
-      try {
-        await audioSource.add(audioSample);
-      } finally {
-        audioSample.close();
+        output.addVideoTrack(videoSource);
+        output.addAudioTrack(audioSource);
+        await output.start();
       }
-    }
+      (self as any).postMessage({ type: "ready" });
+    } else if (type === "frame") {
+      const { bitmap, audio } = payload;
+      if (audio && Array.isArray(audio)) {
+        audioChunks.push(...audio);
+      }
 
-    for (let i = 0; i < frames.length; i++) {
-      const bitmap = frames[i] as ImageBitmap;
-      const timestamp = i * frameDuration;
-      let sample: VideoSample | null = null;
+      if (config.options.format === "gif") {
+        gifCtx!.clearRect(0, 0, config.width, config.height);
+        gifCtx!.drawImage(bitmap, 0, 0, config.width, config.height);
+        bitmap.close();
 
-      try {
-        sample = new VideoSample(bitmap, {
+        const imageData = gifCtx!.getImageData(0, 0, config.width, config.height);
+        const palette = quantize(imageData.data, 256);
+        const index = applyPalette(imageData.data, palette);
+
+        gifEncoder.writeFrame(index, config.width, config.height, {
+          palette,
+          delay: 1000 / config.fps,
+        });
+      } else {
+        const frameDuration = 1 / config.fps;
+        const timestamp = frameCounter * frameDuration;
+        const sample = new VideoSample(bitmap, {
           timestamp,
           duration: frameDuration,
           colorSpace: {
@@ -180,26 +146,49 @@ self.onmessage = async (e: MessageEvent) => {
           },
         } as any);
 
-        await videoSource.add(sample, { keyFrame: i === 0 || i % Math.max(1, Math.round(fps)) === 0 });
-      } finally {
-        if (sample) sample.close();
+        await videoSource!.add(sample, {
+          keyFrame: frameCounter === 0 || frameCounter % Math.max(1, Math.round(config.fps)) === 0,
+        });
+        sample.close();
         bitmap.close();
       }
 
-      if (i % 10 === 0) {
-        self.postMessage({
-          type: "progress",
-          progress: (i / frames.length) * 100,
+      frameCounter++;
+      (self as any).postMessage({ type: "frameDone", progress: frameCounter });
+    } else if (type === "finalize") {
+      if (config.options.format === "gif") {
+        gifEncoder.finish();
+        const buffer = gifEncoder.bytes().buffer;
+        (self as any).postMessage({ type: "done", buffer }, [buffer]);
+      } else {
+        let audioPayload = buildAudioPayload(audioChunks);
+        if (!audioPayload) {
+          const samples = Math.ceil((frameCounter / config.fps) * config.sampleRate);
+          audioPayload = { data: new Float32Array(samples * 2) };
+        }
+
+        const audioSample = new AudioSample({
+          format: "f32-planar",
+          sampleRate: config.sampleRate,
+          numberOfChannels: 2,
+          timestamp: 0,
+          data: audioPayload.data.buffer,
         });
+
+        try {
+          await audioSource!.add(audioSample);
+        } finally {
+          audioSample.close();
+        }
+
+        await videoSource!.close();
+        await audioSource!.close();
+        await output!.finalize();
+
+        const buffer = target!.buffer as ArrayBuffer;
+        (self as any).postMessage({ type: "done", buffer }, [buffer]);
       }
     }
-
-    await videoSource.close();
-    if (audioSource) await audioSource.close();
-    await output.finalize();
-
-    const buffer = target.buffer as ArrayBuffer;
-    (self as any).postMessage({ type: "done", buffer }, [buffer]);
   } catch (err: any) {
     (self as any).postMessage({ type: "error", error: err?.message ?? String(err) });
   }

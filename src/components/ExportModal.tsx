@@ -140,7 +140,7 @@ export default function ExportModal({
       >
         <div className="modal-header">
           <h2>
-            {isRecording ? "Recording..." : isEncoding ? "Exporting..." : "Export Video"}
+            {isRecording ? "Processing Video..." : isEncoding ? "Finalizing..." : "Export Video"}
           </h2>
           {!isExporting && !isEncoding && (
             <button className="close-modal-btn" onClick={onClose}>
@@ -227,10 +227,10 @@ export default function ExportModal({
                 <Video size={28} />
               </div>
               <div className="export-encoding-label">
-                {frameCount > 0 ? `${frameCount} frame${frameCount === 1 ? "" : "s"} captured` : "Starting..."}
+                {frameCount > 0 ? `${frameCount} frame${frameCount === 1 ? "" : "s"} processed` : "Starting up..."}
               </div>
               <div className="export-encoding-sublabel">
-                Recording in background, do not close this window...
+                Capturing and encoding on the fly. Do not close this window...
               </div>
               <div className="export-fun-fact" style={{ opacity: funFactVisible ? 1 : 0 }}>
                 <span className="export-fun-fact-label"><Lightbulb size={11} />Did you know?</span>
@@ -245,7 +245,7 @@ export default function ExportModal({
                       onClick={onStopAndExport}
                     >
                       <FileVideo size={15} />
-                      Stop & Export
+                      Stop & Finalize
                     </button>
                   )}
                   {onAbortRecording && (
@@ -255,7 +255,7 @@ export default function ExportModal({
                       onClick={onAbortRecording}
                     >
                       <Square size={15} />
-                      Stop Recording
+                      Abort Export
                     </button>
                   )}
                 </div>
@@ -269,20 +269,16 @@ export default function ExportModal({
                 <Loader2 className="animate-spin-slow" size={28} />
               </div>
               <div className="export-encoding-label">
-                {progress !== null
-                  ? `${Math.round(progress)}%`
-                  : "Processing chunks..."}
+                Finalizing File...
               </div>
               <div className="export-encoding-sublabel">
-                {progress !== null && progress < 100
-                  ? "Encoding video, do not close this window..."
-                  : "Finalizing file..."}
+                Writing video headers and metadata. Just a moment!
               </div>
               <div className="export-progress-container">
                 <div className="export-progress-bar">
                   <div
                     className="export-progress-fill"
-                    style={{ width: `${progress ?? 0}%` }}
+                    style={{ width: `100%`, transition: "none" }}
                   />
                 </div>
               </div>
