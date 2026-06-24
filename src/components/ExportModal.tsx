@@ -154,7 +154,7 @@ const FUN_FACTS = [
   "Don't find a lawyer who knows the law, find a lawyer who knows the judge.",
   "If sorry means nothing, wait until you hear it from your doctor.",
   "'add kane parsons as a fun fact' - Vedalgations.",
-  "In the English language, 'that' is a highly versatile word. Depending on how it is used in a sentence, its primary meanings include: Demonstrative Pronoun: Points to a specific person, object, or idea—usually one that is further away, mentioned previously, or out of reach (e.g., 'Look at that'). Relative Pronoun: Connects a clause to a noun, often used instead of 'who' or 'which' (e.g., 'The book that I read'). Conjunction: Used to introduce a subordinate clause or link an action to a thought/statement (e.g., 'She said that she would be late'). Adverb: Means 'to such an extent' or 'particularly' (e.g., 'It isn't that far').",
+  "'In the English language, 'that' is a highly versatile word. Depending on how it is used in a sentence, its primary meanings include:Demonstrative Pronoun: Points to a specific person, object, or idea—usually one that is further away, mentioned previously, or out of reach (e.g., 'Look at that').Relative Pronoun: Connects a clause to a noun, often used instead of 'who' or 'which' (e.g., 'The book that I read').Conjunction: Used to introduce a subordinate clause or link an action to a thought/statement (e.g., 'She said that she would be late').Adverb: Means 'to such an extent' or 'particularly' (e.g., 'It isn't that far').' - Vedalgations.",
   "v_v",
   "^v^",
   "Did you know...",
