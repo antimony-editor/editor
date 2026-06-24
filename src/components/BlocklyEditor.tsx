@@ -302,6 +302,12 @@ export default function BlocklyEditor({showMenu}:{showMenu:Dispatch<SetStateActi
     workspace.render?.();
     Blockly.svgResize(workspace);
 
+    requestAnimationFrame(() => {
+      for (const block of workspace.getTopBlocks(false)) {
+        block.render();
+      }
+    });
+
     loadedSpriteIdRef.current = selectedSpriteId;
     lastLoadKeyRef.current = state.loadKey;
     isSwappingRef.current = false;

@@ -2,11 +2,11 @@ import * as Blockly from "blockly/core";
 import { javascriptGenerator, Order } from "blockly/javascript";
 
 Blockly.Blocks["on_start"] = {
+  hat: "cap",
   init: function () {
     this.appendDummyInput("NAME").appendField("on start of the video");
     this.appendStatementInput("DO").setCheck(null);
     this.setStyle("timing_blocks");
-    (this as Blockly.Block & { hat?: string }).hat = "cap";
     this.setTooltip("Runs whatevers underneath when the video is started");
     this.setHelpUrl("");
   },
