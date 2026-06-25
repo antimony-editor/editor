@@ -36,6 +36,7 @@ import {
 import { getThemeColors, applyTheme } from "./lib/themes";
 import "./styles/editor.css";
 import "./styles/asset-tab.css";
+import { Analytics } from '@vercel/analytics/react';
 
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -375,6 +376,7 @@ export default function App() {
           */
           <ExtensionMenu showMenu={setShowExtMenu} />
         )}
+	   <Analytics />
       </ProjectSettingsContext.Provider>
     </SpriteContext.Provider>
   );

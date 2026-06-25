@@ -38,6 +38,7 @@
     "@blockly/field-colour": "^6.0.12",
     "@huggingface/transformers": "^4.2.0",
     "@jaames/iro": "^5.5.2",
+    "@vercel/analytics": "^2.0.1",
     "blockly": "^13.0.0",
     "blockly-field-color-wheel": "^1.0.5",
     "highlight.js": "^11.11.1",
