@@ -93,7 +93,7 @@ self.onmessage = async (e: MessageEvent) => {
         videoSource = new VideoSampleSource({
           codec: isMP4 ? "avc" : "vp9",
           bitrate: config.options.bitrate,
-          latencyMode: "quality",
+          latencyMode: config.options.quality === "realtime" ? "realtime" : "quality",
           keyFrameInterval: Math.max(1, Math.round(config.fps)),
           colorSpace: {
             primaries: "bt709",

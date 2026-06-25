@@ -1074,6 +1074,9 @@ export default function StageView() {
       await waitForNextFrame();
       await waitForNextFrame();
 
+      const originalExportFps = settings.fps;
+      runtime.setFps(fps);
+
       const minimumFrames = Math.max(1, Math.min(2, fps));
       const maxFrames = Math.max(120, Math.ceil(fps * 300));
 
@@ -1120,6 +1123,7 @@ export default function StageView() {
       }
 
       runtime.disableStepping();
+      runtime.setFps(originalExportFps);
 
       if (abortRecordingRef.current) {
         worker.terminate();
