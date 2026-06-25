@@ -1,7 +1,13 @@
 import { X, Gauge, FileVideo, Loader2, HardDrive, Video, Lightbulb, Square } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
+import { SpriteContext } from "../lib/sprites";
+import { ProjectSettingsContext } from "../lib/settings";
+import { TWEEN_MODE_OPTIONS } from "../lib/tween";
+import { activeExtensions } from "../lib/extensions/manager";
+import { extensions as builtinExtensions } from "../lib/extensions/builtinExtensions";
+import * as Blockly from "blockly";
 
-const FUN_FACTS = [
+const STATIC_FUN_FACTS = [
   "Antimony uses Blockly as the main code workspace!",
   "This is a fun fact.",
   "Antimony's birthdate is on May 24th, 2026.",
@@ -11,7 +17,6 @@ const FUN_FACTS = [
   "The native language of Antimony's creator is Spanish.",
   "Antimony is an Argentine-born product! ¡Vamos los pibes!",
   "The combination of Pepsi and milk is called Pilk.",
-  "There are 31 different tweens.",
   "Antimony is an open-source project.",
   "Wait, I forgot what to say.",
   "Extensions are useful to add even more features to the editor.",
@@ -140,7 +145,7 @@ const FUN_FACTS = [
   "This fun fact is nice... - If formatted correctly, - Would be a haiku.",
   "Uhm, why are you looking at me like that?",
   ":)",
-  "If you see this, you are- AHHHHHHHHHHHHHHHHHHHHhhhhhhhhhhhhhh........... '...huh, wonder where that guy went.'",
+  "If you see this, you are- AHHHHHHHHHHHHHHHHHHHHhhhhhhhhhhhhhh........... - ...huh, wonder where that guy went.",
   "The parent company of 7-Eleven called Seven & i Holdings owns the largest amount of physical stores, totaling to around 85,000 globally!",
   "Start making videos!",
   "For today's fun fact... YOU are the fun fact.",
@@ -171,24 +176,114 @@ const FUN_FACTS = [
   "Antimony? I barely know 'er!!!",
   "Antimony wouldn't have been created without the amazing people behind it!",
   "hi, im a fun fact :)",
-  "Don't stop being who you are."
+  "Don't stop being who you are.",
 ];
 
-FUN_FACTS.push(`There are ${FUN_FACTS.length} different fun facts.`);
+function buildDynamicFacts(
+  spriteCount: number,
+  blockCount: number,
+  projectWidth: number,
+  projectHeight: number,
+  projectFps: number,
+  loadedExtensionCount: number,
+  spriteNames: string[],
+  spriteTypes: Record<string, number>
+): string[] {
+  const facts: string[] = [];
 
-if (new Date().getMonth() === 5) {
-  FUN_FACTS.push("Happy Pride Month!");
+  facts.push(`There are ${TWEEN_MODE_OPTIONS.length} different tween modes available in Antimony.`);
+  facts.push(`Antimony has ${builtinExtensions.length} built-in extensions ready to use.`);
+  facts.push(`Antimony is built on top of ${Object.keys(Blockly.Blocks).length} registered block types.`);
+
+  if (spriteCount === 1) {
+    facts.push(`Your project has only 1 source. More the merrier!`);
+  } else if (spriteCount > 1) {
+    facts.push(`Your project has ${spriteCount} sources in it!`);
+  }
+
+  if (blockCount > 0) {
+    facts.push(`Your project contains ${blockCount} block${blockCount === 1 ? "" : "s"} of code across all sources.`);
+  } else {
+    facts.push(`Your project has no blocks yet. There's a whole toolbox waiting for you!`);
+  }
+
+  if (spriteNames.length > 0) {
+    const nameList = spriteNames.length === 1
+      ? `"${spriteNames[0]}"`
+      : spriteNames.slice(0, -1).map(n => `"${n}"`).join(", ") + ` and "${spriteNames[spriteNames.length - 1]}"`;
+    facts.push(`The sprite${spriteNames.length === 1 ? "" : "s"} in your project ${spriteNames.length === 1 ? "is" : "are"} ${nameList}.`);
+  }
+
+  if (spriteTypes.text > 0 && spriteTypes.media === 0 && spriteTypes.video === 0) {
+    facts.push(`Your project is text-only. Sometimes, words are all you need.`);
+  }
+  if (spriteTypes.video > 0) {
+    facts.push(`Your project has ${spriteTypes.video} video source${spriteTypes.video === 1 ? "" : "s"}. Lights, camera, Antimony!`);
+  }
+  if (spriteTypes.media > 0) {
+    facts.push(`Your project uses ${spriteTypes.media} image source${spriteTypes.media === 1 ? "" : "s"}.`);
+  }
+
+  const totalPixels = projectWidth * projectHeight;
+  facts.push(`Your canvas is ${projectWidth}×${projectHeight}; that's exactly ${totalPixels.toLocaleString()} pixels to fill!`);
+
+  if (projectFps === 60) {
+    facts.push(`Your project runs at 60 FPS. Buttery smooth!`);
+  } else if (projectFps >= 30) {
+    facts.push(`Your project targets ${projectFps} FPS. Solid and smooth.`);
+  } else {
+    facts.push(`Your project runs at ${projectFps} FPS. Going for that cinematic feel?`);
+  }
+
+  if (loadedExtensionCount === 0) {
+    facts.push(`You have no extensions loaded. Did you know Antimony has a Camera extension?`);
+  } else if (loadedExtensionCount === 1) {
+    facts.push(`You're using 1 extension. Extensions can add a lot of power to your project!`);
+  } else {
+    facts.push(`You have ${loadedExtensionCount} extensions loaded. You're really going all out here!`);
+  }
+
+  return facts;
 }
 
-const RARE_FACT_INDEX = FUN_FACTS.findIndex((fact) =>
-  fact.startsWith("Hey, wow! Uhh...")
-);
+function buildFunFacts(
+  spriteCount: number,
+  blockCount: number,
+  projectWidth: number,
+  projectHeight: number,
+  projectFps: number,
+  loadedExtensionCount: number,
+  spriteNames: string[],
+  spriteTypes: Record<string, number>
+): string[] {
+  const dynamic = buildDynamicFacts(
+    spriteCount,
+    blockCount,
+    projectWidth,
+    projectHeight,
+    projectFps,
+    loadedExtensionCount,
+    spriteNames,
+    spriteTypes
+  );
 
-function shuffleIndices() {
-  const indices = Array.from({ length: FUN_FACTS.length }, (_, i) => i);
+  const all = [...STATIC_FUN_FACTS, ...dynamic];
+  all.push(`There are ${all.length + 1} different fun facts.`);
 
-  if (RARE_FACT_INDEX !== -1) {
-    indices.splice(RARE_FACT_INDEX, 1);
+  if (new Date().getMonth() === 5) {
+    all.push("Happy Pride Month!");
+  }
+
+  return all;
+}
+
+const RARE_FACT_MARKER = "Hey, wow! Uhh...";
+
+function shuffleIndices(facts: string[], rareIndex: number) {
+  const indices = Array.from({ length: facts.length }, (_, i) => i);
+
+  if (rareIndex !== -1) {
+    indices.splice(rareIndex, 1);
   }
 
   for (let i = indices.length - 1; i > 0; i--) {
@@ -199,23 +294,21 @@ function shuffleIndices() {
   return indices;
 }
 
-function useFunFact(active: boolean) {
+function useFunFact(active: boolean, facts: string[]) {
   const [visible, setVisible] = useState(true);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shuffleRef = useRef<number[]>(shuffleIndices());
+  const rareIndex = facts.findIndex((f) => f.startsWith(RARE_FACT_MARKER));
+  const shuffleRef = useRef<number[]>(shuffleIndices(facts, rareIndex));
   const positionRef = useRef(0);
-
-  const [index, setIndex] = useState(shuffleRef.current[0]);
+  const [index, setIndex] = useState(shuffleRef.current[0] ?? 0);
 
   useEffect(() => {
     if (!active) return;
 
     const scheduleNext = (factIndex: number) => {
-      const delay = Math.min(
-        12000,
-        Math.max(4000, FUN_FACTS[factIndex].length * 50)
-      );
+      const fact = facts[factIndex] ?? "";
+      const delay = Math.min(12000, Math.max(4000, fact.length * 50));
 
       timerRef.current = setTimeout(() => {
         setVisible(false);
@@ -224,16 +317,16 @@ function useFunFact(active: boolean) {
           let next: number;
 
           if (
-            RARE_FACT_INDEX !== -1 &&
+            rareIndex !== -1 &&
             Math.random() < 0.01 &&
-            factIndex !== RARE_FACT_INDEX
+            factIndex !== rareIndex
           ) {
-            next = RARE_FACT_INDEX;
+            next = rareIndex;
           } else {
             positionRef.current++;
 
             if (positionRef.current >= shuffleRef.current.length) {
-              shuffleRef.current = shuffleIndices();
+              shuffleRef.current = shuffleIndices(facts, rareIndex);
               positionRef.current = 0;
             }
 
@@ -254,7 +347,7 @@ function useFunFact(active: boolean) {
     };
   }, [active]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { fact: FUN_FACTS[index], visible };
+  return { fact: facts[index] ?? "", visible };
 }
 
 interface ExportModalProps {
@@ -296,8 +389,36 @@ export default function ExportModal({
     "quality",
   );
 
+  const spriteCtx = useContext(SpriteContext);
+  const settingsCtx = useContext(ProjectSettingsContext);
+
+  const sprites = spriteCtx?.state.sprites ?? [];
+  const settings = settingsCtx?.settings;
+
+  const spriteNames = sprites.map((s) => s.name);
+  const spriteTypes = sprites.reduce(
+    (acc, s) => ({ ...acc, [s.type]: (acc[s.type] ?? 0) + 1 }),
+    {} as Record<string, number>
+  );
+  const blockCount = sprites.reduce((total, s) => {
+    if (!s.blocklyXml) return total;
+    const matches = s.blocklyXml.match(/<block\b/g);
+    return total + (matches?.length ?? 0);
+  }, 0);
+
+  const funFacts = buildFunFacts(
+    sprites.length,
+    blockCount,
+    settings?.width ?? 1280,
+    settings?.height ?? 720,
+    settings?.fps ?? 60,
+    activeExtensions.length,
+    spriteNames,
+    spriteTypes
+  );
+
   const isRecording = isExporting && !isEncoding;
-  const { fact: funFact, visible: funFactVisible } = useFunFact(isExporting || isEncoding);
+  const { fact: funFact, visible: funFactVisible } = useFunFact(isExporting || isEncoding, funFacts);
 
   return (
     <div
