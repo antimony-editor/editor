@@ -16,6 +16,7 @@ const FUN_FACTS = [
   "Wait, I forgot what to say.",
   "Extensions are useful to add even more features to the editor.",
   "I like visual coding! And blocks!",
+  "Jax, look. I know we don't get along, but you should really use the Camera extension in Antimony.",
   "According to all known laws of aviation, there is no way a bee should be able to fly. Its wings are too small to get its fat little body off the ground. The bee, of course, flies anyway because bees don't care what humans think is impossible.",
   "A group of flamingos is called a flamboyance.",
   "Honey never spoils. Archaeologists have found 3,000-year-old honey in Egyptian tombs that was still perfectly edible.",
