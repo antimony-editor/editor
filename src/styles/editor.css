@@ -2594,9 +2594,9 @@ dialog::backdrop {
   background: var(--bg-secondary);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
-  padding: 10px;
+  padding: var(--space-md);
   cursor: pointer;
-  width: 200px;
+  width: 22rem;
 }
 
 .welcome-modal-overlay {
