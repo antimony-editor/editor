@@ -149,7 +149,7 @@ const FUN_FACTS = [
   "You should try Antimony! Not like you are here on Antimony right now.",
   "The export process was a pain to develop...",
   "The shortest tip just says ':)'.",
-  "Antimony has a (un)official song!",
+  "Antimony! Yay!",
   "Don't give up on your dreams, keep sleeping.",
   "#0011ff is called Icelandic Blue.",
   "Everything will be okay in the end, and if it's not, it's not the end.",
