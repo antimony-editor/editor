@@ -122,7 +122,7 @@ const STATIC_FUN_FACTS = [
   "The inventor of the microwave oven discovered it after a chocolate bar melted in his pocket near radar equipment.",
   "The word 'alphabet' comes from the first two Greek letters: alpha and beta.",
   "An apple floats because about a quarter of its volume is air.",
-  "The longest English word without repeating a letter is 'uncopyrightable'.",
+  "The longest English word without repeating a letter is 'subdermatoglyphic'.",
   "The letter 'Q' doesn't appear in any U.S. state name.",
   "The human brain uses about 20% of the body's energy.",
   "A day on Mercury is longer than its year.",
@@ -178,6 +178,7 @@ const STATIC_FUN_FACTS = [
   "Antimony wouldn't have been created without the amazing people behind it!",
   "hi, im a fun fact :)",
   "Don't stop being who you are.",
+  "The word 'run' has 645 different meanings.",
 ];
 
 function buildDynamicFacts(
