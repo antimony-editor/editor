@@ -35,8 +35,8 @@ function buildAudioPayload(
   for (const sample of validSamples) {
     const frameSamples = sample.length / 2;
     for (let i = 0; i < frameSamples; i++) {
-      data[planarOffset + i] = sample[i * 2];
-      data[totalSampleCount + planarOffset + i] = sample[i * 2 + 1];
+      data[planarOffset + i] = sample[i];
+      data[totalSampleCount + planarOffset + i] = sample[frameSamples + i];
     }
     planarOffset += frameSamples;
   }

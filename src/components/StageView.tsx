@@ -943,19 +943,53 @@ export default function StageView() {
     abortRecordingRef.current = false;
     stopAndExportRef.current = false;
 
-    for (const node of spriteNodeRefs.current.values()) {
-      const video = getVideoElementFromNode(node);
-      if (video) video.pause();
-    }
-
-    const hasVideos = () =>
-      Array.from(spriteNodeRefs.current.values()).some((n) => getVideoElementFromNode(n) !== null);
-
     const hasActiveVideoPlayback = () =>
       Array.from(videoShouldPlayRefs.current.values()).some((ref) => ref.current);
 
-    const waitForVideoSeek = (video: HTMLVideoElement): Promise<void> =>
+    type VideoProxy = {
+      spriteId: string;
+      video: HTMLVideoElement;
+      imageNode: KonvaCore.Image;
+      proxyCanvas: HTMLCanvasElement;
+      proxyCtx: CanvasRenderingContext2D;
+    };
+
+    const buildVideoProxies = (): VideoProxy[] => {
+      const proxies: VideoProxy[] = [];
+      for (const [spriteId, node] of spriteNodeRefs.current.entries()) {
+        if (!(node instanceof KonvaCore.Container)) continue;
+        const imageNode = node.findOne("Image") as KonvaCore.Image | undefined;
+        if (!imageNode) continue;
+        const video = imageNode.image();
+        if (!(video instanceof HTMLVideoElement)) continue;
+
+        video.pause();
+
+        const proxyCanvas = document.createElement("canvas");
+        proxyCanvas.width = video.videoWidth || 1280;
+        proxyCanvas.height = video.videoHeight || 720;
+        const proxyCtx = proxyCanvas.getContext("2d")!;
+
+        proxyCtx.drawImage(video, 0, 0, proxyCanvas.width, proxyCanvas.height);
+        imageNode.image(proxyCanvas);
+
+        proxies.push({ spriteId, video, imageNode, proxyCanvas, proxyCtx });
+      }
+      return proxies;
+    };
+
+    const restoreVideoProxies = (proxies: VideoProxy[]) => {
+      for (const { video, imageNode } of proxies) {
+        imageNode.image(video);
+      }
+    };
+
+    const seekVideo = (video: HTMLVideoElement, time: number): Promise<void> =>
       new Promise<void>((resolve) => {
+        if (Math.abs(video.currentTime - time) < 0.0005) {
+          resolve();
+          return;
+        }
         let settled = false;
         const done = () => {
           if (settled) return;
@@ -966,25 +1000,17 @@ export default function StageView() {
         };
         const timeout = setTimeout(done, 200);
         video.addEventListener("seeked", done, { once: true });
+        video.currentTime = time;
       });
 
-    const exportStepSec = 1 / fps;
-
-    const syncAndWaitForVideos = async (advance: boolean) => {
-      if (!hasVideos()) return;
-      const beforeTimes = new Map<HTMLVideoElement, number>();
-      for (const [, node] of spriteNodeRefs.current.entries()) {
-        const video = getVideoElementFromNode(node);
-        if (video) beforeTimes.set(video, video.currentTime);
-      }
-      syncAndVerifyVideos(advance, exportStepSec);
-      const waits: Promise<void>[] = [];
-      for (const [video, before] of beforeTimes.entries()) {
-        if (Math.abs(video.currentTime - before) > 0.001) {
-          waits.push(waitForVideoSeek(video));
-        }
-      }
-      if (waits.length > 0) await Promise.all(waits);
+    const paintVideoProxies = async (proxies: VideoProxy[]) => {
+      await Promise.all(proxies.map(async ({ spriteId, video, proxyCanvas, proxyCtx }) => {
+        const liveSprite = runtime.getSpriteContext(spriteId)?.sprite as any;
+        const targetTime = liveSprite?.videoCurrentTime ?? video.currentTime;
+        await seekVideo(video, targetTime);
+        proxyCtx.clearRect(0, 0, proxyCanvas.width, proxyCanvas.height);
+        proxyCtx.drawImage(video, 0, 0, proxyCanvas.width, proxyCanvas.height);
+      }));
     };
 
     const offscreen = new OffscreenCanvas(physicalWidth, physicalHeight);
@@ -1002,6 +1028,7 @@ export default function StageView() {
     };
 
     let frameCounter = 0;
+    let videoProxies: VideoProxy[] = [];
 
     try {
       const worker = new Worker(
@@ -1048,6 +1075,12 @@ export default function StageView() {
 
       await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 
+      videoProxies = buildVideoProxies();
+
+      const videoDurations = new Map<string, number>(
+        videoProxies.map(({ spriteId, video }) => [spriteId, video.duration])
+      );
+
       const originalExportFps = settings.fps;
       runtime.setFps(fps);
 
@@ -1059,7 +1092,8 @@ export default function StageView() {
       while (frameCounter < maxFrames) {
         if (abortRecordingRef.current || stopAndExportRef.current) break;
 
-        await syncAndWaitForVideos(false);
+        await paintVideoProxies(videoProxies);
+
         layer.draw();
 
         const bitmap = captureFrame();
@@ -1079,7 +1113,21 @@ export default function StageView() {
         frameCounter++;
 
         await runtime.step();
-        await syncAndWaitForVideos(true);
+        for (const [id] of spriteNodeRefs.current.entries()) {
+          const sprite = spritesRef.current.find((s) => s.id === id);
+          if (!sprite || !isVideoData(sprite.data)) continue;
+          const liveSprite = runtime.getSpriteContext(id)?.sprite as any;
+          if (!liveSprite || !liveSprite.videoPlaying) continue;
+          const playbackRate = liveSprite.videoPlaybackRate ?? 1;
+          const duration = videoDurations.get(id) ?? Infinity;
+          const nextTime = (liveSprite.videoCurrentTime ?? 0) + (1 / fps) * playbackRate;
+          if (nextTime >= duration) {
+            liveSprite.videoCurrentTime = liveSprite.videoLoop ? nextTime % duration : duration;
+            if (!liveSprite.videoLoop) liveSprite.videoPlaying = false;
+          } else {
+            liveSprite.videoCurrentTime = nextTime;
+          }
+        }
 
         if (kickoffSettled && !runtime.hasLiveWaiters() && !hasActiveVideoPlayback() && frameCounter >= minimumFrames) break;
       }
@@ -1120,6 +1168,7 @@ export default function StageView() {
       console.error(err);
       alert("Export failed");
     } finally {
+      restoreVideoProxies(videoProxies);
       runtime.disableStepping();
       resetRecordingState();
     }
