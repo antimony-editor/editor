@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Type, Image, Video, HelpCircle, X, Copy } from "lucide-react";
 import {
   useSprites,
@@ -7,9 +7,49 @@ import {
   createVideoSprite,
 } from "../lib/sprites";
 
+function RenameInput({
+  name,
+  onCommit,
+  onCancel,
+}: {
+  name: string;
+  onCommit: (v: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(name);
+  const ref = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    ref.current?.select();
+  }, []);
+
+  const commit = () => {
+    const trimmed = value.trim();
+    if (trimmed) onCommit(trimmed);
+    else onCancel();
+  };
+
+  return (
+    <input
+      ref={ref}
+      className="sprite-rename-input"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") commit();
+        if (e.key === "Escape") onCancel();
+        e.stopPropagation();
+      }}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+}
+
 export default function SpritePanel() {
   const { state, dispatch } = useSprites();
   const [showMenu, setShowMenu] = useState(false);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
 
   const handleAdd = (type: "text" | "media" | "video") => {
     const count = state.sprites.filter((s) => s.type === type).length + 1;
@@ -25,6 +65,11 @@ export default function SpritePanel() {
     setShowMenu(false);
   };
 
+  const handleRename = (id: string, name: string) => {
+    dispatch({ type: "UPDATE_SPRITE", id, changes: { name } });
+    setRenamingId(null);
+  };
+
   const iconForType = (type: string) => {
     switch (type) {
       case "text":
@@ -36,10 +81,6 @@ export default function SpritePanel() {
       default:
         return <HelpCircle size={16} />;
     }
-  };
-
-  const colorForType = () => {
-    return "var(--accent)";
   };
 
   return (
@@ -62,13 +103,32 @@ export default function SpritePanel() {
             >
               <div
                 className="sprite-card-icon"
-                style={{ color: colorForType() }}
+                style={{ color: "var(--accent)" }}
               >
                 {iconForType(sprite.type)}
               </div>
               <div className="sprite-card-info">
-                <div className="sprite-card-name">{sprite.name}</div>
-                <div className="sprite-card-type">{sprite.type === "media" ? "image" : sprite.type}</div>
+                {renamingId === sprite.id ? (
+                  <RenameInput
+                    name={sprite.name}
+                    onCommit={(v) => handleRename(sprite.id, v)}
+                    onCancel={() => setRenamingId(null)}
+                  />
+                ) : (
+                  <div
+                    className="sprite-card-name"
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setRenamingId(sprite.id);
+                    }}
+                    title="Double-click to rename"
+                  >
+                    {sprite.name}
+                  </div>
+                )}
+                <div className="sprite-card-type">
+                  {sprite.type === "media" ? "image" : sprite.type}
+                </div>
               </div>
               <div className="sprite-card-actions">
                 <button

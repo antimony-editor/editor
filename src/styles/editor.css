@@ -408,6 +408,20 @@ input[type="color"] {
   color: var(--danger);
 }
 
+.sprite-rename-input {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 4px;
+  outline: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .add-sprite-area {
   padding: var(--space-sm) var(--space-md);
   border-top: 1px solid var(--border-subtle);

@@ -8,7 +8,7 @@ import {
   type TextSpriteData,
   type MediaSpriteData,
 } from "../lib/sprites";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getAvailableFonts,
   COMMON_FONTS,
@@ -25,8 +25,7 @@ export default function PropertiesPanel() {
   const { state, dispatch } = useSprites();
   const sprite = state.sprites.find((s) => s.id === state.selectedSpriteId);
 
-  if (!sprite) return null;
-
+  const committedName = useRef(sprite?.name ?? "");
   const [fonts, setFonts] = useState<string[]>([]);
   const [fontPermission, setFontPermission] = useState<
     "granted" | "denied" | "prompt" | "unknown"
@@ -37,12 +36,16 @@ export default function PropertiesPanel() {
   );
 
   useEffect(() => {
+    if (!sprite) return;
+    committedName.current = sprite.name;
+  }, [sprite?.id]);
+
+  useEffect(() => {
+    if (!sprite) return;
     if (sprite.type === "text") {
       setActiveAssetType("sounds");
-    } else if (sprite.type === "media" && activeAssetType === "images") {
-      // keep imgs
     }
-  }, [sprite.id, sprite.type]);
+  }, [sprite?.id, sprite?.type]);
 
   useEffect(() => {
     let mounted = true;
@@ -51,7 +54,7 @@ export default function PropertiesPanel() {
         const state = await getFontPermissionState();
         if (!mounted) return;
         setFontPermission(state);
-        
+
         const safe = WEB_SAFE_FONTS;
         const google = GOOGLE_FONTS;
         const system = ["system-ui", "sans-serif", "serif", "monospace"];
@@ -74,6 +77,8 @@ export default function PropertiesPanel() {
       mounted = false;
     };
   }, []);
+
+  if (!sprite) return null;
 
   const handleUnlockFonts = async () => {
     setRequestingFonts(true);
@@ -150,6 +155,24 @@ export default function PropertiesPanel() {
           background: "transparent",
         }}
       >
+        <div className="properties-section">
+          <div className="properties-section-title">Source</div>
+          <div className="properties-row">
+            <span className="properties-label">Name</span>
+            <input
+              className="properties-input"
+              type="text"
+              value={sprite.name}
+              onChange={(e) => update({ name: e.target.value })}
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (!v) update({ name: committedName.current });
+                else committedName.current = v;
+              }}
+            />
+          </div>
+        </div>
+
         <div className="properties-section">
           <div className="properties-section-title">Transform</div>
           {numField("X", sprite.x, "x")}
