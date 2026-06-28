@@ -1802,6 +1802,32 @@ input[type="color"] {
   transform: translateX(16px);
 }
 
+.settings-row-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-left: auto;
+}
+
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-xs) var(--space-sm);
+  gap: var(--space-xs);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.settings-btn:hover {
+  background: var(--bg-surface);
+}
+
 /* to someone who's better at CSS: please make this better some day, especially the icons */
 .react-tabs {
   display: flex;

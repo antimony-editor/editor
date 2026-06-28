@@ -151,3 +151,68 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) throw new Error("useTheme must be used within ThemeContext");
   return ctx;
 }
+
+// If we ever add more stuff or change the format, increment this
+export const amtFormatVersion = 1;
+
+export interface ThemeFile {
+  formatVersion: number;
+  name: string;
+  colors: ThemeColors;
+}
+
+export function buildAmtTheme(colors: ThemeColors, name: string): ThemeFile {
+  return {
+    formatVersion: amtFormatVersion,
+    name,
+    colors
+  };
+}
+
+export function validateTheme(data: ThemeFile) {
+  // Has data & it's an object
+  if (!data || typeof data !== "object") return false;
+
+  // Version match
+  if (data.formatVersion !== amtFormatVersion) return false;
+
+  // Name is string & not empty
+  if (!data.name || data?.name?.length < 1) return false;
+
+  // Colors isn't missing & it's an object
+  if (!data.colors || typeof data.colors !== "object") return false;
+
+  return THEME_COLOR_KEYS.every(key => typeof data.colors[key] === "string");
+}
+
+export function downloadAmtFile(amt: ThemeFile): void {
+  const blob = new Blob([JSON.stringify(amt)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${amt.name.replace(/[^a-z0-9_-]/gi, "_")}.att`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function parseThemeFile(file: File): Promise<ThemeFile> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result as string);
+        if (validateTheme(data)) {
+          resolve(data);
+        } else {
+          reject(new Error("Invalid theme file"));
+        }
+      } catch (err) {
+        reject(new Error("Failed to parse theme file: " + err));
+      }
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsText(file);
+  });
+}
