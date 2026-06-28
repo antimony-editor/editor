@@ -98,6 +98,8 @@ function buildFunFacts(
   spriteNames: string[],
   spriteTypes: Record<string, number>
 ): string[] {
+  if (staticFacts.length === 0) return [];
+
   const dynamic = buildDynamicFacts(
     spriteCount,
     blockCount,
