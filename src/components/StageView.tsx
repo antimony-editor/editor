@@ -248,7 +248,7 @@ function getCharLayout(
   totalHeight: number
 ) {
   const normalizedContent = content.replace(/\r\n/g, "\n");
-  
+
   if (typeof document === "undefined") {
     return normalizedContent.split("").map((char, index) => ({
       char,
@@ -256,7 +256,7 @@ function getCharLayout(
       y: 0,
     }));
   }
-  
+
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -266,33 +266,33 @@ function getCharLayout(
       y: 0,
     }));
   }
-  
+
   const fontStyle = fontWeight >= 600 ? "bold" : "normal";
   ctx.font = `${fontStyle} ${fontSize}px ${buildFontStack(fontFamily)}`;
-  
+
   const lines = normalizedContent.split("\n");
   const lineHeight = fontSize * LINE_HEIGHT;
   const totalTextHeight = lines.length * lineHeight;
   const leading = (lineHeight - fontSize) / 2;
-  
+
   const startY = (totalHeight - totalTextHeight) / 2 + leading;
   let currentY = startY;
-  
+
   const layout: { char: string; x: number; y: number }[] = [];
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lineChars = line.split("");
     const widths = lineChars.map(c => ctx.measureText(c).width);
     const totalTextWidth = widths.reduce((sum, w) => sum + w, 0);
-    
+
     let startX = 0;
     if (align === "center") {
       startX = (totalWidth - totalTextWidth) / 2;
     } else if (align === "right") {
       startX = totalWidth - totalTextWidth;
     }
-    
+
     let currentX = startX;
     for (let j = 0; j < lineChars.length; j++) {
       layout.push({
@@ -302,10 +302,10 @@ function getCharLayout(
       });
       currentX += widths[j];
     }
-    
+
     currentY += lineHeight;
   }
-  
+
   return layout;
 }
 
@@ -345,7 +345,7 @@ function SpriteRenderer({
       loadGoogleFont(sprite.data.fontFamily);
     }
   }, [sprite.data]);
-  
+
   const videoShouldPlayRef = useRef<boolean>(false);
   const { dispatch } = useSprites();
   const mediaData = isMediaData(sprite.data) ? sprite.data : null;
@@ -802,7 +802,7 @@ export default function StageView() {
         const cam = runtime.getActiveCamera();
         const vcx = virtualWidth / 2;
         const vcy = virtualHeight / 2;
-        
+
         group.offset({ x: cam.x + vcx, y: vcy - cam.y });
         group.position({ x: vcx, y: vcy });
         group.scale({ x: cam.zoom, y: cam.zoom });
@@ -1464,7 +1464,7 @@ export default function StageView() {
       if (!(node instanceof KonvaCore.Group)) continue;
       const mainText = node.findOne(".main-text") as Konva.Text | undefined;
       if (!mainText) continue;
-      
+
       const children = node.getChildren();
       for (let j = children.length - 1; j >= 0; j--) {
         const child = children[j];
@@ -1555,7 +1555,7 @@ export default function StageView() {
         const rotation = Number(spriteData.rotation ?? sprite.rotation);
         const opacity = Number(spriteData.opacity ?? sprite.opacity);
         const visible = Boolean(spriteData.visible ?? sprite.visible);
-        
+
         node.setAttrs({
           x: stageCoords.toCanvasX(x),
           y: stageCoords.toCanvasY(y),
@@ -1624,7 +1624,7 @@ export default function StageView() {
             }
           } else {
             if (mainText) mainText.setAttrs({ visible: false });
-            
+
             const children = group.getChildren();
             for (let j = 0; j < children.length; j++) {
               const child = children[j];
@@ -2204,9 +2204,9 @@ export default function StageView() {
       <div className="panel-header stage-panel-header">
         <div
           className="transport-controls"
-          style={{ 
-            background: "transparent", 
-            border: "none", 
+          style={{
+            background: "transparent",
+            border: "none",
             padding: 0,
             display: "flex",
             width: "fit-content"

@@ -173,6 +173,11 @@ export default function (mediaType: BlockSourceType) {
       value("DICT", shadow("dicts_create_with", mutation("0"))),
       value("KEY", shadow("text", field("TEXT", "key1")))
     )}
+    ${block(
+      "dicts_delete_key",
+      value("DICT", shadow("dicts_create_with", mutation("0"))),
+      value("KEY", shadow("text", field("TEXT", "key1")))
+    )}
   </category>
   <category name="Motion" categorystyle="motion_blocks">
     ${block(
@@ -286,9 +291,7 @@ export default function (mediaType: BlockSourceType) {
   <category name="Layers" categorystyle="layers_blocks">
     ${block("layers_sendToFront")}
     ${block("layers_sendToBack")}
-    ${block("layers_sendForward")}
-    ${block("layers_sendBackward")}
-    ${sep(50)}
+    ${block("layers_sendForward", value("Z", shadow("math_number", field("NUM", 0))))}
     ${block("layers_setZIndex", value("Z", shadow("math_number", field("NUM", 0))))}
     ${block("layers_getZIndex")}
   </category>
