@@ -71,7 +71,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("controls_forever")}
     ${block(
       "controls_forLoop",
-      value("VAR", block("controls_forLoop_var")),
+      value("VAR", shadow("controls_forLoop_var")),
       value("START", shadow("math_number", field("NUM", 1))),
       value("END", shadow("math_number", field("NUM", 10)))
     )}
@@ -264,7 +264,7 @@ export default function (mediaType: BlockSourceType) {
     )}
     ${block(
       "motion_forEachCharacter",
-      value("VAR", block("motion_forEachCharacter_var"))
+      value("VAR", shadow("motion_forEachCharacter_var"))
     )}
   </category>
   <category name="Appearance" categorystyle="appearance_blocks">
@@ -421,7 +421,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("variables_set", value("VALUE", shadow("text", field("TEXT", ""))))}
   </category>
   <category name="Functions" categorystyle="procedure_blocks">
-    ${block("functions_lambda", value("ARG", block("functions_argument")))}
+    ${block("functions_lambda", value("ARG", shadow("functions_argument")))}
     ${block("functions_return", value("VALUE", shadow("math_number", field("NUM", 1))))}
     ${block("functions_execute", value("FUNC"), value("ARG", textShadow("foo")))}
   </category>

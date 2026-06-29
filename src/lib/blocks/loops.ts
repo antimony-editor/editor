@@ -7,6 +7,7 @@ Blockly.Blocks["controls_forLoop_var"] = {
     this.setOutput(true, "Number");
     this.setStyle("loop_blocks");
     this.setTooltip("The current value of i in the for loop.");
+    this.duplicateOnDrag = true;
   }
 };
 

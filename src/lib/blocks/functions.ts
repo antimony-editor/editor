@@ -7,6 +7,7 @@ Blockly.Blocks["functions_argument"] = {
     this.setOutput(true, null);
     this.setStyle("procedure_blocks");
     this.setTooltip("The argument passed into this lambda.");
+    this.duplicateOnDrag = true;
   },
 };
 

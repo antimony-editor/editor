@@ -163,7 +163,8 @@ javascriptGenerator.forBlock["dicts_length"] = function (block, generator) {
 
 Blockly.Blocks["dicts_isEmpty"] = {
   init: function () {
-    this.appendValueInput("DICT").setCheck("Object").appendField("dictionary is empty");
+    this.appendValueInput("DICT").setCheck("Object").appendField("is dictionary");
+    this.appendDummyInput().appendField("empty");
     this.setInputsInline(true);
     this.setOutput(true, "Boolean");
     this.setStyle("dict_blocks");
