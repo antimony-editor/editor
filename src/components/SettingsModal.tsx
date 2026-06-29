@@ -1,6 +1,25 @@
-import { Monitor, Gauge, Palette, Grid3x3, Paintbrush, X } from "lucide-react";
+import { useRef } from "react";
+import {
+  Monitor,
+  Gauge,
+  Palette,
+  Grid3x3,
+  Paintbrush,
+  Download,
+  Upload,
+  X
+} from "lucide-react";
 import { RESOLUTION_PRESETS, type ProjectSettings } from "../lib/settings";
-import { DARK_THEME, LIGHT_THEME, useTheme, type ThemeColorKey } from "../lib/themes";
+import {
+  DARK_THEME,
+  LIGHT_THEME,
+  useTheme,
+  getThemeColors,
+  buildAmtTheme,
+  downloadAmtFile,
+  parseThemeFile,
+  type ThemeColorKey
+} from "../lib/themes";
 
 interface SettingsModalProps {
   settings: ProjectSettings;
@@ -13,12 +32,38 @@ export default function SettingsModal({
   settings,
   onChange,
   isClosing = false,
-  onClose,
+  onClose
 }: SettingsModalProps) {
   const { theme, setTheme } = useTheme();
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  function handleExport() {
+    const name = prompt(
+      "Theme name:",
+      theme.preset === "custom"
+        ? "Custom Theme"
+        : `${theme.preset === "dark" ? "Dark" : "Light"} Theme`
+    );
+    if (!name) return;
+    const colors = getThemeColors(theme.preset, theme.custom);
+    const amt = buildAmtTheme(colors, name);
+    downloadAmtFile(amt);
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const amt = await parseThemeFile(file);
+      setTheme({ preset: "custom", custom: { ...amt.colors } });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to import theme");
+    }
+    if (importInputRef.current) importInputRef.current.value = "";
+  }
+
   const matchedPreset = RESOLUTION_PRESETS.find(
-    (preset) =>
-      preset.width === settings.width && preset.height === settings.height,
+    preset => preset.width === settings.width && preset.height === settings.height
   );
   const presetValue = matchedPreset
     ? `${matchedPreset.width}x${matchedPreset.height}`
@@ -29,14 +74,8 @@ export default function SettingsModal({
   };
 
   return (
-    <div
-      className={`modal-overlay ${isClosing ? "is-closing" : ""}`}
-      onClick={onClose}
-    >
-      <div
-        className="modal-content settings-modal"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={`modal-overlay ${isClosing ? "is-closing" : ""}`} onClick={onClose}>
+      <div className="modal-content settings-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Video Settings</h2>
           <button className="close-modal-btn" onClick={onClose}>
@@ -54,18 +93,15 @@ export default function SettingsModal({
               <select
                 className="settings-select"
                 value={presetValue}
-                onChange={(e) => {
+                onChange={e => {
                   const value = e.target.value;
                   if (value === "custom") return;
                   const [width, height] = value.split("x").map(Number);
                   update({ width, height });
                 }}
               >
-                {RESOLUTION_PRESETS.map((preset) => (
-                  <option
-                    key={preset.label}
-                    value={`${preset.width}x${preset.height}`}
-                  >
+                {RESOLUTION_PRESETS.map(preset => (
+                  <option key={preset.label} value={`${preset.width}x${preset.height}`}>
                     {preset.label}
                   </option>
                 ))}
@@ -80,9 +116,9 @@ export default function SettingsModal({
                 min={64}
                 max={3840}
                 value={settings.width}
-                onChange={(e) =>
+                onChange={e =>
                   update({
-                    width: parseInt(e.target.value, 10) || settings.width,
+                    width: parseInt(e.target.value, 10) || settings.width
                   })
                 }
               />
@@ -95,9 +131,9 @@ export default function SettingsModal({
                 min={64}
                 max={2160}
                 value={settings.height}
-                onChange={(e) =>
+                onChange={e =>
                   update({
-                    height: parseInt(e.target.value, 10) || settings.height,
+                    height: parseInt(e.target.value, 10) || settings.height
                   })
                 }
               />
@@ -117,7 +153,7 @@ export default function SettingsModal({
                 min={1}
                 max={240}
                 value={settings.fps}
-                onChange={(e) =>
+                onChange={e =>
                   update({ fps: parseInt(e.target.value, 10) || settings.fps })
                 }
               />
@@ -135,13 +171,13 @@ export default function SettingsModal({
                 <input
                   type="color"
                   value={settings.backgroundColor}
-                  onChange={(e) => update({ backgroundColor: e.target.value })}
+                  onChange={e => update({ backgroundColor: e.target.value })}
                 />
                 <input
                   className="settings-input"
                   type="text"
                   value={settings.backgroundColor}
-                  onChange={(e) => update({ backgroundColor: e.target.value })}
+                  onChange={e => update({ backgroundColor: e.target.value })}
                 />
               </div>
             </div>
@@ -167,9 +203,9 @@ export default function SettingsModal({
                 min={5}
                 max={200}
                 value={settings.gridSize}
-                onChange={(e) =>
+                onChange={e =>
                   update({
-                    gridSize: parseInt(e.target.value, 10) || settings.gridSize,
+                    gridSize: parseInt(e.target.value, 10) || settings.gridSize
                   })
                 }
               />
@@ -194,13 +230,34 @@ export default function SettingsModal({
             <div className="settings-section-title">
               <Paintbrush size={16} />
               <span>Theme</span>
+
+              <div className="settings-row settings-row-actions">
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept=".att"
+                  style={{ display: "none" }}
+                  onChange={handleImport}
+                />
+                <button
+                  className="settings-btn"
+                  onClick={() => importInputRef.current?.click()}
+                >
+                  <Upload size={14} />
+                  Import
+                </button>
+                <button className="settings-btn" onClick={handleExport}>
+                  <Download size={14} />
+                  Export
+                </button>
+              </div>
             </div>
             <div className="settings-row">
               <span className="settings-label">Preset</span>
               <select
                 className="settings-select"
                 value={theme.preset}
-                onChange={(e) => {
+                onChange={e => {
                   const preset = e.target.value as "dark" | "light" | "custom";
                   if (preset === "custom") {
                     const base = theme.preset === "light" ? LIGHT_THEME : DARK_THEME;
@@ -226,7 +283,7 @@ export default function SettingsModal({
                     ["Accent color", "accent"],
                     ["Text color", "textPrimary"],
                     ["Secondary text", "textSecondary"],
-                    ["Border color", "borderDefault"],
+                    ["Border color", "borderDefault"]
                   ] as [string, ThemeColorKey][]
                 ).map(([label, key]) => (
                   <div className="settings-row" key={key}>
@@ -235,7 +292,7 @@ export default function SettingsModal({
                       <input
                         type="color"
                         value={theme.custom[key] || DARK_THEME[key]}
-                        onChange={(e) => {
+                        onChange={e => {
                           const custom = { ...theme.custom, [key]: e.target.value };
                           setTheme({ ...theme, custom });
                         }}
@@ -244,7 +301,7 @@ export default function SettingsModal({
                         className="settings-input"
                         type="text"
                         value={theme.custom[key] || DARK_THEME[key]}
-                        onChange={(e) => {
+                        onChange={e => {
                           const custom = { ...theme.custom, [key]: e.target.value };
                           setTheme({ ...theme, custom });
                         }}

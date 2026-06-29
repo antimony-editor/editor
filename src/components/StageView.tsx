@@ -248,7 +248,7 @@ function getCharLayout(
   totalHeight: number
 ) {
   const normalizedContent = content.replace(/\r\n/g, "\n");
-  
+
   if (typeof document === "undefined") {
     return normalizedContent.split("").map((char, index) => ({
       char,
@@ -256,7 +256,7 @@ function getCharLayout(
       y: 0,
     }));
   }
-  
+
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) {
@@ -266,33 +266,33 @@ function getCharLayout(
       y: 0,
     }));
   }
-  
+
   const fontStyle = fontWeight >= 600 ? "bold" : "normal";
   ctx.font = `${fontStyle} ${fontSize}px ${buildFontStack(fontFamily)}`;
-  
+
   const lines = normalizedContent.split("\n");
   const lineHeight = fontSize * LINE_HEIGHT;
   const totalTextHeight = lines.length * lineHeight;
   const leading = (lineHeight - fontSize) / 2;
-  
+
   const startY = (totalHeight - totalTextHeight) / 2 + leading;
   let currentY = startY;
-  
+
   const layout: { char: string; x: number; y: number }[] = [];
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const lineChars = line.split("");
     const widths = lineChars.map(c => ctx.measureText(c).width);
     const totalTextWidth = widths.reduce((sum, w) => sum + w, 0);
-    
+
     let startX = 0;
     if (align === "center") {
       startX = (totalWidth - totalTextWidth) / 2;
     } else if (align === "right") {
       startX = totalWidth - totalTextWidth;
     }
-    
+
     let currentX = startX;
     for (let j = 0; j < lineChars.length; j++) {
       layout.push({
@@ -302,10 +302,10 @@ function getCharLayout(
       });
       currentX += widths[j];
     }
-    
+
     currentY += lineHeight;
   }
-  
+
   return layout;
 }
 
@@ -345,7 +345,7 @@ function SpriteRenderer({
       loadGoogleFont(sprite.data.fontFamily);
     }
   }, [sprite.data]);
-  
+
   const videoShouldPlayRef = useRef<boolean>(false);
   const { dispatch } = useSprites();
   const mediaData = isMediaData(sprite.data) ? sprite.data : null;
@@ -802,7 +802,7 @@ export default function StageView() {
         const cam = runtime.getActiveCamera();
         const vcx = virtualWidth / 2;
         const vcy = virtualHeight / 2;
-        
+
         group.offset({ x: cam.x + vcx, y: vcy - cam.y });
         group.position({ x: vcx, y: vcy });
         group.scale({ x: cam.zoom, y: cam.zoom });
@@ -818,6 +818,7 @@ export default function StageView() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const fullScreenParentRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [isPreparing, setIsPreparing] = useState(false);
   const [isEncoding, setIsEncoding] = useState(false);
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [exportFrameCount, setExportFrameCount] = useState(0);
@@ -825,8 +826,6 @@ export default function StageView() {
     url: string;
     name: string;
   } | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordedChunksRef = useRef<Blob[]>([]);
   const abortRecordingRef = useRef(false);
   const stopAndExportRef = useRef(false);
 
@@ -873,12 +872,11 @@ export default function StageView() {
 
   const resetRecordingState = useCallback(() => {
     setIsRecording(false);
+    setIsPreparing(false);
     setIsEncoding(false);
     setExportProgress(null);
     setExportFrameCount(0);
     setIsRecordModalOpen(false);
-    mediaRecorderRef.current = null;
-    recordedChunksRef.current = [];
     abortRecordingRef.current = false;
     stopAndExportRef.current = false;
   }, []);
@@ -952,9 +950,50 @@ export default function StageView() {
       imageNode: KonvaCore.Image;
       proxyCanvas: HTMLCanvasElement;
       proxyCtx: CanvasRenderingContext2D;
+      frameCache: Map<number, ImageBitmap>;
+      duration: number;
     };
 
-    const buildVideoProxies = (): VideoProxy[] => {
+    const decodeVideoFrames = (video: HTMLVideoElement): Promise<Map<number, ImageBitmap>> =>
+      new Promise<Map<number, ImageBitmap>>((resolve) => {
+        const cache = new Map<number, ImageBitmap>();
+        const w = video.videoWidth || 1280;
+        const h = video.videoHeight || 720;
+        const scratch = new OffscreenCanvas(w, h);
+        const scratchCtx = scratch.getContext("2d")!;
+        const frameDuration = 1 / fps;
+
+        let lastCachedTime = -Infinity;
+
+        const capture = (now: number, meta: { mediaTime: number }) => {
+          const t = meta.mediaTime;
+          if (t - lastCachedTime >= frameDuration * 0.9) {
+            scratchCtx.drawImage(video, 0, 0, w, h);
+            cache.set(t, scratch.transferToImageBitmap());
+            lastCachedTime = t;
+          }
+          if (!video.ended && !video.paused) {
+            (video as any).requestVideoFrameCallback(capture);
+          } else {
+            video.pause();
+            video.currentTime = 0;
+            resolve(cache);
+          }
+        };
+
+        video.currentTime = 0;
+        video.playbackRate = 16;
+        video.muted = true;
+
+        const onSeeked = () => {
+          video.removeEventListener("seeked", onSeeked);
+          (video as any).requestVideoFrameCallback(capture);
+          video.play().catch(() => resolve(cache));
+        };
+        video.addEventListener("seeked", onSeeked, { once: true });
+      });
+
+    const buildVideoProxies = async (): Promise<VideoProxy[]> => {
       const proxies: VideoProxy[] = [];
       for (const [spriteId, node] of spriteNodeRefs.current.entries()) {
         if (!(node instanceof KonvaCore.Container)) continue;
@@ -969,48 +1008,44 @@ export default function StageView() {
         proxyCanvas.width = video.videoWidth || 1280;
         proxyCanvas.height = video.videoHeight || 720;
         const proxyCtx = proxyCanvas.getContext("2d")!;
-
         proxyCtx.drawImage(video, 0, 0, proxyCanvas.width, proxyCanvas.height);
         imageNode.image(proxyCanvas);
 
-        proxies.push({ spriteId, video, imageNode, proxyCanvas, proxyCtx });
+        const frameCache = await decodeVideoFrames(video);
+
+        proxies.push({ spriteId, video, imageNode, proxyCanvas, proxyCtx, frameCache, duration: video.duration });
       }
       return proxies;
     };
 
     const restoreVideoProxies = (proxies: VideoProxy[]) => {
-      for (const { video, imageNode } of proxies) {
+      for (const { video, imageNode, frameCache } of proxies) {
         imageNode.image(video);
+        for (const bmp of frameCache.values()) bmp.close();
       }
     };
 
-    const seekVideo = (video: HTMLVideoElement, time: number): Promise<void> =>
-      new Promise<void>((resolve) => {
-        if (Math.abs(video.currentTime - time) < 0.0005) {
-          resolve();
-          return;
-        }
-        let settled = false;
-        const done = () => {
-          if (settled) return;
-          settled = true;
-          video.removeEventListener("seeked", done);
-          clearTimeout(timeout);
-          resolve();
-        };
-        const timeout = setTimeout(done, 200);
-        video.addEventListener("seeked", done, { once: true });
-        video.currentTime = time;
-      });
-
-    const paintVideoProxies = async (proxies: VideoProxy[]) => {
-      await Promise.all(proxies.map(async ({ spriteId, video, proxyCanvas, proxyCtx }) => {
+    const paintVideoProxies = (proxies: VideoProxy[]) => {
+      for (const { spriteId, proxyCanvas, proxyCtx, frameCache, duration } of proxies) {
         const liveSprite = runtime.getSpriteContext(spriteId)?.sprite as any;
-        const targetTime = liveSprite?.videoCurrentTime ?? video.currentTime;
-        await seekVideo(video, targetTime);
-        proxyCtx.clearRect(0, 0, proxyCanvas.width, proxyCanvas.height);
-        proxyCtx.drawImage(video, 0, 0, proxyCanvas.width, proxyCanvas.height);
-      }));
+        let targetTime = liveSprite?.videoCurrentTime ?? 0;
+        const loop = liveSprite?.videoLoop ?? false;
+        if (duration > 0 && loop) targetTime = ((targetTime % duration) + duration) % duration;
+        targetTime = Math.max(0, Math.min(targetTime, duration));
+
+        if (frameCache.size === 0) continue;
+
+        let best: ImageBitmap | null = null;
+        let bestDelta = Infinity;
+        for (const [t, bmp] of frameCache) {
+          const delta = Math.abs(t - targetTime);
+          if (delta < bestDelta) { bestDelta = delta; best = bmp; }
+        }
+        if (best) {
+          proxyCtx.clearRect(0, 0, proxyCanvas.width, proxyCanvas.height);
+          proxyCtx.drawImage(best, 0, 0, proxyCanvas.width, proxyCanvas.height);
+        }
+      }
     };
 
     const offscreen = new OffscreenCanvas(physicalWidth, physicalHeight);
@@ -1036,36 +1071,25 @@ export default function StageView() {
         { type: "module" },
       );
 
-      let pendingResolve: ((v?: any) => void) | null = null;
-      let pendingReject: ((e: any) => void) | null = null;
-      let doneResolver: ((b: ArrayBuffer) => void) | null = null;
-      let errorRejecter: ((e: any) => void) | null = null;
-
-      worker.onmessage = (e) => {
-        if (e.data.type === "ready" || e.data.type === "frameDone") {
-          if (e.data.type === "frameDone") setExportFrameCount(e.data.progress);
-          if (pendingResolve) { pendingResolve(); pendingResolve = null; pendingReject = null; }
-        } else if (e.data.type === "done") {
-          if (doneResolver) doneResolver(e.data.buffer);
-        } else if (e.data.type === "error") {
-          const err = new Error(e.data.error);
-          if (pendingReject) { pendingReject(err); pendingResolve = null; pendingReject = null; }
-          if (errorRejecter) errorRejecter(err);
-        }
-      };
-
-      const waitWorker = () =>
-        new Promise<void>((resolve, reject) => {
-          pendingResolve = resolve;
-          pendingReject = reject;
-          errorRejecter = reject;
+      const workerMessage = <T = void>(): Promise<T> =>
+        new Promise<T>((resolve, reject) => {
+          const handler = (e: MessageEvent) => {
+            if (e.data.type === "error") {
+              worker.removeEventListener("message", handler);
+              reject(new Error(e.data.error));
+            } else if (e.data.type !== "frameDone") {
+              worker.removeEventListener("message", handler);
+              resolve(e.data as T);
+            }
+          };
+          worker.addEventListener("message", handler);
         });
 
       worker.postMessage({
         type: "init",
         payload: { options, sampleRate, width: physicalWidth, height: physicalHeight, fps, isChromium: isChromiumBrowser() },
       });
-      await waitWorker();
+      await workerMessage();
 
       await runtime.preloadSounds();
 
@@ -1075,10 +1099,12 @@ export default function StageView() {
 
       await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
 
-      videoProxies = buildVideoProxies();
+      setIsPreparing(true);
+      videoProxies = await buildVideoProxies();
+      setIsPreparing(false);
 
       const videoDurations = new Map<string, number>(
-        videoProxies.map(({ spriteId, video }) => [spriteId, video.duration])
+        videoProxies.map(({ spriteId, duration }) => [spriteId, duration])
       );
 
       const originalExportFps = settings.fps;
@@ -1087,30 +1113,23 @@ export default function StageView() {
       const minimumFrames = Math.max(1, Math.min(2, fps));
       const maxFrames = Math.max(120, Math.ceil(fps * 300));
 
-      let encodePromise: Promise<void> = Promise.resolve();
-
       while (frameCounter < maxFrames) {
         if (abortRecordingRef.current || stopAndExportRef.current) break;
 
-        await paintVideoProxies(videoProxies);
-
+        paintVideoProxies(videoProxies);
         layer.draw();
 
         const bitmap = captureFrame();
         const samples = runtime.getAudioSamples(1 / fps, sampleRate);
 
-        await encodePromise;
-
         if (abortRecordingRef.current) { bitmap.close(); break; }
 
-        const audioPayload = samples ? [samples] : [];
         const transfers: Transferable[] = [bitmap];
         if (samples?.buffer) transfers.push(samples.buffer);
-
-        worker.postMessage({ type: "frame", payload: { bitmap, audio: audioPayload } }, transfers);
-        encodePromise = waitWorker();
+        worker.postMessage({ type: "frame", payload: { bitmap, audio: samples ?? null } }, transfers);
 
         frameCounter++;
+        setExportFrameCount(frameCounter);
 
         await runtime.step();
         for (const [id] of spriteNodeRefs.current.entries()) {
@@ -1132,8 +1151,6 @@ export default function StageView() {
         if (kickoffSettled && !runtime.hasLiveWaiters() && !hasActiveVideoPlayback() && frameCounter >= minimumFrames) break;
       }
 
-      await encodePromise;
-
       runtime.disableStepping();
       runtime.setFps(originalExportFps);
 
@@ -1149,11 +1166,9 @@ export default function StageView() {
       setIsEncoding(true);
       setExportProgress(100);
 
-      const buffer = await new Promise<ArrayBuffer>((resolve, reject) => {
-        doneResolver = resolve;
-        errorRejecter = reject;
-        worker.postMessage({ type: "finalize" });
-      });
+      const resultMsg = workerMessage<{ type: string; buffer: ArrayBuffer }>();
+      worker.postMessage({ type: "finalize" });
+      const { buffer } = await resultMsg;
       worker.terminate();
 
       const now = new Date();
@@ -1449,7 +1464,7 @@ export default function StageView() {
       if (!(node instanceof KonvaCore.Group)) continue;
       const mainText = node.findOne(".main-text") as Konva.Text | undefined;
       if (!mainText) continue;
-      
+
       const children = node.getChildren();
       for (let j = children.length - 1; j >= 0; j--) {
         const child = children[j];
@@ -1540,7 +1555,7 @@ export default function StageView() {
         const rotation = Number(spriteData.rotation ?? sprite.rotation);
         const opacity = Number(spriteData.opacity ?? sprite.opacity);
         const visible = Boolean(spriteData.visible ?? sprite.visible);
-        
+
         node.setAttrs({
           x: stageCoords.toCanvasX(x),
           y: stageCoords.toCanvasY(y),
@@ -1609,7 +1624,7 @@ export default function StageView() {
             }
           } else {
             if (mainText) mainText.setAttrs({ visible: false });
-            
+
             const children = group.getChildren();
             for (let j = 0; j < children.length; j++) {
               const child = children[j];
@@ -2189,9 +2204,9 @@ export default function StageView() {
       <div className="panel-header stage-panel-header">
         <div
           className="transport-controls"
-          style={{ 
-            background: "transparent", 
-            border: "none", 
+          style={{
+            background: "transparent",
+            border: "none",
             padding: 0,
             display: "flex",
             width: "fit-content"
@@ -2352,6 +2367,7 @@ export default function StageView() {
             resetRecordingState();
           }}
           isExporting={isRecording}
+          isPreparing={isPreparing}
           isEncoding={isEncoding}
           progress={exportProgress}
           frameCount={exportFrameCount}

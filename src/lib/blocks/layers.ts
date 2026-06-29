@@ -9,7 +9,7 @@ Blockly.Blocks["layers_sendToFront"] = {
     this.setNextStatement(true, null);
     this.setStyle("layers_blocks");
     this.setTooltip("Move the sprite to the front of the layer stack");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["layers_sendToFront"] = function () {
@@ -27,7 +27,7 @@ Blockly.Blocks["layers_sendToBack"] = {
     this.setNextStatement(true, null);
     this.setStyle("layers_blocks");
     this.setTooltip("Move the sprite to the back of the layer stack");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["layers_sendToBack"] = function () {
@@ -37,55 +37,36 @@ javascriptGenerator.forBlock["layers_sendToBack"] = function () {
 Blockly.Blocks["layers_sendForward"] = {
   init: function () {
     this.setMediaTypes("sprite", "video");
-    this.appendDummyInput().appendField("send forward");
+    this.appendValueInput("Z").setCheck("Number").appendField("send");
+    this.appendDummyInput().appendField("layers forward");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("layers_blocks");
-    this.setTooltip("Move the sprite one layer forward");
-  },
+    this.setTooltip("Move the sprite a specific amount of layers forward");
+  }
 };
 
-javascriptGenerator.forBlock["layers_sendForward"] = function () {
+javascriptGenerator.forBlock["layers_sendForward"] = function (block) {
+  const z = javascriptGenerator.valueToCode(block, "Z", Order.ATOMIC) || "0";
   return `(() => {
   const sprites = context.getSprites();
   const idx = sprites.findIndex(s => s.id === context.spriteId);
-  if (idx !== -1) context.dispatch({ type: 'REORDER_SPRITE', id: context.spriteId, newIndex: Math.min(idx + 1, sprites.length - 1) });
-})();\n`;
-};
-
-Blockly.Blocks["layers_sendBackward"] = {
-  init: function () {
-    this.setMediaTypes("sprite", "video");
-    this.appendDummyInput().appendField("send backward");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setStyle("layers_blocks");
-    this.setTooltip("Move the sprite one layer backward");
-  },
-};
-
-javascriptGenerator.forBlock["layers_sendBackward"] = function () {
-  return `(() => {
-  const sprites = context.getSprites();
-  const idx = sprites.findIndex(s => s.id === context.spriteId);
-  if (idx !== -1) context.dispatch({ type: 'REORDER_SPRITE', id: context.spriteId, newIndex: Math.max(idx - 1, 0) });
+  if (idx !== -1) context.dispatch({ type: 'REORDER_SPRITE', id: context.spriteId, newIndex: Math.min(idx + ${z}, sprites.length - 1) });
 })();\n`;
 };
 
 Blockly.Blocks["layers_setZIndex"] = {
   init: function () {
     this.setMediaTypes("sprite", "video");
-    this.appendValueInput("Z").setCheck("Number").appendField("set z index to");
+    this.appendValueInput("Z").setCheck("Number").appendField("go to layer");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("layers_blocks");
     this.setTooltip("Set the exact layer position (z index) of the sprite");
-  },
+  }
 };
 
-javascriptGenerator.forBlock["layers_setZIndex"] = function (
-  block: Blockly.Block,
-) {
+javascriptGenerator.forBlock["layers_setZIndex"] = function (block: Blockly.Block) {
   const z = javascriptGenerator.valueToCode(block, "Z", Order.ATOMIC) || "0";
   return `context.dispatch({ type: 'REORDER_SPRITE', id: context.spriteId, newIndex: Math.max(0, ${z}) });\n`;
 };
@@ -97,7 +78,7 @@ Blockly.Blocks["layers_getZIndex"] = {
     this.setOutput(true, "Number");
     this.setStyle("layers_blocks");
     this.setTooltip("Get the current layer position (z index) of the sprite");
-  },
+  }
 };
 
 javascriptGenerator.forBlock["layers_getZIndex"] = function () {

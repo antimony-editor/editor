@@ -14,7 +14,7 @@ Blockly.Blocks["on_start"] = {
 
 javascriptGenerator.forBlock["on_start"] = function (block: Blockly.Block) {
   const statements = javascriptGenerator.statementToCode(block, "DO");
-  return `(window.RUNTIME || {}).onStart(async function(context){\n${statements}\n});\n`;
+  return `(window.RUNTIME || {}).onStart(async function(context) {\n${statements}});\n`;
 };
 
 Blockly.Blocks["wait_seconds"] = {
