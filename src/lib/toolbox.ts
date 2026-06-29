@@ -50,7 +50,6 @@ export default function (mediaType: BlockSourceType) {
     ${block("logic_null")}
     ${sep(50)}
     ${block("controls_if")}
-    ${block("controls_ifelse")}
     ${block(
       "logic_ternary",
       value("IF", shadow("checkbox", field("BOOL", "FALSE"))),
@@ -174,9 +173,47 @@ export default function (mediaType: BlockSourceType) {
       value("KEY", shadow("text", field("TEXT", "key1")))
     )}
     ${block(
+      "dicts_set_value",
+      value("DICT", shadow("dicts_create_with", mutation("0"))),
+      value("KEY", shadow("text", field("TEXT", "key1"))),
+      value("VALUE", shadow("text", field("TEXT", "value1")))
+    )}
+    ${block(
+      "dicts_has_key",
+      value("DICT", shadow("dicts_create_with", mutation("0"))),
+      value("KEY", shadow("text", field("TEXT", "key1")))
+    )}
+    ${block(
       "dicts_delete_key",
       value("DICT", shadow("dicts_create_with", mutation("0"))),
       value("KEY", shadow("text", field("TEXT", "key1")))
+    )}
+    ${sep(50)}
+    ${block(
+      "dicts_length",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_isEmpty",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_get_keys",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_get_values",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_clear",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${sep(50)}
+    ${block(
+      "dicts_merge",
+      value("DICT1", shadow("dicts_create_with", mutation("0"))),
+      value("DICT2", shadow("dicts_create_with", mutation("0")))
     )}
   </category>
   <category name="Motion" categorystyle="motion_blocks">
