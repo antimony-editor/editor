@@ -316,7 +316,7 @@ export function buildToolboxForSource(sourceType: BlockSourceType): Element {
 }
 
 export const workspaceConfig: Blockly.BlocklyOptions = {
-  renderer: "modified_zelos",
+  renderer: "tuffos",
   theme: buildBlocklyTheme(DARK_THEME),
   toolbox: buildToolboxForSource("all"),
   trashcan: true,

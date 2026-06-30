@@ -42,6 +42,32 @@ import { subscribeExtensionChanges } from "../lib/extensions/manager";
 import { useSprites } from "../lib/sprites";
 import { Plus } from "lucide-react";
 
+function darkenColor(hex: string, percent: number): string {
+  const cleanHex = hex.replace(/^\s*#|\s*$/g, "");
+  let r = 0, g = 0, b = 0;
+  if (cleanHex.length === 3) {
+    r = parseInt(cleanHex[0] + cleanHex[0], 16);
+    g = parseInt(cleanHex[1] + cleanHex[1], 16);
+    b = parseInt(cleanHex[2] + cleanHex[2], 16);
+  } else if (cleanHex.length === 6) {
+    r = parseInt(cleanHex.substring(0, 2), 16);
+    g = parseInt(cleanHex.substring(2, 4), 16);
+    b = parseInt(cleanHex.substring(4, 6), 16);
+  } else {
+    return hex;
+  }
+
+  r = Math.max(0, Math.floor(r * (1 - percent)));
+  g = Math.max(0, Math.floor(g * (1 - percent)));
+  b = Math.max(0, Math.floor(b * (1 - percent)));
+
+  const rHex = r.toString(16).padStart(2, "0");
+  const gHex = g.toString(16).padStart(2, "0");
+  const bHex = b.toString(16).padStart(2, "0");
+
+  return `#${rHex}${gHex}${bHex}`;
+}
+
 function syncShadowColours(
   workspace: Blockly.WorkspaceSvg | Blockly.Workspace,
 ) {
@@ -49,7 +75,7 @@ function syncShadowColours(
     if (!block.isShadow()) continue;
     const parent = block.getParent();
     if (!parent) continue;
-    block.setColour(parent.getColour());
+    block.setColour(darkenColor(parent.getColour(), 0.15));
   }
 }
 
@@ -384,9 +410,9 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
             flexDirection: "column",
           }}
           onClick={() => showMenu(true)}>
-            <Plus style={{ width: "35px", height: "35px" }} />
-            <div>Add an extension</div>
-          </div>
+          <Plus style={{ width: "35px", height: "35px" }} />
+          <div>Add an extension</div>
+        </div>
       )}
     </div>
   );
