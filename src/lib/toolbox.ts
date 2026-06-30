@@ -50,7 +50,6 @@ export default function (mediaType: BlockSourceType) {
     ${block("logic_null")}
     ${sep(50)}
     ${block("controls_if")}
-    ${block("controls_ifelse")}
     ${block(
       "logic_ternary",
       value("IF", shadow("checkbox", field("BOOL", "FALSE"))),
@@ -72,7 +71,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("controls_forever")}
     ${block(
       "controls_forLoop",
-      value("VAR", block("controls_forLoop_var")),
+      value("VAR", shadow("controls_forLoop_var")),
       value("START", shadow("math_number", field("NUM", 1))),
       value("END", shadow("math_number", field("NUM", 10)))
     )}
@@ -174,9 +173,47 @@ export default function (mediaType: BlockSourceType) {
       value("KEY", shadow("text", field("TEXT", "key1")))
     )}
     ${block(
+      "dicts_set_value",
+      value("DICT", shadow("dicts_create_with", mutation("0"))),
+      value("KEY", shadow("text", field("TEXT", "key1"))),
+      value("VALUE", shadow("text", field("TEXT", "value1")))
+    )}
+    ${block(
+      "dicts_has_key",
+      value("DICT", shadow("dicts_create_with", mutation("0"))),
+      value("KEY", shadow("text", field("TEXT", "key1")))
+    )}
+    ${block(
       "dicts_delete_key",
       value("DICT", shadow("dicts_create_with", mutation("0"))),
       value("KEY", shadow("text", field("TEXT", "key1")))
+    )}
+    ${sep(50)}
+    ${block(
+      "dicts_length",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_isEmpty",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_get_keys",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_get_values",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${block(
+      "dicts_clear",
+      value("DICT", shadow("dicts_create_with", mutation("0")))
+    )}
+    ${sep(50)}
+    ${block(
+      "dicts_merge",
+      value("DICT1", shadow("dicts_create_with", mutation("0"))),
+      value("DICT2", shadow("dicts_create_with", mutation("0")))
     )}
   </category>
   <category name="Motion" categorystyle="motion_blocks">
@@ -227,7 +264,7 @@ export default function (mediaType: BlockSourceType) {
     )}
     ${block(
       "motion_forEachCharacter",
-      value("VAR", block("motion_forEachCharacter_var"))
+      value("VAR", shadow("motion_forEachCharacter_var"))
     )}
   </category>
   <category name="Appearance" categorystyle="appearance_blocks">
@@ -384,7 +421,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("variables_set", value("VALUE", shadow("text", field("TEXT", ""))))}
   </category>
   <category name="Functions" categorystyle="procedure_blocks">
-    ${block("functions_lambda", value("ARG", block("functions_argument")))}
+    ${block("functions_lambda", value("ARG", shadow("functions_argument")))}
     ${block("functions_return", value("VALUE", shadow("math_number", field("NUM", 1))))}
     ${block("functions_execute", value("FUNC"), value("ARG", textShadow("foo")))}
   </category>

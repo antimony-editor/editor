@@ -1,24 +1,19 @@
 import * as Blockly from "blockly/core";
 import { javascriptGenerator, Order } from "blockly/javascript";
 
-const forLoopVarBlock = {
-  init: function (this: Blockly.Block) {
+Blockly.Blocks["controls_forLoop_var"] = {
+  init: function () {
     this.appendDummyInput().appendField("i");
     this.setOutput(true, "Number");
     this.setStyle("loop_blocks");
     this.setTooltip("The current value of i in the for loop.");
-  },
+    this.duplicateOnDrag = true;
+  }
 };
-
-Blockly.Blocks["controls_forLoop_var"] = forLoopVarBlock;
-Blockly.Blocks["loops_i"] = forLoopVarBlock;
 
 javascriptGenerator.forBlock["controls_forLoop_var"] = function () {
   return ["i", Order.ATOMIC];
 };
-
-javascriptGenerator.forBlock["loops_i"] =
-  javascriptGenerator.forBlock["controls_forLoop_var"];
 
 Blockly.Blocks["controls_forLoop"] = {
   init() {
@@ -30,10 +25,8 @@ Blockly.Blocks["controls_forLoop"] = {
     this.setPreviousStatement(true, "default");
     this.setNextStatement(true, "default");
     this.setStyle("loop_blocks");
-    this.setTooltip(
-      "Runs the code for each value of i from start to end (inclusive).",
-    );
-  },
+    this.setTooltip("Runs the code for each value of i from start to end (inclusive).");
+  }
 };
 
 Blockly.Blocks["controls_forever"] = {
@@ -44,15 +37,13 @@ Blockly.Blocks["controls_forever"] = {
     this.setNextStatement(false);
     this.setStyle("loop_blocks");
     this.setTooltip("Loops forever.");
-  },
+  }
 };
 
-javascriptGenerator.forBlock["controls_forever"] = function (
-  block: Blockly.Block,
-) {
+javascriptGenerator.forBlock["controls_forever"] = function (block: Blockly.Block) {
   const body = javascriptGenerator.statementToCode(block, "DO");
   return `
-        await (async () => { while (true) { 
+        await (async () => { while (true) {
             if (window.RUNTIME.isStopped()) break;
             ${body}
             await window.RUNTIME.delay(1);
@@ -60,13 +51,9 @@ javascriptGenerator.forBlock["controls_forever"] = function (
     `; // it blows up without the delay haha
 };
 
-javascriptGenerator.forBlock["controls_forLoop"] = function (
-  block: Blockly.Block,
-) {
-  const variableName =
-    javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
-  const start =
-    javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
+javascriptGenerator.forBlock["controls_forLoop"] = function (block: Blockly.Block) {
+  const variableName = javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
+  const start = javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
   const end = javascriptGenerator.valueToCode(block, "END", Order.NONE) || "0";
   const body = javascriptGenerator.statementToCode(block, "DO");
 

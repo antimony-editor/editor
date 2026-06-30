@@ -37,7 +37,7 @@ import {
   MOTION_CATEGORY_NAME,
   updateMotionGoToFlyoutDefaults,
 } from "../lib/flyoutDefaults";
-import { ensureDefaultInputBlocks } from "../lib/blocks/defaultInputBlocks";
+import "../lib/blocks/duplicateOnDrag";
 import { subscribeExtensionChanges } from "../lib/extensions/manager";
 import { useSprites } from "../lib/sprites";
 import { Plus } from "lucide-react";
@@ -218,23 +218,6 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
     loadedSpriteIdRef.current = selectedSpriteId;
 
     const handleWorkspaceChange = (e: Blockly.Events.Abstract) => {
-      ensureDefaultInputBlocks(workspace, [
-        {
-          blockType: "controls_forLoop",
-          inputName: "VAR",
-          defaultBlockType: "controls_forLoop_var",
-        },
-        {
-          blockType: "motion_forEachCharacter",
-          inputName: "VAR",
-          defaultBlockType: "motion_forEachCharacter_var",
-        },
-        {
-          blockType: "functions_lambda",
-          inputName: "ARG",
-          defaultBlockType: "functions_argument",
-        },
-      ]);
       syncShadowColours(workspace);
       const fw = getFlyoutWorkspace(workspace);
       if (fw) syncShadowColours(fw);

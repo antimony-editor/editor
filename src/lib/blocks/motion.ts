@@ -338,6 +338,7 @@ Blockly.Blocks["motion_forEachCharacter_var"] = {
     this.appendDummyInput().appendField("char num");
     this.setOutput(true, "Number");
     this.setStyle("motion_blocks");
+    this.duplicateOnDrag = true;
   },
 };
 
