@@ -246,9 +246,35 @@ input[type="color"] {
   align-items: center;
 }
 
+button {
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: var(--space-xs);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.12s,
+    color 0.12s,
+    scale 0.12s;
+  border-radius: var(--radius-sm);
+}
+
+button:hover {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+button:active {
+  scale: 0.97;
+}
+
 .transport-btn {
   width: 2.2rem;
   height: 2.2rem;
+  padding: 0;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -1341,6 +1367,7 @@ input[type="color"] {
 }
 
 .file-tab-btn:hover {
+  background: none;
   color: var(--text-secondary);
 }
 
@@ -2612,11 +2639,7 @@ dialog::backdrop {
   width: 22px;
   height: 22px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(
-    135deg,
-    var(--accent) 0%,
-    var(--accent-hover) 100%
-  );
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   box-shadow: 0 0 10px var(--accent-glow);
   flex-shrink: 0;
   position: relative;
@@ -2661,8 +2684,13 @@ dialog::backdrop {
 }
 
 @keyframes char-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .welcome-modal-content {

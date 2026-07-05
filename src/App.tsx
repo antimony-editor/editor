@@ -41,10 +41,11 @@ import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
 import TabSection from "./components/TabSection";
 import ExtensionMenu from "./components/ExtensionMenu";
+import DevToolsModal from "./components/DevToolsModal";
 hljs.registerLanguage("javascript", javascript);
 
 const MODAL_EXIT_MS = 120;
-type ModalKey = "js" | "credits" | "settings" | "browserCompat" | "welcome";
+type ModalKey = "js" | "credits" | "settings" | "browserCompat" | "welcome" | "devTools";
 
 export default function App() {
   const [state, dispatch] = useReducer(spriteReducer, initialSpriteState);
@@ -60,13 +61,15 @@ export default function App() {
     shouldShowBrowserCompatWarning
   );
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showDevTools, setShowDevTools] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [closingModals, setClosingModals] = useState<Record<ModalKey, boolean>>({
     js: false,
     credits: false,
     settings: false,
     browserCompat: false,
-    welcome: false
+    welcome: false,
+    devTools: false
   });
   const [theme, setTheme] = useState<ThemeConfig>(loadTheme);
   const handleThemeChange = useCallback((t: ThemeConfig) => {
@@ -269,6 +272,7 @@ export default function App() {
               onLoad={handleLoad}
               onOpenCredits={() => openModal("credits", setShowCredits)}
               onOpenSettings={() => openModal("settings", setShowSettings)}
+              onOpenDevTools={() => openModal("devTools", setShowDevTools)}
             />
             <TabSection showMenu={setShowExtMenu} />
             <div className="right-column">
@@ -354,8 +358,13 @@ export default function App() {
             </div>
           )}
 
-          {showExtMenu && (
-            <ExtensionMenu showMenu={setShowExtMenu} />
+          {showExtMenu && <ExtensionMenu showMenu={setShowExtMenu} />}
+
+          {showDevTools && (
+            <DevToolsModal
+              isClosing={closingModals.devTools}
+              onClose={() => closeModal("devTools", setShowDevTools)}
+            />
           )}
         </ProjectSettingsContext.Provider>
       </SpriteContext.Provider>

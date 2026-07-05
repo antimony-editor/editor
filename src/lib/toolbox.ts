@@ -17,8 +17,14 @@ export default function (mediaType: BlockSourceType) {
     return `<shadow type="${type}">${inner}</shadow>`;
   }
 
-  function textShadow(defaultValue: string): string {
+  function textShadow(defaultValue?: unknown): string {
+    defaultValue = String(defaultValue ?? "");
     return `<shadow type="text"><field name="TEXT">${defaultValue}</field></shadow>`;
+  }
+
+  function numberShadow(defaultValue?: unknown): string {
+    defaultValue = String(defaultValue ?? "");
+    return `<shadow type="math_number"><field name="NUM">${defaultValue}</field></shadow>`;
   }
 
   function field(name: string, value: string | number): string {
@@ -124,7 +130,7 @@ export default function (mediaType: BlockSourceType) {
   </category>
   <category name="Text" categorystyle="text_blocks">
     ${block("text_setText", value("TEXT", shadow("text", field("TEXT", "Hello!"))))}
-    ${block("text_join")}
+    ${block("text_create_with")}
     ${block("text_append", value("TEXT", textShadow("")))}
     ${block("text_changeCase", value("TEXT", textShadow("")))}
     ${block("text_trim", value("TEXT", textShadow("")))}
@@ -153,7 +159,7 @@ export default function (mediaType: BlockSourceType) {
   </category>
   <category name="Lists" categorystyle="list_blocks">
     ${block("lists_create_with")}
-    ${block("lists_repeat", value("NUM", shadow("math_number", field("NUM", 5))))}
+    ${block("lists_repeat", value("ITEM", textShadow()), value("NUM", numberShadow(3)))}
     ${sep(50)}
     ${block("lists_split")}
     ${block("lists_length")}
@@ -165,56 +171,24 @@ export default function (mediaType: BlockSourceType) {
     ${block("lists_sort")}
   </category>
   <category name="Dictionaries" categorystyle="dict_blocks">
-    ${block("dicts_create_with")}
+    ${block("dicts_create_with", mutation("1"))}
     ${sep(50)}
-    ${block(
-      "dicts_get_value",
-      value("DICT", shadow("dicts_create_with", mutation("0"))),
-      value("KEY", shadow("text", field("TEXT", "key1")))
-    )}
+    ${block("dicts_get_value", value("KEY", shadow("text", field("TEXT", "key1"))))}
     ${block(
       "dicts_set_value",
-      value("DICT", shadow("dicts_create_with", mutation("0"))),
       value("KEY", shadow("text", field("TEXT", "key1"))),
       value("VALUE", shadow("text", field("TEXT", "value1")))
     )}
-    ${block(
-      "dicts_has_key",
-      value("DICT", shadow("dicts_create_with", mutation("0"))),
-      value("KEY", shadow("text", field("TEXT", "key1")))
-    )}
-    ${block(
-      "dicts_delete_key",
-      value("DICT", shadow("dicts_create_with", mutation("0"))),
-      value("KEY", shadow("text", field("TEXT", "key1")))
-    )}
+    ${block("dicts_has_key", value("KEY", shadow("text", field("TEXT", "key1"))))}
+    ${block("dicts_delete_key", value("KEY", shadow("text", field("TEXT", "key1"))))}
     ${sep(50)}
-    ${block(
-      "dicts_length",
-      value("DICT", shadow("dicts_create_with", mutation("0")))
-    )}
-    ${block(
-      "dicts_isEmpty",
-      value("DICT", shadow("dicts_create_with", mutation("0")))
-    )}
-    ${block(
-      "dicts_get_keys",
-      value("DICT", shadow("dicts_create_with", mutation("0")))
-    )}
-    ${block(
-      "dicts_get_values",
-      value("DICT", shadow("dicts_create_with", mutation("0")))
-    )}
-    ${block(
-      "dicts_clear",
-      value("DICT", shadow("dicts_create_with", mutation("0")))
-    )}
+    ${block("dicts_length")}
+    ${block("dicts_isEmpty")}
+    ${block("dicts_get_keys")}
+    ${block("dicts_get_values")}
+    ${block("dicts_clear")}
     ${sep(50)}
-    ${block(
-      "dicts_merge",
-      value("DICT1", shadow("dicts_create_with", mutation("0"))),
-      value("DICT2", shadow("dicts_create_with", mutation("0")))
-    )}
+    ${block("dicts_merge")}
   </category>
   <category name="Motion" categorystyle="motion_blocks">
     ${block(
