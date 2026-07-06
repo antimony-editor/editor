@@ -51,6 +51,7 @@
     "react-contexify": "^6.0.0",
     "react-dom": "^19.1.0",
     "react-konva": "^19.2.4",
+    "react-resizable-panels": "^2.1.6",
     "react-tabs": "^6.1.1"
   }
 }

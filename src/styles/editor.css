@@ -42,7 +42,7 @@
 
   --header-h: 46px;
   --panel-header-h: 32px;
-  --right-panel-w: 420px;
+
   --track-label-w: 140px;
   --track-h: 40px;
   --ruler-h: 26px;
@@ -111,18 +111,23 @@ input[type="color"] {
 
 .editor-shell {
   display: grid;
-  grid-template-columns: 1fr var(--right-panel-w);
+  grid-template-columns: 1fr;
   grid-template-rows: var(--header-h) 1fr;
   grid-template-areas:
-    "header header"
-    "blockly right-col";
+    "header"
+    "content";
   width: 100%;
   height: 100%;
   overflow: hidden;
 }
 
+.content-area {
+  grid-area: content;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .right-column {
-  grid-area: right-col;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -136,8 +141,8 @@ input[type="color"] {
 
 .right-column .stage-area {
   flex: 0 0 auto;
-  aspect-ratio: 4 / 3;
   width: 100%;
+  height: 100%
 }
 
 .stage-area {

@@ -2152,7 +2152,6 @@ export default function StageView() {
       scaleY={scale}
       onClick={handleStageClick}
       style={{
-        borderRadius: "4px",
         overflow: "hidden",
         filter: stageFilter || undefined,
         opacity: stageOpacity,

@@ -42,6 +42,7 @@ import javascript from "highlight.js/lib/languages/javascript";
 import TabSection from "./components/TabSection";
 import ExtensionMenu from "./components/ExtensionMenu";
 import DevToolsModal from "./components/DevToolsModal";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 hljs.registerLanguage("javascript", javascript);
 
 const MODAL_EXIT_MS = 120;
@@ -274,23 +275,28 @@ export default function App() {
               onOpenSettings={() => openModal("settings", setShowSettings)}
               onOpenDevTools={() => openModal("devTools", setShowDevTools)}
             />
-            <TabSection showMenu={setShowExtMenu} />
-            <div className="right-column">
-              <StageView />
-              <div
-                className="panel"
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: "auto"
-                }}
-              >
-                <PropertiesPanel />
-                <SpritePanel />
-              </div>
-            </div>
+            <PanelGroup direction="horizontal" className="content-area">
+              <Panel defaultSize={70} minSize={30}>
+                <TabSection showMenu={setShowExtMenu} />
+              </Panel>
+
+              <PanelResizeHandle className="resize-handle" />
+
+              <Panel defaultSize={30} minSize={20}>
+                <PanelGroup direction="vertical" className="right-column">
+                  <Panel defaultSize={55} minSize={15}>
+                    <StageView />
+                  </Panel>
+                  <PanelResizeHandle className="resize-handle" />
+                  <Panel defaultSize={45} minSize={15}>
+                    <div className="panel" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                      <PropertiesPanel />
+                      <SpritePanel />
+                    </div>
+                  </Panel>
+                </PanelGroup>
+              </Panel>
+            </PanelGroup>
           </div>
 
           {showBrowserCompat && (
