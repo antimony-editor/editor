@@ -276,7 +276,7 @@ export default function App() {
               onOpenSettings={() => openModal("settings", setShowSettings)}
               onOpenDevTools={() => openModal("devTools", setShowDevTools)}
             />
-            <PanelGroup direction="horizontal" className="content-area">
+            <PanelGroup direction="horizontal" className="content-area" autoSaveId="content-area">
               <Panel defaultSize={70} minSize={30}>
                 <TabSection showMenu={setShowExtMenu} />
               </Panel>
@@ -284,7 +284,7 @@ export default function App() {
               <PanelResizeHandle className="resize-handle" />
 
               <Panel defaultSize={30} minSize={20}>
-                <PanelGroup direction="vertical" className="right-column">
+                <PanelGroup direction="vertical" className="right-column" autoSaveId="right-column">
                   <Panel defaultSize={25} minSize={15}>
                     <StageView />
                   </Panel>
