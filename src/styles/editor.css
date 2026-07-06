@@ -2546,6 +2546,14 @@ dialog::backdrop {
   gap: var(--space-sm);
 }
 
+.welcome-presets-grid-scrollable {
+  display: flex;
+  flex-direction:row;
+  gap: var(--space-sm);
+  overflow:scroll;
+  padding: var(--space-sm) 0;
+}
+
 .welcome-name-input {
   width: 100%;
   background: var(--bg-tertiary);
@@ -2607,4 +2615,68 @@ dialog::backdrop {
   border-color: var(--border-strong);
   color: var(--text-primary);
   background: var(--bg-tertiary);
+}
+
+.resolution-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+  height: 150px;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  box-sizing: border-box;
+  text-align: center;
+  flex-direction:column;
+}
+
+.resolution-item:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--bg-surface);
+}
+
+.resolution-item.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.resolution-item p {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.resolution-input input {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: var(--bg-secondary);
+  border: none;
+  max-width: 50px;
+  border-radius: var(--radius-sm);
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.resolution-input input::-webkit-outer-spin-button,
+.resolution-input input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.resolution-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }

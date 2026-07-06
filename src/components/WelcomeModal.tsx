@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ProjectSettings, RESOLUTION_PRESETS } from "../lib/settings";
+import { Resolution, ResolutionEdit } from "./Resolution";
 
 interface WelcomeModalProps {
   isClosing?: boolean;
@@ -162,22 +163,26 @@ export default function WelcomeModal({
 
           <div className="welcome-settings-section">
             <label>Resolution</label>
-            <div className="welcome-presets-grid">
+            <div className="welcome-presets-grid-scrollable">
               {RESOLUTION_PRESETS.map((preset) => (
-                <button
-                  key={preset.label}
-                  className={`welcome-preset-btn ${
-                    settings.width === preset.width && settings.height === preset.height
-                      ? "active"
-                      : ""
-                  }`}
-                  onClick={() =>
+                <Resolution
+                  width={preset.width}
+                  height={preset.height}
+                  label={preset.label}
+                  callback={() => {
                     setSettings({ ...settings, width: preset.width, height: preset.height })
-                  }
-                >
-                  {preset.label}
-                </button>
+                  }}
+                  selected={settings.width === preset.width && settings.height === preset.height}
+                />
               ))}
+              <ResolutionEdit
+                width={settings.width}
+                height={settings.height}
+                callback={(w, h) => {
+                  setSettings({ ...settings, width: w, height: h })
+                }}
+                selected={!RESOLUTION_PRESETS.some(p => p.width === settings.width && p.height === settings.height)}
+              />
             </div>
           </div>
 

@@ -20,6 +20,7 @@ import {
   parseThemeFile,
   type ThemeColorKey
 } from "../lib/themes";
+import { Resolution, ResolutionEdit} from "./Resolution";
 
 interface SettingsModalProps {
   settings: ProjectSettings;
@@ -89,54 +90,27 @@ export default function SettingsModal({
               <span>Resolution</span>
             </div>
             <div className="settings-row">
-              <span className="settings-label">Preset</span>
-              <select
-                className="settings-select"
-                value={presetValue}
-                onChange={e => {
-                  const value = e.target.value;
-                  if (value === "custom") return;
-                  const [width, height] = value.split("x").map(Number);
-                  update({ width, height });
-                }}
-              >
-                {RESOLUTION_PRESETS.map(preset => (
-                  <option key={preset.label} value={`${preset.width}x${preset.height}`}>
-                    {preset.label}
-                  </option>
+              <div className="welcome-presets-grid-scrollable">
+                {RESOLUTION_PRESETS.map((preset) => (
+                  <Resolution
+                    width={preset.width}
+                    height={preset.height}
+                    label={preset.label}
+                    callback={() => {
+                      update({ width: preset.width, height: preset.height })
+                    }}
+                    selected={settings.width === preset.width && settings.height === preset.height}
+                  />
                 ))}
-                <option value="custom">Custom</option>
-              </select>
-            </div>
-            <div className="settings-row">
-              <span className="settings-label">Width</span>
-              <input
-                className="settings-input"
-                type="number"
-                min={64}
-                max={3840}
-                value={settings.width}
-                onChange={e =>
-                  update({
-                    width: parseInt(e.target.value, 10) || settings.width
-                  })
-                }
-              />
-            </div>
-            <div className="settings-row">
-              <span className="settings-label">Height</span>
-              <input
-                className="settings-input"
-                type="number"
-                min={64}
-                max={2160}
-                value={settings.height}
-                onChange={e =>
-                  update({
-                    height: parseInt(e.target.value, 10) || settings.height
-                  })
-                }
-              />
+                <ResolutionEdit
+                  width={settings.width}
+                  height={settings.height}
+                  callback={(w, h) => {
+                    update({ width: w, height: h })
+                  }}
+                  selected={!RESOLUTION_PRESETS.some(p => p.width === settings.width && p.height === settings.height)}
+                />
+              </div>
             </div>
           </section>
 

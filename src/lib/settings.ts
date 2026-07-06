@@ -12,8 +12,8 @@ export interface ProjectSettings {
 }
 
 export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
-  width: 1280,
-  height: 720,
+  width: 1920,
+  height: 1080,
   fps: 60,
   backgroundColor: "#1a1a1a",
   showGrid: true,
@@ -23,11 +23,12 @@ export const DEFAULT_PROJECT_SETTINGS: ProjectSettings = {
 };
 
 export const RESOLUTION_PRESETS = [
-  { label: "480 × 270", width: 480, height: 270 },
-  { label: "640 × 360", width: 640, height: 360 },
-  { label: "854 × 480", width: 854, height: 480 },
-  { label: "1280 × 720", width: 1280, height: 720 },
-  { label: "1920 × 1080", width: 1920, height: 1080 }
+  { label: "1080p Widescreen", width: 1920, height: 1080 },
+  { label: "1080p Portrait", width: 1080, height: 1920 },
+  { label: "1080p Square", width: 1080, height: 1080 },
+  { label: "720p Widescreen", width: 1280, height: 720 },
+  { label: "720p Portrait", width: 720, height: 1280 },
+  { label: "720p Square", width: 720, height: 720 }
 ] as const;
 
 export function normalizeProjectSettings(
