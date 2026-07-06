@@ -9,7 +9,7 @@ import {
 import HeaderBar from "./components/HeaderBar";
 import SpritePanel from "./components/SpritePanel";
 import StageView from "./components/StageView";
-import PropertiesPanel from "./components/PropertiesPanel";
+import PropertiesPanel from "./components/PropertiesPanel/PropertiesPanel";
 import BrowserCompatibilityModal from "./components/BrowserCompatibilityModal";
 import WelcomeModal from "./components/WelcomeModal";
 import CreditsModal from "./components/CreditsModal";

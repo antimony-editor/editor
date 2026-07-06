@@ -7,7 +7,7 @@ import {
   generateMediaSoundId,
   type TextSpriteData,
   type MediaSpriteData
-} from "../lib/sprites";
+} from "../../lib/sprites";
 import { useEffect, useRef, useState } from "react";
 import {
   getAvailableFonts,
@@ -19,7 +19,8 @@ import {
   detectAvailableFonts,
   requestFontAccess,
   getFontPermissionState
-} from "../lib/fonts";
+} from "../../lib/fonts";
+import CollapsableSection from "./CollapsableSection";
 
 export default function PropertiesPanel() {
   const { state, dispatch } = useSprites();
@@ -153,8 +154,7 @@ export default function PropertiesPanel() {
   return (
     <div className="properties-panel">
       <div className="panel-body">
-        <div className="properties-section">
-          <div className="properties-section-title">Source</div>
+        <CollapsableSection title="Source">
           <div className="properties-row">
             <span className="properties-label">Name</span>
             <input
@@ -169,19 +169,17 @@ export default function PropertiesPanel() {
               }}
             />
           </div>
-        </div>
+        </CollapsableSection>
 
-        <div className="properties-section">
-          <div className="properties-section-title">Transform</div>
+        <CollapsableSection title="Transform">
           {numField("X", sprite.x, "x")}
           {numField("Y", sprite.y, "y")}
           {numField("Width", sprite.width, "width")}
           {numField("Height", sprite.height, "height")}
           {numField("Rotation", sprite.rotation, "rotation")}
-        </div>
+        </CollapsableSection>
 
-        <div className="properties-section">
-          <div className="properties-section-title">Appearance</div>
+        <CollapsableSection title="Appearance">
           <div className="properties-row">
             <span className="properties-label">Opacity</span>
             <input
@@ -218,14 +216,13 @@ export default function PropertiesPanel() {
               onClick={() => update({ locked: !sprite.locked })}
             />
           </div>
-        </div>
+        </CollapsableSection>
 
         {isTextData(sprite.data) &&
           (() => {
             const d = sprite.data as TextSpriteData;
             return (
-              <div className="properties-section">
-                <div className="properties-section-title">Text</div>
+              <CollapsableSection title="Text">
                 <div className="properties-row">
                   <textarea
                     className="properties-textarea"
@@ -316,7 +313,7 @@ export default function PropertiesPanel() {
                     <option value="right">Right</option>
                   </select>
                 </div>
-              </div>
+              </CollapsableSection>
             );
           })()}
       </div>
