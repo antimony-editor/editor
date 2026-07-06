@@ -36,6 +36,7 @@ import {
 } from "./lib/themes";
 import "./styles/editor.css";
 import "./styles/asset-tab.css";
+import "./styles/properties-panel.css";
 
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
@@ -284,15 +285,13 @@ export default function App() {
 
               <Panel defaultSize={30} minSize={20}>
                 <PanelGroup direction="vertical" className="right-column">
-                  <Panel defaultSize={55} minSize={15}>
+                  <Panel defaultSize={25} minSize={15}>
                     <StageView />
                   </Panel>
                   <PanelResizeHandle className="resize-handle" />
-                  <Panel defaultSize={45} minSize={15}>
-                    <div className="panel" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                      <PropertiesPanel />
-                      <SpritePanel />
-                    </div>
+                  <Panel defaultSize={55} minSize={15} style={{ overflowY: "auto" }}>
+                    <PropertiesPanel />
+                    <SpritePanel />
                   </Panel>
                 </PanelGroup>
               </Panel>
