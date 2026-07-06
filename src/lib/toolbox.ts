@@ -129,13 +129,13 @@ export default function (mediaType: BlockSourceType) {
     ${block("math_on_list")}
   </category>
   <category name="Text" categorystyle="text_blocks">
-    ${block("text_setText", value("TEXT", shadow("text", field("TEXT", "Hello!"))))}
+    ${block("text_setText", value("TEXT", textShadow("Hello!")))}
     ${block("text_create_with")}
     ${block("text_append", value("TEXT", textShadow("")))}
     ${block("text_changeCase", value("TEXT", textShadow("")))}
     ${block("text_trim", value("TEXT", textShadow("")))}
     ${sep(50)}
-    ${block("text_length", value("VALUE", shadow("text", field("TEXT", "abc"))))}
+    ${block("text_length", value("VALUE", textShadow("abc")))}
     ${block("text_isEmpty", value("VALUE", textShadow("")))}
     ${block(
       "text_indexOf",
@@ -154,7 +154,7 @@ export default function (mediaType: BlockSourceType) {
       value("AT2", shadow("math_number", field("NUM", 0)))
     )}
     ${sep(50)}
-    ${block("text_print", value("TEXT", shadow("text", field("TEXT", "abc"))))}
+    ${block("text_print", value("TEXT", textShadow("abc")))}
     ${block("text_prompt_ext", value("TEXT", textShadow("")))}
   </category>
   <category name="Lists" categorystyle="list_blocks">
@@ -173,14 +173,14 @@ export default function (mediaType: BlockSourceType) {
   <category name="Dictionaries" categorystyle="dict_blocks">
     ${block("dicts_create_with", mutation("1"))}
     ${sep(50)}
-    ${block("dicts_get_value", value("KEY", shadow("text", field("TEXT", "key1"))))}
+    ${block("dicts_get_value", value("KEY", textShadow("key1")))}
     ${block(
       "dicts_set_value",
-      value("KEY", shadow("text", field("TEXT", "key1"))),
-      value("VALUE", shadow("text", field("TEXT", "value1")))
+      value("KEY", textShadow("key1")),
+      value("VALUE", textShadow("value1"))
     )}
-    ${block("dicts_has_key", value("KEY", shadow("text", field("TEXT", "key1"))))}
-    ${block("dicts_delete_key", value("KEY", shadow("text", field("TEXT", "key1"))))}
+    ${block("dicts_has_key", value("KEY", textShadow("key1")))}
+    ${block("dicts_delete_key", value("KEY", textShadow("key1")))}
     ${sep(50)}
     ${block("dicts_length")}
     ${block("dicts_isEmpty")}
@@ -311,24 +311,15 @@ export default function (mediaType: BlockSourceType) {
     ${block("sensors_mouseY")}
     ${block("sensors_mouseDown")}
     ${block("sensors_keyPressed_preset")}
-    ${block(
-      "sensors_keyPressed_custom",
-      value("KEY", shadow("text", field("TEXT", "a")))
-    )}
+    ${block("sensors_keyPressed_custom", value("KEY", textShadow("a")))}
     ${sep(50)}
     ${block("sensors_resetTimer")}
     ${block("sensors_getTimer")}
     ${sep(50)}
     ${block("sensors_distanceToMouse")}
-    ${block(
-      "sensors_distanceToSprite",
-      value("NAME", shadow("text", field("TEXT", "Sprite 1")))
-    )}
+    ${block("sensors_distanceToSprite", value("NAME", textShadow("Sprite 1")))}
     ${block("sensors_touchingMouse")}
-    ${block(
-      "sensors_touchingSprite",
-      value("NAME", shadow("text", field("TEXT", "Sprite 1")))
-    )}
+    ${block("sensors_touchingSprite", value("NAME", textShadow("Sprite 1")))}
     ${block("sensors_touchingEdge")}
     ${sep(50)}
     ${block("sensors_stageWidth")}
@@ -392,7 +383,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("video_nextVideo")}
   </category>
   <category name="Variables" categorystyle="variable_blocks" custom="VARIABLE">
-    ${block("variables_set", value("VALUE", shadow("text", field("TEXT", ""))))}
+    ${block("variables_set", value("VALUE", textShadow()))}
   </category>
   <category name="Functions" categorystyle="procedure_blocks">
     ${block("functions_lambda", value("ARG", shadow("functions_argument")))}
