@@ -19,8 +19,7 @@ const blockColors = {
   timing_blocks: "#FFBF00",
   effects_blocks: "#FFAB19",
   layers_blocks: "#4CBFE6",
-  audio_blocks: "#D65CD6",
-  sensors_blocks: "#FF6680"
+  audio_blocks: "#D65CD6"
 };
 
 function mapValues<K extends string, V, R>(

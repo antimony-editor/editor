@@ -183,6 +183,7 @@ class Runtime {
   private inputTargetEl: HTMLElement | null = null;
   private inputListenersAttached = false;
   private timerStart = 0;
+  private startTime = 0;
 
   public getCamera(id: string) {
     return this.cameras.get(id) || { x: 0, y: 0, zoom: 1, rotation: 0 };
@@ -748,7 +749,7 @@ class Runtime {
   }
 
   getCurrentTime(): number {
-    return this.now() / 1000;
+    return (this.now() - this.startTime) / 1000;
   }
 
   enableStepping() {
@@ -1624,6 +1625,7 @@ class Runtime {
     this.stopped = false;
     this.paused = false;
     this.lastFrameTime = performance.now();
+    this.startTime = this.now();
     this.resetTimer();
     this.justPressedKeys.clear();
 

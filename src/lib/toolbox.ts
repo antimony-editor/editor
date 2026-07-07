@@ -306,25 +306,6 @@ export default function (mediaType: BlockSourceType) {
     ${block("layers_setZIndex", value("Z", shadow("math_number", field("NUM", 0))))}
     ${block("layers_getZIndex")}
   </category>
-  <category name="Sensors" categorystyle="sensors_blocks">
-    ${block("sensors_mouseX")}
-    ${block("sensors_mouseY")}
-    ${block("sensors_mouseDown")}
-    ${block("sensors_keyPressed_preset")}
-    ${block("sensors_keyPressed_custom", value("KEY", textShadow("a")))}
-    ${sep(50)}
-    ${block("sensors_resetTimer")}
-    ${block("sensors_getTimer")}
-    ${sep(50)}
-    ${block("sensors_distanceToMouse")}
-    ${block("sensors_distanceToSprite", value("NAME", textShadow("Sprite 1")))}
-    ${block("sensors_touchingMouse")}
-    ${block("sensors_touchingSprite", value("NAME", textShadow("Sprite 1")))}
-    ${block("sensors_touchingEdge")}
-    ${sep(50)}
-    ${block("sensors_stageWidth")}
-    ${block("sensors_stageHeight")}
-  </category>
   <category name="Audio" categorystyle="audio_blocks">
     ${block("audio_play")}
     ${block("audio_playUntilDone")}
