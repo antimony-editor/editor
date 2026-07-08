@@ -130,6 +130,7 @@ export default function (mediaType: BlockSourceType) {
   </category>
   <category name="Text" categorystyle="text_blocks">
     ${block("text_setText", value("TEXT", textShadow("Hello!")))}
+    ${block("text_getText")}
     ${block("text_create_with")}
     ${block("text_append", value("TEXT", textShadow("")))}
     ${block("text_changeCase", value("TEXT", textShadow("")))}

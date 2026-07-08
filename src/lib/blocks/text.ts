@@ -64,3 +64,15 @@ javascriptGenerator.forBlock["text_setText"] = function (block: Blockly.Block) {
   const text = javascriptGenerator.valueToCode(block, "TEXT", Order.ATOMIC) || "''";
   return `context.sprite.text = ${text};\n`;
 };
+
+Blockly.Blocks["text_getText"] = {
+  init: function () {
+    this.setMediaTypes("text");
+    this.appendDummyInput().appendField("get text");
+    this.setOutput(true, "String");
+    this.setStyle("text_blocks");
+    this.setTooltip("Get the text content");
+  }
+};
+
+javascriptGenerator.forBlock["text_getText"] = () => [`context.sprite.text`, Order.NONE];
