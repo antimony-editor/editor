@@ -37,7 +37,7 @@ javascriptGenerator.forBlock["controls_whileUntil"] = function (block: Blockly.B
 Blockly.Blocks["logic_switch"] = {
   init: function () {
     this.appendValueInput("VALUE").appendField("switch");
-    this.appendStatementInput("CASES").appendField("");
+    this.appendStatementInput("CASES").setCheck("switchCase");
     this.setPreviousStatement(true, null);
     this.setNextStatement(true, null);
     this.setStyle("logic_blocks");
@@ -57,8 +57,8 @@ Blockly.Blocks["logic_case"] = {
   init: function () {
     this.appendValueInput("VALUE").setCheck(null).appendField("case");
     this.appendStatementInput("DO");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, "switchCase");
+    this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip(
       "Case for switch: runs its body if value matches (or when fallthrough)"
@@ -84,8 +84,8 @@ Blockly.Blocks["logic_default"] = {
   init: function () {
     this.appendDummyInput().appendField("default");
     this.appendStatementInput("DO");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, "switchCase");
+    this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip("Default case for switch");
   }
@@ -107,8 +107,8 @@ javascriptGenerator.forBlock["logic_default"] = function (block: Blockly.Block) 
 Blockly.Blocks["logic_exit_case"] = {
   init: function () {
     this.appendDummyInput().appendField("exit case");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, "default");
+    this.setNextStatement(true, "default");
     this.setStyle("logic_blocks");
     this.setTooltip("Exit the current case (break)");
   }
@@ -128,8 +128,8 @@ Blockly.Blocks["logic_runNextCaseWhen"] = {
   init: function () {
     this.appendDummyInput().appendField("run next case when");
     this.appendValueInput("VALUE").setCheck(null);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
+    this.setPreviousStatement(true, "switchCase");
+    this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip(
       "If the switch value matches, cause the next case to run (fallthrough)"

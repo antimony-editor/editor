@@ -351,9 +351,8 @@ Blockly.Blocks["motion_forEachCharacter"] = {
     this.setMediaTypes("text");
     this.appendValueInput("VAR").appendField("for each character");
     this.appendStatementInput("DO").setCheck(null);
-    this.setNextStatement(true, null);
-    this.setPreviousStatement(true, null);
     this.setStyle("motion_blocks");
+    (this as any).hat = "cap";
   },
 };
 
