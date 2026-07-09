@@ -145,7 +145,7 @@ export function saveTheme(theme: ThemeConfig): void {
 
 export interface ThemeContextValue {
   theme: ThemeConfig;
-  setTheme: (theme: ThemeConfig) => void;
+  setTheme: () => void;
 }
 
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
