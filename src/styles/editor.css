@@ -319,16 +319,6 @@ button:active {
   padding: 0 var(--space-sm);
 }
 
-.stage-fps-counter {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  padding-right: var(--space-xs);
-  transition: color 0.3s;
-}
-
 .sprite-list {
   padding: var(--space-sm);
   display: flex;

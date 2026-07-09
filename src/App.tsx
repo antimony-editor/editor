@@ -8,7 +8,7 @@ import {
 } from "./lib/sprites";
 import HeaderBar from "./components/HeaderBar";
 import SpritePanel from "./components/SpritePanel";
-import StageView from "./components/StageView";
+import StageView from "./components/StageView/StageView";
 import PropertiesPanel from "./components/PropertiesPanel/PropertiesPanel";
 import BrowserCompatibilityModal from "./components/BrowserCompatibilityModal";
 import WelcomeModal from "./components/WelcomeModal";
