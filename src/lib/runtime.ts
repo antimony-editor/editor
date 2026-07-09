@@ -1444,7 +1444,7 @@ class Runtime {
       ) as Record<TweenableProperty, TweenMode>;
 
       const durationMs = Math.max(0, durationSec) * 1000;
-      let startTime = this.now();
+      const startTime = this.now();
 
       if (durationMs === 0) {
         for (const [property, targetValue] of entries) {

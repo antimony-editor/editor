@@ -1,4 +1,9 @@
-import { pipeline, env } from "@huggingface/transformers";
+import {
+  pipeline,
+  env,
+  AutomaticSpeechRecognitionPipeline,
+  PretrainedModelOptions
+} from "@huggingface/transformers";
 
 env.allowLocalModels = false;
 
@@ -10,16 +15,24 @@ type WorkerRequest = {
   model: string;
 };
 
-type PipelineResult = {
+type PipelineChunk = {
   text?: string;
-  chunks?: Array<{
-    text?: string;
-    timestamp?: [number | null, number | null];
-    timestamps?: [number | null, number | null];
-  }>;
+  timestamp?: [number | null, number | null];
+  timestamps?: [number | null, number | null];
 };
 
-let transcriber: any = null;
+type PipelineResult = {
+  text?: string;
+  chunks?: PipelineChunk[];
+};
+
+type ProgressData = {
+  status?: string;
+  progress?: unknown;
+  file?: string;
+};
+
+let transcriber: AutomaticSpeechRecognitionPipeline | null = null;
 let loadedModel = "";
 let currentDevice = "";
 const progressByRequest = new Map<number, number>();
@@ -28,7 +41,7 @@ function postProgress(id: number, message: string) {
   self.postMessage({ id, type: "progress", message });
 }
 
-function normalizeProgress(data: any): string | null {
+function normalizeProgress(data: ProgressData): string | null {
   if (data?.status === "progress" && typeof data.progress === "number") {
     return `Loading Moonshine... ${Math.round(Math.min(100, Math.max(0, data.progress)))}%`;
   }
@@ -53,11 +66,7 @@ async function disposeTranscriber() {
   }
 }
 
-async function getTranscriber(
-  id: number,
-  model: string,
-  device: "webgpu" | "wasm",
-) {
+async function getTranscriber(id: number, model: string, device: "webgpu" | "wasm") {
   if (transcriber && loadedModel === model && currentDevice === device)
     return transcriber;
 
@@ -66,7 +75,7 @@ async function getTranscriber(
   loadedModel = model;
   currentDevice = device;
 
-  const progress_callback = (data: any) => {
+  const progress_callback = (data: ProgressData) => {
     let message = normalizeProgress(data);
     if (message?.startsWith("Loading Moonshine... ") && message.endsWith("%")) {
       const value = Number.parseInt(message.replace(/\D+/g, ""), 10);
@@ -80,15 +89,15 @@ async function getTranscriber(
     if (message) postProgress(id, message);
   };
 
-  const options: any = {
+  const options: PretrainedModelOptions = {
     device,
-    progress_callback,
+    progress_callback
   };
 
   if (device === "webgpu") {
     options.dtype = {
       encoder_model: "fp32",
-      decoder_model_merged: "q4",
+      decoder_model_merged: "q4"
     };
   } else {
     options.dtype = "q8";
@@ -98,11 +107,9 @@ async function getTranscriber(
   return transcriber;
 }
 
-function normalizeChunks(
-  chunks: PipelineResult["chunks"],
-): TranscriptSegment[] {
+function normalizeChunks(chunks: PipelineResult["chunks"]): TranscriptSegment[] {
   if (!Array.isArray(chunks)) return [];
-  return chunks.flatMap((chunk) => {
+  return chunks.flatMap(chunk => {
     const timestamp = chunk.timestamp ?? chunk.timestamps;
     const text = chunk.text?.trim();
     if (!text || !timestamp) return [];
@@ -120,15 +127,15 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     progressByRequest.set(id, 0);
     postProgress(id, "Loading Moonshine...");
 
-    let finalResult: { text: string; segments: TranscriptSegment[] } | null =
-      null;
+    let finalResult: { text: string; segments: TranscriptSegment[] } | null = null;
 
-    const runChunkedGeneration = async (transcriberInstance: any) => {
+    const runChunkedGeneration = async (
+      transcriberInstance: AutomaticSpeechRecognitionPipeline
+    ) => {
       const SAMPLE_RATE = 16000;
       const CHUNK_SEC = 30;
       const CHUNK_SIZE = CHUNK_SEC * SAMPLE_RATE;
-
-      let allSegments: TranscriptSegment[] = [];
+      const allSegments: TranscriptSegment[] = [];
       let fullText = "";
 
       for (let i = 0; i < audio.length; i += CHUNK_SIZE) {
@@ -141,7 +148,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         let output;
         try {
           output = await transcriberInstance(chunkAudio, {
-            return_timestamps: true,
+            return_timestamps: true
           });
         } catch {
           output = await transcriberInstance(chunkAudio);
@@ -158,14 +165,14 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
           allSegments.push({
             text: res.text.trim(),
             start: chunkStartSec,
-            end: chunkStartSec + chunkAudio.length / SAMPLE_RATE,
+            end: chunkStartSec + chunkAudio.length / SAMPLE_RATE
           });
         } else {
           for (const seg of chunkSegments) {
             allSegments.push({
               text: seg.text,
               start: seg.start + chunkStartSec,
-              end: seg.end + chunkStartSec,
+              end: seg.end + chunkStartSec
             });
           }
         }
@@ -190,16 +197,13 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
       id,
       type: "complete",
       text: finalResult?.text ?? "",
-      segments: finalResult?.segments ?? [],
+      segments: finalResult?.segments ?? []
     });
   } catch (error) {
     self.postMessage({
       id,
       type: "error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Moonshine transcription failed",
+      message: error instanceof Error ? error.message : "Moonshine transcription failed"
     });
   } finally {
     progressByRequest.delete(id);

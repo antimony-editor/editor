@@ -14,5 +14,5 @@ self.onmessage = (e: MessageEvent) => {
     result[i] = peak;
   }
 
-  self.postMessage({ peaks: result }, [result.buffer] as any);
+  self.postMessage({ peaks: result }, { transfer: [result.buffer] });
 };
