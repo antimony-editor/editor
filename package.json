@@ -36,6 +36,7 @@
   "dependencies": {
     "@blockly/field-angle": "^6.0.9",
     "@blockly/field-colour": "^6.0.12",
+    "@blockly/toolbox-search": "^13.1.0",
     "@huggingface/transformers": "^4.2.0",
     "@jaames/iro": "^5.5.2",
     "blockly": "^13.0.0",

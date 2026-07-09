@@ -14,6 +14,9 @@ importers:
       '@blockly/field-colour':
         specifier: ^6.0.12
         version: 6.0.12(blockly@13.0.0(jsdom@26.1.0))
+      '@blockly/toolbox-search':
+        specifier: ^13.1.0
+        version: 13.1.0(blockly@13.0.0(jsdom@26.1.0))
       '@huggingface/transformers':
         specifier: ^4.2.0
         version: 4.2.0
@@ -220,6 +223,11 @@ packages:
     engines: {node: '>=8.17.0'}
     peerDependencies:
       blockly: ^12.0.0
+
+  '@blockly/toolbox-search@13.1.0':
+    resolution: {integrity: sha512-KVItGpX7FlcmG8WVE1gVhPjO8bHgZC3VhtvTPI4oZlLU00OB3X5gUUOUFmfvLq2Og77yf9yMWD/2+Swu9Hr0xQ==}
+    peerDependencies:
+      blockly: ^13.1.0
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -1902,6 +1910,10 @@ snapshots:
       blockly: 13.0.0(jsdom@26.1.0)
 
   '@blockly/field-grid-dropdown@6.0.10(blockly@13.0.0(jsdom@26.1.0))':
+    dependencies:
+      blockly: 13.0.0(jsdom@26.1.0)
+
+  '@blockly/toolbox-search@13.1.0(blockly@13.0.0(jsdom@26.1.0))':
     dependencies:
       blockly: 13.0.0(jsdom@26.1.0)
 

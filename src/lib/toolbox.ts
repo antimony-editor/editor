@@ -40,6 +40,7 @@ export default function (mediaType: BlockSourceType) {
   }
 
   return `<xml xmlns="https://developers.google.com/blockly/xml">
+  <search name="Search"></search>
   <category name="Logic" categorystyle="logic_blocks">
     ${block(
       "logic_compare",

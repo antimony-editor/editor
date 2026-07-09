@@ -142,6 +142,8 @@ export default function ExtensionMenu({
           </button>
         </div>
 
+        <hr style={{ width: "100%", borderColor: "var(--bg-app)", opacity: 0.5 }}></hr>
+
         {/* can someone else make the ui less ugly*/}
 
         {extensions.map((ext) => renderExtension(ext, installJS))}

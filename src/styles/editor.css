@@ -845,6 +845,69 @@ button:active {
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
 }
 
+.add-extension-button {
+  bottom: 10px;
+  left: 10px;
+  border-radius: 15px;
+  position: absolute;
+  padding: 8px;
+  z-index: 167;
+  background: var(--accent);
+  cursor: pointer;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  border: none;
+  color: inherit;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
+
+.add-extension-button .icon {
+  width: 25px;
+  height: 25px;
+}
+
+.add-extension-button .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.add-extension-button .button-text {
+  max-width: 0;
+  opacity: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: max-width 0.3s ease, opacity 0.2s ease, margin-left 0.3s ease;
+  margin-left: 0;
+}
+
+.add-extension-button:hover .button-text {
+  max-width: 150px;
+  opacity: 1;
+  margin-left: 8px;
+}
+
+#toolbox-search-input {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+}
+
+#toolbox-search-input.blocklyToolboxSelected {
+  background: var(--bg-surface) !important;
+}
+
+input#toolbox-search-input {
+  appearance: none;
+  border: none;
+  outline: none;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -2418,11 +2481,7 @@ dialog::backdrop {
   width: 22px;
   height: 22px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(
-    135deg,
-    var(--accent) 0%,
-    var(--accent-hover) 100%
-  );
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   box-shadow: 0 0 10px var(--accent-glow);
   flex-shrink: 0;
   position: relative;
