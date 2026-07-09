@@ -136,7 +136,6 @@ function SpriteRenderer({
     : null;
 
   const mediaSrc = activeImage?.src || activeVideo?.src || "";
-  const mediaSrc = activeImage?.src || activeVideo?.src || "";
   const [mediaElement, setMediaElement] = useState<
     HTMLImageElement | HTMLVideoElement | null
   >(null);
@@ -339,14 +338,8 @@ function SpriteRenderer({
       ? snapToGrid
         ? snapCanvasCoord(rawNodeX, gridSize)
         : rawNodeX
-      ? snapToGrid
-        ? snapCanvasCoord(rawNodeX, gridSize)
-        : rawNodeX
       : fallbackCx;
     const cy = Number.isFinite(rawNodeY)
-      ? snapToGrid
-        ? snapCanvasCoord(rawNodeY, gridSize)
-        : rawNodeY
       ? snapToGrid
         ? snapCanvasCoord(rawNodeY, gridSize)
         : rawNodeY
@@ -650,45 +643,6 @@ export default function StageView() {
     stopAndExportRef.current = false;
   }, []);
 
-  const syncAndVerifyVideos = (advance: boolean = false, stepSec?: number) => {
-    const rt = runtime;
-    const resolvedStepSec = stepSec ?? rt.getStepMs() / 1000;
-
-    for (const [id, node] of spriteNodeRefs.current.entries()) {
-      const video = getVideoElementFromNode(node);
-      if (!video) continue;
-
-      const sprite = spritesRef.current.find(s => s.id === id);
-      if (!sprite || !isVideoData(sprite.data)) continue;
-
-      const liveSprite = rt.getSpriteContext(id)?.sprite as any;
-      if (!liveSprite) continue;
-
-      let targetTime = liveSprite.videoCurrentTime ?? 0;
-
-      if (advance && liveSprite.videoPlaying) {
-        const playbackRate = liveSprite.videoPlaybackRate ?? 1;
-        const nextTime = targetTime + resolvedStepSec * playbackRate;
-
-        if (nextTime >= video.duration) {
-          if (liveSprite.videoLoop) {
-            targetTime = nextTime % video.duration;
-          } else {
-            targetTime = video.duration;
-            liveSprite.videoPlaying = false;
-          }
-        } else {
-          targetTime = nextTime;
-        }
-        liveSprite.videoCurrentTime = targetTime;
-      }
-
-      if (Math.abs(video.currentTime - targetTime) > 0.001) {
-        video.currentTime = targetTime;
-      }
-    }
-  };
-
   const handleExport = async (options: ExportOptions) => {
     const stage = stageRef.current;
     const layer = layerRef.current;
@@ -865,16 +819,15 @@ export default function StageView() {
         type: "module"
       });
 
-      const workerMessage = <T = void,>(): Promise<T> =>
-      const workerMessage = <T = void,>(): Promise<T> =>
-        new Promise<T>((resolve, reject) => {
+      const workerMessage = (): Promise<void> =>
+        new Promise<void>((resolve, reject) => {
           const handler = (e: MessageEvent) => {
             if (e.data.type === "error") {
               worker.removeEventListener("message", handler);
               reject(new Error(e.data.error));
             } else if (e.data.type !== "frameDone") {
               worker.removeEventListener("message", handler);
-              resolve(e.data as T);
+              resolve(e.data as void);
             }
           };
           worker.addEventListener("message", handler);
@@ -1293,7 +1246,7 @@ export default function StageView() {
       try {
         mediaElement.pause();
         if (options?.resetTime) mediaElement.currentTime = 0;
-      } catch {}
+      } catch { /* empty */ }
     }
   }, []);
 
@@ -1420,25 +1373,9 @@ export default function StageView() {
             typeof spriteData.fontSize === "number"
               ? spriteData.fontSize
               : (sprite.data as any).fontSize;
-          const textVal =
-            typeof spriteData.text === "string"
-              ? spriteData.text
-              : (sprite.data as any).content;
-          const fillVal =
-            typeof spriteData.color === "string"
-              ? spriteData.color
-              : (sprite.data as any).color;
-          const sizeVal =
-            typeof spriteData.fontSize === "number"
-              ? spriteData.fontSize
-              : (sprite.data as any).fontSize;
           const fontFam = (sprite.data as any).fontFamily;
           const fontW = (sprite.data as any).fontWeight;
           const alignVal = (sprite.data as any).align;
-          const positions = (spriteData.charPositions || {}) as Record<
-            number,
-            { x: number; y: number }
-          >;
           const positions = (spriteData.charPositions || {}) as Record<
             number,
             { x: number; y: number }
@@ -1522,8 +1459,6 @@ export default function StageView() {
                 | undefined;
 
               if (item.char === "\n") {
-                if (charNode) charNode.destroy();
-                continue;
                 if (charNode) charNode.destroy();
                 continue;
               }
