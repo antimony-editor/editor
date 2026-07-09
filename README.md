@@ -1,6 +1,6 @@
 # Antimony Editor
 
-Antimony is a block-based video editing software, built for both power users and newbies. You'll be able to go from idea to creation in a matter of minutes. Antimoony is 100% free and open-source.
+Antimony is a block-based video editing software, built for both power users and newbies. Antimony let's you go from idea to creation in a matter of minutes. Antimony is 100% free and open-source.
 
 ## Links
 
