@@ -23,7 +23,7 @@ Blockly.Block.prototype.isDeletable = function (this: Blockly.Block) {
 
 (Blockly.BlockSvg.prototype as any).onMouseDown = function (
   this: Blockly.BlockSvg,
-  e: PointerEvent
+  e: PointerEvent,
 ) {
   if (this.duplicateOnDrag && this.isShadow() && this.getParent()) {
     makeClone(this);

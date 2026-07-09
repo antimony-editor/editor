@@ -88,7 +88,9 @@
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   padding: 2px 4px;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .asset-card-name:hover {
@@ -149,7 +151,10 @@
   text-align: left;
   outline: none;
   flex: 1;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
   min-width: 0;
   cursor: text;
 }

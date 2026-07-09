@@ -93,10 +93,10 @@ function getTimeGreeting() {
     hour < 5
       ? NIGHT_GREETINGS
       : hour < 12
-      ? MORNING_GREETINGS
-      : hour < 18
-      ? AFTERNOON_GREETINGS
-      : EVENING_GREETINGS;
+        ? MORNING_GREETINGS
+        : hour < 18
+          ? AFTERNOON_GREETINGS
+          : EVENING_GREETINGS;
   return greetings[Math.floor(Math.random() * greetings.length)];
 }
 
@@ -170,18 +170,31 @@ export default function WelcomeModal({
                   height={preset.height}
                   label={preset.label}
                   callback={() => {
-                    setSettings({ ...settings, width: preset.width, height: preset.height })
+                    setSettings({
+                      ...settings,
+                      width: preset.width,
+                      height: preset.height,
+                    });
                   }}
-                  selected={settings.width === preset.width && settings.height === preset.height}
+                  selected={
+                    settings.width === preset.width &&
+                    settings.height === preset.height
+                  }
                 />
               ))}
               <ResolutionEdit
                 width={settings.width}
                 height={settings.height}
                 callback={(w, h) => {
-                  setSettings({ ...settings, width: w, height: h })
+                  setSettings({ ...settings, width: w, height: h });
                 }}
-                selected={!RESOLUTION_PRESETS.some(p => p.width === settings.width && p.height === settings.height)}
+                selected={
+                  !RESOLUTION_PRESETS.some(
+                    (p) =>
+                      p.width === settings.width &&
+                      p.height === settings.height,
+                  )
+                }
               />
             </div>
           </div>
@@ -209,10 +222,7 @@ export default function WelcomeModal({
           >
             Start Creating
           </button>
-          <button
-            className="btn welcome-load-btn"
-            onClick={onLoad}
-          >
+          <button className="btn welcome-load-btn" onClick={onLoad}>
             Load Existing Project
           </button>
         </div>

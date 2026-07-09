@@ -10,7 +10,8 @@
   background: var(--bg-primary);
 }
 
-.properties-section, .properties-section-content {
+.properties-section,
+.properties-section-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);

@@ -44,8 +44,11 @@ Blockly.Blocks["video_setPlaybackRate"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setPlaybackRate"] = function (block: Blockly.Block) {
-  const rate = javascriptGenerator.valueToCode(block, "RATE", Order.ATOMIC) || "1";
+javascriptGenerator.forBlock["video_setPlaybackRate"] = function (
+  block: Blockly.Block,
+) {
+  const rate =
+    javascriptGenerator.valueToCode(block, "RATE", Order.ATOMIC) || "1";
   return `context.sprite.videoPlaybackRate = ${rate};\n`;
 };
 
@@ -63,8 +66,11 @@ Blockly.Blocks["video_setVolume"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setVolume"] = function (block: Blockly.Block) {
-  const volume = javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
+javascriptGenerator.forBlock["video_setVolume"] = function (
+  block: Blockly.Block,
+) {
+  const volume =
+    javascriptGenerator.valueToCode(block, "VOLUME", Order.ATOMIC) || "100";
   return `context.sprite.videoVolume = ${volume} / 100;\n`;
 };
 
@@ -81,7 +87,9 @@ Blockly.Blocks["video_setLoop"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setLoop"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["video_setLoop"] = function (
+  block: Blockly.Block,
+) {
   const loop = block.getFieldValue("LOOP") === "TRUE";
   return `context.sprite.videoLoop = ${loop};\n`;
 };
@@ -100,8 +108,11 @@ Blockly.Blocks["video_setCurrentTime"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setCurrentTime"] = function (block: Blockly.Block) {
-  const time = javascriptGenerator.valueToCode(block, "TIME", Order.ATOMIC) || "0";
+javascriptGenerator.forBlock["video_setCurrentTime"] = function (
+  block: Blockly.Block,
+) {
+  const time =
+    javascriptGenerator.valueToCode(block, "TIME", Order.ATOMIC) || "0";
   return `context.sprite.videoCurrentTime = ${time};\n`;
 };
 
@@ -146,8 +157,11 @@ Blockly.Blocks["video_setVideoIndex"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setVideoIndex"] = function (block: Blockly.Block) {
-  const index = javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
+javascriptGenerator.forBlock["video_setVideoIndex"] = function (
+  block: Blockly.Block,
+) {
+  const index =
+    javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
   return `context.sprite.videoIndex = ${index};\n`;
 };
 
@@ -164,8 +178,11 @@ Blockly.Blocks["video_setVideoName"] = {
   },
 };
 
-javascriptGenerator.forBlock["video_setVideoName"] = function (block: Blockly.Block) {
-  const name = javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
+javascriptGenerator.forBlock["video_setVideoName"] = function (
+  block: Blockly.Block,
+) {
+  const name =
+    javascriptGenerator.valueToCode(block, "NAME", Order.ATOMIC) || "''";
   return `context.sprite.videoName = ${name};\n`;
 };
 

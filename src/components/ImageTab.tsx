@@ -68,12 +68,18 @@ export default function ImageTab() {
       if (!replaceId) {
         const newImage = {
           id: imageId,
-          name: file.name.replace(/\.[^.]+$/, "") || "Image " + (currentData.images.length + 1),
+          name:
+            file.name.replace(/\.[^.]+$/, "") ||
+            "Image " + (currentData.images.length + 1),
           src,
         };
         newImages = [...currentData.images, newImage];
       } else {
-        newImages = currentData.images.map((img: MediaImage) => img.id === imageId ? { ...img, src, name: file.name.replace(/\.[^.]+$/, "") } : img);
+        newImages = currentData.images.map((img: MediaImage) =>
+          img.id === imageId
+            ? { ...img, src, name: file.name.replace(/\.[^.]+$/, "") }
+            : img,
+        );
       }
 
       const imageElement = new window.Image();
@@ -127,7 +133,8 @@ export default function ImageTab() {
   };
 
   const handleDeleteImage = (id: string) => {
-    if (!sprite || !isMediaData(sprite.data) || sprite.data.images.length <= 1) return;
+    if (!sprite || !isMediaData(sprite.data) || sprite.data.images.length <= 1)
+      return;
     const nextImages = sprite.data.images.filter((img) => img.id !== id);
     dispatch({
       type: "UPDATE_SPRITE",
@@ -136,9 +143,12 @@ export default function ImageTab() {
         data: {
           ...sprite.data,
           images: nextImages,
-          currentImageId: sprite.data.currentImageId === id ? nextImages[0].id : sprite.data.currentImageId
-        }
-      }
+          currentImageId:
+            sprite.data.currentImageId === id
+              ? nextImages[0].id
+              : sprite.data.currentImageId,
+        },
+      },
     });
     setSelectedIdx(0);
   };
@@ -166,7 +176,9 @@ export default function ImageTab() {
                     autoFocus
                     className="asset-card-name-input"
                     value={img.name}
-                    onChange={(e) => updateImage(img.id, { name: e.target.value })}
+                    onChange={(e) =>
+                      updateImage(img.id, { name: e.target.value })
+                    }
                     onBlur={() => setEditingId(null)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") setEditingId(null);
@@ -205,10 +217,15 @@ export default function ImageTab() {
                 className="asset-editor-name-input"
                 type="text"
                 value={activeItem.name}
-                onChange={(e) => updateImage(activeItem.id, { name: e.target.value })}
+                onChange={(e) =>
+                  updateImage(activeItem.id, { name: e.target.value })
+                }
               />
               <div className="media-actions">
-                <button className="properties-btn" onClick={() => handleReplaceImage(activeItem.id)}>
+                <button
+                  className="properties-btn"
+                  onClick={() => handleReplaceImage(activeItem.id)}
+                >
                   <Replace size={14} /> Replace
                 </button>
                 <button
@@ -234,12 +251,23 @@ export default function ImageTab() {
       </div>
 
       <Menu id={MENU_ID}>
-        <Item onClick={(e) => {
-          const newName = prompt("New name?", e.props.image.name);
-          if (newName) updateImage(e.props.image.id, { name: newName });
-        }}>Rename</Item>
-        <Item onClick={(e) => handleReplaceImage(e.props.image.id)}>Replace</Item>
-        <Item onClick={(e) => handleDeleteImage(e.props.image.id)} style={{ color: "var(--danger)" }}>Delete</Item>
+        <Item
+          onClick={(e) => {
+            const newName = prompt("New name?", e.props.image.name);
+            if (newName) updateImage(e.props.image.id, { name: newName });
+          }}
+        >
+          Rename
+        </Item>
+        <Item onClick={(e) => handleReplaceImage(e.props.image.id)}>
+          Replace
+        </Item>
+        <Item
+          onClick={(e) => handleDeleteImage(e.props.image.id)}
+          style={{ color: "var(--danger)" }}
+        >
+          Delete
+        </Item>
       </Menu>
     </div>
   );

@@ -21,8 +21,7 @@ import "blockly/blocks";
       if (blk.Blocks && blk.Blocks[t]) delete blk.Blocks[t];
       if (gen.forBlock && gen.forBlock[t]) delete gen.forBlock[t];
     }
-  } catch {
-  }
+  } catch {}
 })();
 import * as En from "blockly/msg/en";
 import {
@@ -44,7 +43,9 @@ import { Plus } from "lucide-react";
 
 function darkenColor(hex: string, percent: number): string {
   const cleanHex = hex.replace(/^\s*#|\s*$/g, "");
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (cleanHex.length === 3) {
     r = parseInt(cleanHex[0] + cleanHex[0], 16);
     g = parseInt(cleanHex[1] + cleanHex[1], 16);
@@ -96,7 +97,11 @@ function applyMotionGoToFlyoutDefaults(
   });
 }
 
-export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStateAction<boolean>> }) {
+export default function BlocklyEditor({
+  showMenu,
+}: {
+  showMenu: Dispatch<SetStateAction<boolean>>;
+}) {
   const blocklyDivRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const { state, dispatch } = useSprites();
@@ -141,8 +146,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
                 } else if (value !== null && value !== undefined) {
                   field.setValue(value);
                 }
-              } catch (e) {
-              }
+              } catch (e) {}
             }
           }
         }
@@ -211,8 +215,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       try {
         const dom = Blockly.utils.xml.textToDom(selectedSprite.blocklyXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
-      } catch (e) {
-      }
+      } catch (e) {}
       isSwappingRef.current = false;
     }
     loadedSpriteIdRef.current = selectedSpriteId;
@@ -306,8 +309,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       try {
         const dom = Blockly.utils.xml.textToDom(currentXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     workspace.render?.();
@@ -392,7 +394,8 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
             display: "flex",
             flexDirection: "column",
           }}
-          onClick={() => showMenu(true)}>
+          onClick={() => showMenu(true)}
+        >
           <Plus style={{ width: "35px", height: "35px" }} />
           <div>Add an extension</div>
         </div>

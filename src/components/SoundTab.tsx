@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useSprites, generateMediaSoundId, createTextSprite, isTextData } from "../lib/sprites";
+import {
+  useSprites,
+  generateMediaSoundId,
+  createTextSprite,
+  isTextData,
+} from "../lib/sprites";
 import {
   getAvailableFonts,
   COMMON_FONTS,
@@ -11,11 +16,26 @@ import {
   requestFontAccess,
   getFontPermissionState,
 } from "../lib/fonts";
-import { AudioLines, Play, Square, Plus, Trash2, Replace, Volume2, Scissors, Undo2, Redo2, MessageSquare, Loader2, X } from "lucide-react";
+import {
+  AudioLines,
+  Play,
+  Square,
+  Plus,
+  Trash2,
+  Replace,
+  Volume2,
+  Scissors,
+  Undo2,
+  Redo2,
+  MessageSquare,
+  Loader2,
+  X,
+} from "lucide-react";
 import { Menu, Item, useContextMenu } from "react-contexify";
 import runtime from "../lib/runtime";
 
-let audioClipboard: { channels: Float32Array[]; sampleRate: number } | null = null;
+let audioClipboard: { channels: Float32Array[]; sampleRate: number } | null =
+  null;
 
 type HistoryEntry = { src: string; buffer: AudioBuffer };
 
@@ -171,7 +191,11 @@ function splitPhrases(text: string): string[] {
   return chunks.filter(Boolean);
 }
 
-function createSubtitleSegments(text: string, duration: number, timing: TranscriptTiming): TranscriptSegment[] {
+function createSubtitleSegments(
+  text: string,
+  duration: number,
+  timing: TranscriptTiming,
+): TranscriptSegment[] {
   const cleaned = text.replace(/[ \t]+/g, " ").trim();
   if (!cleaned) return [];
   const parts =
@@ -184,29 +208,45 @@ function createSubtitleSegments(text: string, duration: number, timing: Transcri
   let cursor = 0;
   return parts.map((part, idx) => {
     const isLast = idx === parts.length - 1;
-    const segmentDuration = isLast ? Math.max(0.1, duration - cursor) : Math.max(0.1, (duration * weights[idx]) / totalWeight);
+    const segmentDuration = isLast
+      ? Math.max(0.1, duration - cursor)
+      : Math.max(0.1, (duration * weights[idx]) / totalWeight);
     const start = cursor;
-    const end = isLast ? Math.max(start + 0.1, duration) : Math.min(duration, start + segmentDuration);
+    const end = isLast
+      ? Math.max(start + 0.1, duration)
+      : Math.min(duration, start + segmentDuration);
     cursor = end;
     return { text: part, start, end };
   });
 }
 
-function retimeSegments(segments: TranscriptSegment[], timing: TranscriptTiming): TranscriptSegment[] {
+function retimeSegments(
+  segments: TranscriptSegment[],
+  timing: TranscriptTiming,
+): TranscriptSegment[] {
   return segments.flatMap((segment) =>
-    createSubtitleSegments(segment.text, Math.max(0.1, segment.end - segment.start), timing).map((chunk) => ({
+    createSubtitleSegments(
+      segment.text,
+      Math.max(0.1, segment.end - segment.start),
+      timing,
+    ).map((chunk) => ({
       text: chunk.text,
       start: segment.start + chunk.start,
       end: segment.start + chunk.end,
-    }))
+    })),
   );
 }
 
-function resampleAudioBuffer(buffer: AudioBuffer, targetSampleRate: number): Float32Array {
+function resampleAudioBuffer(
+  buffer: AudioBuffer,
+  targetSampleRate: number,
+): Float32Array {
   const ratio = buffer.sampleRate / targetSampleRate;
   const length = Math.max(1, Math.round(buffer.duration * targetSampleRate));
   const output = new Float32Array(length);
-  const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) => buffer.getChannelData(index));
+  const channels = Array.from({ length: buffer.numberOfChannels }, (_, index) =>
+    buffer.getChannelData(index),
+  );
   for (let i = 0; i < length; i++) {
     const sourceIndex = i * ratio;
     const left = Math.floor(sourceIndex);
@@ -240,7 +280,9 @@ function TranscriptionModal({
 }) {
   const source = browserAvailable ? options.source : "model";
   const [fonts, setFonts] = useState<string[]>([]);
-  const [fontPermission, setFontPermission] = useState<"granted" | "denied" | "prompt" | "unknown">("unknown");
+  const [fontPermission, setFontPermission] = useState<
+    "granted" | "denied" | "prompt" | "unknown"
+  >("unknown");
   const [requestingFonts, setRequestingFonts] = useState(false);
 
   useEffect(() => {
@@ -264,16 +306,31 @@ function TranscriptionModal({
         if (state === "granted") {
           const found = await detectAvailableFonts(COMMON_FONTS);
           if (!mounted) return;
-          setFonts(Array.from(new Set([...safe, ...found, ...google, ...system])));
+          setFonts(
+            Array.from(new Set([...safe, ...found, ...google, ...system])),
+          );
           return;
         }
 
         const fallback = getAvailableFonts(COMMON_FONTS);
         if (!mounted) return;
-        setFonts(Array.from(new Set([...safe, ...fallback, ...google, ...system])));
+        setFonts(
+          Array.from(new Set([...safe, ...fallback, ...google, ...system])),
+        );
       } catch {
         if (!mounted) return;
-        setFonts(Array.from(new Set([...WEB_SAFE_FONTS, "Inter", "Arial", "Georgia", "monospace", ...GOOGLE_FONTS])));
+        setFonts(
+          Array.from(
+            new Set([
+              ...WEB_SAFE_FONTS,
+              "Inter",
+              "Arial",
+              "Georgia",
+              "monospace",
+              ...GOOGLE_FONTS,
+            ]),
+          ),
+        );
       }
     })();
     return () => {
@@ -286,7 +343,19 @@ function TranscriptionModal({
     try {
       const localFonts = await requestFontAccess();
       if (localFonts && localFonts.length > 0) {
-        setFonts(Array.from(new Set([...WEB_SAFE_FONTS, ...localFonts, ...GOOGLE_FONTS, "system-ui", "sans-serif", "serif", "monospace"])));
+        setFonts(
+          Array.from(
+            new Set([
+              ...WEB_SAFE_FONTS,
+              ...localFonts,
+              ...GOOGLE_FONTS,
+              "system-ui",
+              "sans-serif",
+              "serif",
+              "monospace",
+            ]),
+          ),
+        );
         setFontPermission("granted");
       }
     } finally {
@@ -295,24 +364,41 @@ function TranscriptionModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={isTranscribing ? undefined : onClose}>
-      <div className="modal-content transcription-modal" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="modal-overlay"
+      onClick={isTranscribing ? undefined : onClose}
+    >
+      <div
+        className="modal-content transcription-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h2>Subtitles</h2>
-          <button className="close-modal-btn" disabled={isTranscribing} onClick={onClose}>
+          <button
+            className="close-modal-btn"
+            disabled={isTranscribing}
+            onClick={onClose}
+          >
             <X size={16} />
           </button>
         </div>
         <div className="modal-body transcription-modal-body">
           <p className="transcription-note">
-            Moonshine runs locally inside this tab/app. The model may download once and then cache in your browser. Your audio is not uploaded for model transcription, and the output may be inaccurate.
+            Moonshine runs locally inside this tab/app. The model may download
+            once and then cache in your browser. Your audio is not uploaded for
+            model transcription, and the output may be inaccurate.
           </p>
           <label className="transcription-row">
             <span>Method</span>
             <select
               value={source}
               disabled={isTranscribing}
-              onChange={(e) => onChange({ ...options, source: e.target.value as TranscriptSource })}
+              onChange={(e) =>
+                onChange({
+                  ...options,
+                  source: e.target.value as TranscriptSource,
+                })
+              }
             >
               <option value="model">Model</option>
               <option value="browser" disabled={!browserAvailable}>
@@ -326,7 +412,9 @@ function TranscriptionModal({
               <select
                 value={options.model}
                 disabled={isTranscribing}
-                onChange={(e) => onChange({ ...options, model: e.target.value })}
+                onChange={(e) =>
+                  onChange({ ...options, model: e.target.value })
+                }
               >
                 {MOONSHINE_MODELS.map((model) => (
                   <option key={model.id} value={model.id}>
@@ -341,7 +429,12 @@ function TranscriptionModal({
             <select
               value={options.timing}
               disabled={isTranscribing}
-              onChange={(e) => onChange({ ...options, timing: e.target.value as TranscriptTiming })}
+              onChange={(e) =>
+                onChange({
+                  ...options,
+                  timing: e.target.value as TranscriptTiming,
+                })
+              }
             >
               <option value="phrase">Per phrase</option>
               <option value="word">Per word</option>
@@ -361,12 +454,19 @@ function TranscriptionModal({
                 style={{ fontFamily: buildFontStack(options.font) }}
               >
                 {!fonts.includes(options.font) && options.font ? (
-                  <option value={options.font} style={{ fontFamily: buildFontStack(options.font) }}>
+                  <option
+                    value={options.font}
+                    style={{ fontFamily: buildFontStack(options.font) }}
+                  >
                     {options.font}
                   </option>
                 ) : null}
                 {fonts.map((font) => (
-                  <option key={font} value={font} style={{ fontFamily: buildFontStack(font) }}>
+                  <option
+                    key={font}
+                    value={font}
+                    style={{ fontFamily: buildFontStack(font) }}
+                  >
                     {font}
                   </option>
                 ))}
@@ -388,7 +488,12 @@ function TranscriptionModal({
             <select
               value={options.style}
               disabled={isTranscribing}
-              onChange={(e) => onChange({ ...options, style: Number(e.target.value) as SubtitleStyle })}
+              onChange={(e) =>
+                onChange({
+                  ...options,
+                  style: Number(e.target.value) as SubtitleStyle,
+                })
+              }
             >
               <option value={100}>Thin (100)</option>
               <option value={200}>Extra Light (200)</option>
@@ -401,9 +506,21 @@ function TranscriptionModal({
               <option value={900}>Black (900)</option>
             </select>
           </label>
-          {isTranscribing ? <div className="transcription-progress">{progress || "Transcribing..."}</div> : null}
-          <button className="btn primary transcription-submit" disabled={isTranscribing} onClick={onSubmit}>
-            {isTranscribing ? <Loader2 size={14} className="spin" /> : <MessageSquare size={14} />}
+          {isTranscribing ? (
+            <div className="transcription-progress">
+              {progress || "Transcribing..."}
+            </div>
+          ) : null}
+          <button
+            className="btn primary transcription-submit"
+            disabled={isTranscribing}
+            onClick={onSubmit}
+          >
+            {isTranscribing ? (
+              <Loader2 size={14} className="spin" />
+            ) : (
+              <MessageSquare size={14} />
+            )}
             <span>{isTranscribing ? "Transcribing" : "Transcribe"}</span>
           </button>
         </div>
@@ -423,13 +540,20 @@ function WaveformPreview({
   soundId: string;
   volume: number;
   onUpdateSrc: (newSrc: string) => void;
-  onTranscribe: (segments: TranscriptSegment[], options?: TranscriptionOptions, soundId?: string) => void;
+  onTranscribe: (
+    segments: TranscriptSegment[],
+    options?: TranscriptionOptions,
+    soundId?: string,
+  ) => void;
 }) {
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const hasSpeechRecognition = !!(window as any).SpeechRecognition || !!(window as any).webkitSpeechRecognition;
+  const hasSpeechRecognition =
+    !!(window as any).SpeechRecognition ||
+    !!(window as any).webkitSpeechRecognition;
   const [transcribeProgress, setTranscribeProgress] = useState("");
   const [isTranscribeModalOpen, setIsTranscribeModalOpen] = useState(false);
-  const [transcriptionOptions, setTranscriptionOptions] = useState<TranscriptionOptions>(DEFAULT_TRANSCRIPTION_OPTIONS);
+  const [transcriptionOptions, setTranscriptionOptions] =
+    useState<TranscriptionOptions>(DEFAULT_TRANSCRIPTION_OPTIONS);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [peaks, setPeaks] = useState<number[]>([]);
@@ -438,7 +562,10 @@ function WaveformPreview({
   const [progress, setProgress] = useState(0);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0, dpr: 1 });
   const [decodedBuffer, setDecodedBuffer] = useState<AudioBuffer | null>(null);
-  const [selection, setSelection] = useState<{ start: number; end: number } | null>(null);
+  const [selection, setSelection] = useState<{
+    start: number;
+    end: number;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -446,7 +573,10 @@ function WaveformPreview({
 
   const startRef = useRef(0);
   const rafRef = useRef<number | null>(null);
-  const cacheRef = useRef<{ bg: HTMLCanvasElement; fg: HTMLCanvasElement } | null>(null);
+  const cacheRef = useRef<{
+    bg: HTMLCanvasElement;
+    fg: HTMLCanvasElement;
+  } | null>(null);
   const dragStartRef = useRef<number | null>(null);
   const playIdRef = useRef(0);
   const playingRef = useRef(false);
@@ -525,7 +655,10 @@ function WaveformPreview({
       setHistory([{ src, buffer }]);
       setHistoryIndex(0);
       const channelData = buffer.getChannelData(0);
-      const worker = new Worker(new URL("../workers/waveform.worker.ts", import.meta.url), { type: "module" });
+      const worker = new Worker(
+        new URL("../workers/waveform.worker.ts", import.meta.url),
+        { type: "module" },
+      );
       worker.onmessage = (e) => {
         if (cancelled) {
           worker.terminate();
@@ -577,7 +710,8 @@ function WaveformPreview({
     const canvas = canvasRef.current!;
     const style = getComputedStyle(canvas);
     const accentColor = style.getPropertyValue("--accent").trim() || "#3e7ef5";
-    const surfaceColor = style.getPropertyValue("--bg-surface").trim() || "#38383f";
+    const surfaceColor =
+      style.getPropertyValue("--bg-surface").trim() || "#38383f";
 
     const accentRgb = hexToRgb(accentColor);
 
@@ -589,11 +723,22 @@ function WaveformPreview({
     const centerY = physicalHeight / 2;
 
     const playedGradient = ctxFg.createLinearGradient(0, 0, 0, physicalHeight);
-    playedGradient.addColorStop(0, `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.55)`);
+    playedGradient.addColorStop(
+      0,
+      `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.55)`,
+    );
     playedGradient.addColorStop(0.5, accentColor);
-    playedGradient.addColorStop(1, `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.55)`);
+    playedGradient.addColorStop(
+      1,
+      `rgba(${accentRgb.r}, ${accentRgb.g}, ${accentRgb.b}, 0.55)`,
+    );
 
-    const unplayedGradient = ctxBg.createLinearGradient(0, 0, 0, physicalHeight);
+    const unplayedGradient = ctxBg.createLinearGradient(
+      0,
+      0,
+      0,
+      physicalHeight,
+    );
     unplayedGradient.addColorStop(0, `${surfaceColor}99`);
     unplayedGradient.addColorStop(0.5, surfaceColor);
     unplayedGradient.addColorStop(1, `${surfaceColor}99`);
@@ -603,7 +748,10 @@ function WaveformPreview({
     for (let i = 0; i < peaks.length; i++) {
       const x = i * barWidth;
       const normalizedPeak = normalize(peaks[i]);
-      const barHeight = Math.max(2 * dpr, normalizedPeak * physicalHeight * 0.9);
+      const barHeight = Math.max(
+        2 * dpr,
+        normalizedPeak * physicalHeight * 0.9,
+      );
       const drawX = x + gap / 2;
       const drawW = Math.max(0.5, barWidth - gap);
       const drawY = centerY - barHeight / 2;
@@ -619,7 +767,10 @@ function WaveformPreview({
     for (let i = 0; i < peaks.length; i++) {
       const x = i * barWidth;
       const normalizedPeak = normalize(peaks[i]);
-      const barHeight = Math.max(2 * dpr, normalizedPeak * physicalHeight * 0.9);
+      const barHeight = Math.max(
+        2 * dpr,
+        normalizedPeak * physicalHeight * 0.9,
+      );
       const drawX = x + gap / 2;
       const drawW = Math.max(0.5, barWidth - gap);
       const drawY = centerY - barHeight / 2;
@@ -631,7 +782,13 @@ function WaveformPreview({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || canvasSize.width === 0 || canvasSize.height === 0 || !cacheRef.current) return;
+    if (
+      !canvas ||
+      canvasSize.width === 0 ||
+      canvasSize.height === 0 ||
+      !cacheRef.current
+    )
+      return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
@@ -645,7 +802,8 @@ function WaveformPreview({
 
     const style = getComputedStyle(canvas);
     const accentColor = style.getPropertyValue("--accent").trim() || "#3e7ef5";
-    const surfaceColor = style.getPropertyValue("--bg-surface").trim() || "#38383f";
+    const surfaceColor =
+      style.getPropertyValue("--bg-surface").trim() || "#38383f";
     const centerY = physicalHeight / 2;
 
     ctx.save();
@@ -747,13 +905,15 @@ function WaveformPreview({
     };
     rafRef.current = requestAnimationFrame(tick);
 
-    runtime.previewSound(src, previewId, volume, playOffsetSec, playDurationSec).then(() => {
-      if (playIdRef.current !== currentPlayId) return;
-      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-      setPlaying(false);
-      setProgress(0);
-    });
+    runtime
+      .previewSound(src, previewId, volume, playOffsetSec, playDurationSec)
+      .then(() => {
+        if (playIdRef.current !== currentPlayId) return;
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+        setPlaying(false);
+        setProgress(0);
+      });
   }, [src, previewId, volume, stop]);
 
   const skipTo = useCallback(
@@ -782,13 +942,15 @@ function WaveformPreview({
           rafRef.current = requestAnimationFrame(tick);
         };
         rafRef.current = requestAnimationFrame(tick);
-        runtime.previewSound(src, previewId, volume, targetOffset, playDurationSec).then(() => {
-          if (playIdRef.current !== currentPlayId) return;
-          if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-          rafRef.current = null;
-          setPlaying(false);
-          setProgress(0);
-        });
+        runtime
+          .previewSound(src, previewId, volume, targetOffset, playDurationSec)
+          .then(() => {
+            if (playIdRef.current !== currentPlayId) return;
+            if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+            rafRef.current = null;
+            setPlaying(false);
+            setProgress(0);
+          });
       } else {
         setProgress(pct);
       }
@@ -800,7 +962,8 @@ function WaveformPreview({
     if (!isDragging) return;
     const handleWindowMouseMove = (e: MouseEvent) => {
       const canvas = canvasRef.current;
-      if (!canvas || dragStartRef.current === null || !decodedBufferRef.current) return;
+      if (!canvas || dragStartRef.current === null || !decodedBufferRef.current)
+        return;
       const rect = canvas.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const pct = Math.max(0, Math.min(1, x / rect.width));
@@ -814,7 +977,11 @@ function WaveformPreview({
     };
     const handleWindowMouseUp = (e: MouseEvent) => {
       const canvas = canvasRef.current;
-      if (!canvas || dragStartRef.current === null || !decodedBufferRef.current) {
+      if (
+        !canvas ||
+        dragStartRef.current === null ||
+        !decodedBufferRef.current
+      ) {
         setIsDragging(false);
         return;
       }
@@ -868,12 +1035,18 @@ function WaveformPreview({
       setSelection(null);
       setProgress(0);
 
-      const worker = new Worker(new URL("../workers/waveform.worker.ts", import.meta.url), { type: "module" });
+      const worker = new Worker(
+        new URL("../workers/waveform.worker.ts", import.meta.url),
+        { type: "module" },
+      );
       worker.onmessage = (e) => {
         setPeaks(Array.from(e.data.peaks));
         worker.terminate();
       };
-      worker.postMessage({ channelData: new Float32Array(newBuffer.getChannelData(0)), buckets: BUCKETS });
+      worker.postMessage({
+        channelData: new Float32Array(newBuffer.getChannelData(0)),
+        buckets: BUCKETS,
+      });
 
       pushHistory({ src: url, buffer: newBuffer });
     },
@@ -890,12 +1063,18 @@ function WaveformPreview({
     setProgress(0);
     onUpdateSrc(prev.src);
 
-    const worker = new Worker(new URL("../workers/waveform.worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(
+      new URL("../workers/waveform.worker.ts", import.meta.url),
+      { type: "module" },
+    );
     worker.onmessage = (e) => {
       setPeaks(Array.from(e.data.peaks));
       worker.terminate();
     };
-    worker.postMessage({ channelData: new Float32Array(prev.buffer.getChannelData(0)), buckets: BUCKETS });
+    worker.postMessage({
+      channelData: new Float32Array(prev.buffer.getChannelData(0)),
+      buckets: BUCKETS,
+    });
   }, [history, historyIndex, onUpdateSrc]);
 
   const handleRedo = useCallback(() => {
@@ -908,12 +1087,18 @@ function WaveformPreview({
     setProgress(0);
     onUpdateSrc(next.src);
 
-    const worker = new Worker(new URL("../workers/waveform.worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(
+      new URL("../workers/waveform.worker.ts", import.meta.url),
+      { type: "module" },
+    );
     worker.onmessage = (e) => {
       setPeaks(Array.from(e.data.peaks));
       worker.terminate();
     };
-    worker.postMessage({ channelData: new Float32Array(next.buffer.getChannelData(0)), buckets: BUCKETS });
+    worker.postMessage({
+      channelData: new Float32Array(next.buffer.getChannelData(0)),
+      buckets: BUCKETS,
+    });
   }, [history, historyIndex, onUpdateSrc]);
 
   const handleTrimToSelection = useCallback(() => {
@@ -925,9 +1110,15 @@ function WaveformPreview({
     if (startSample >= endSample) return;
     const newLength = endSample - startSample;
     const ctx = createAudioContext();
-    const newBuffer = ctx.createBuffer(buf.numberOfChannels, newLength, buf.sampleRate);
+    const newBuffer = ctx.createBuffer(
+      buf.numberOfChannels,
+      newLength,
+      buf.sampleRate,
+    );
     for (let ch = 0; ch < buf.numberOfChannels; ch++) {
-      newBuffer.getChannelData(ch).set(buf.getChannelData(ch).subarray(startSample, endSample));
+      newBuffer
+        .getChannelData(ch)
+        .set(buf.getChannelData(ch).subarray(startSample, endSample));
     }
     ctx.close();
     applyEdit(newBuffer);
@@ -1004,7 +1195,11 @@ function WaveformPreview({
         const newLength = buf.length - (endSample - startSample);
         if (newLength <= 0) return;
         const ctx = createAudioContext();
-        const newBuffer = ctx.createBuffer(buf.numberOfChannels, newLength, buf.sampleRate);
+        const newBuffer = ctx.createBuffer(
+          buf.numberOfChannels,
+          newLength,
+          buf.sampleRate,
+        );
         for (let ch = 0; ch < buf.numberOfChannels; ch++) {
           const newChan = newBuffer.getChannelData(ch);
           const origChan = buf.getChannelData(ch);
@@ -1019,16 +1214,23 @@ function WaveformPreview({
       if (isMod && key === "v") {
         if (!audioClipboard) return;
         e.preventDefault();
-        const deleteStart = sel ? Math.floor(sel.start * buf.length) : Math.floor(prog * buf.length);
+        const deleteStart = sel
+          ? Math.floor(sel.start * buf.length)
+          : Math.floor(prog * buf.length);
         const deleteEnd = sel ? Math.floor(sel.end * buf.length) : deleteStart;
         const clipLen = audioClipboard.channels[0].length;
         const newLength = buf.length - (deleteEnd - deleteStart) + clipLen;
         const ctx = createAudioContext();
-        const newBuffer = ctx.createBuffer(buf.numberOfChannels, newLength, buf.sampleRate);
+        const newBuffer = ctx.createBuffer(
+          buf.numberOfChannels,
+          newLength,
+          buf.sampleRate,
+        );
         for (let ch = 0; ch < buf.numberOfChannels; ch++) {
           const newChan = newBuffer.getChannelData(ch);
           const origChan = buf.getChannelData(ch);
-          const clipChan = audioClipboard.channels[ch] ?? audioClipboard.channels[0];
+          const clipChan =
+            audioClipboard.channels[ch] ?? audioClipboard.channels[0];
           newChan.set(origChan.subarray(0, deleteStart), 0);
           newChan.set(clipChan, deleteStart);
           newChan.set(origChan.subarray(deleteEnd), deleteStart + clipLen);
@@ -1047,7 +1249,11 @@ function WaveformPreview({
         const newLength = buf.length - (deleteEnd - deleteStart);
         if (newLength <= 0) return;
         const ctx = createAudioContext();
-        const newBuffer = ctx.createBuffer(buf.numberOfChannels, newLength, buf.sampleRate);
+        const newBuffer = ctx.createBuffer(
+          buf.numberOfChannels,
+          newLength,
+          buf.sampleRate,
+        );
         for (let ch = 0; ch < buf.numberOfChannels; ch++) {
           const newChan = newBuffer.getChannelData(ch);
           const origChan = buf.getChannelData(ch);
@@ -1073,7 +1279,9 @@ function WaveformPreview({
     setIsTranscribing(true);
     setTranscribeProgress("Transcribing…");
 
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    const SR =
+      (window as any).SpeechRecognition ??
+      (window as any).webkitSpeechRecognition;
     const wavBytes = audioBufferToWav(buf);
     const blob = new Blob([wavBytes], { type: "audio/wav" });
     const url = URL.createObjectURL(blob);
@@ -1100,9 +1308,10 @@ function WaveformPreview({
           }
         }
       }
-      const pct = buf.duration > 0
-        ? Math.min(99, Math.round((audio.currentTime / buf.duration) * 100))
-        : 0;
+      const pct =
+        buf.duration > 0
+          ? Math.min(99, Math.round((audio.currentTime / buf.duration) * 100))
+          : 0;
       setTranscribeProgress(`Transcribing… ${pct}%`);
     };
 
@@ -1133,124 +1342,169 @@ function WaveformPreview({
     audio.play().catch(finish);
   }, [decodedBufferRef, isTranscribing, onTranscribe]);
 
-  const runBrowserTranscription = useCallback((buf: AudioBuffer, options: TranscriptionOptions) => {
-    return new Promise<TranscriptSegment[]>((resolve, reject) => {
-      const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
-      if (!SR) {
-        reject(new Error("Browser speech recognition is not available"));
-        return;
-      }
-
-      const wavBytes = audioBufferToWav(buf);
-      const blob = new Blob([wavBytes], { type: "audio/wav" });
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.muted = true;
-
-      const rec: any = new SR();
-      rec.continuous = true;
-      rec.interimResults = false;
-      rec.lang = "en-US";
-      rec.maxAlternatives = 1;
-
-      const segments: TranscriptSegment[] = [];
-      let segmentStart = 0;
-      let finished = false;
-
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        try {
-          rec.stop();
-        } catch {
+  const runBrowserTranscription = useCallback(
+    (buf: AudioBuffer, options: TranscriptionOptions) => {
+      return new Promise<TranscriptSegment[]>((resolve, reject) => {
+        const SR =
+          (window as any).SpeechRecognition ??
+          (window as any).webkitSpeechRecognition;
+        if (!SR) {
+          reject(new Error("Browser speech recognition is not available"));
+          return;
         }
-        audio.pause();
-        URL.revokeObjectURL(url);
-        resolve(retimeSegments(segments, options.timing));
-      };
 
-      rec.onresult = (e: any) => {
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) {
-            const text = e.results[i][0].transcript.trim();
-            if (text) {
-              const now = audio.currentTime;
-              segments.push({ text, start: segmentStart, end: Math.max(segmentStart + 0.1, now) });
-              segmentStart = now;
+        const wavBytes = audioBufferToWav(buf);
+        const blob = new Blob([wavBytes], { type: "audio/wav" });
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.muted = true;
+
+        const rec: any = new SR();
+        rec.continuous = true;
+        rec.interimResults = false;
+        rec.lang = "en-US";
+        rec.maxAlternatives = 1;
+
+        const segments: TranscriptSegment[] = [];
+        let segmentStart = 0;
+        let finished = false;
+
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          try {
+            rec.stop();
+          } catch {}
+          audio.pause();
+          URL.revokeObjectURL(url);
+          resolve(retimeSegments(segments, options.timing));
+        };
+
+        rec.onresult = (e: any) => {
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            if (e.results[i].isFinal) {
+              const text = e.results[i][0].transcript.trim();
+              if (text) {
+                const now = audio.currentTime;
+                segments.push({
+                  text,
+                  start: segmentStart,
+                  end: Math.max(segmentStart + 0.1, now),
+                });
+                segmentStart = now;
+              }
             }
           }
-        }
-        const pct = buf.duration > 0 ? Math.min(99, Math.round((audio.currentTime / buf.duration) * 100)) : 0;
-        setTranscribeProgress(`Transcribing... ${pct}%`);
-      };
+          const pct =
+            buf.duration > 0
+              ? Math.min(
+                  99,
+                  Math.round((audio.currentTime / buf.duration) * 100),
+                )
+              : 0;
+          setTranscribeProgress(`Transcribing... ${pct}%`);
+        };
 
-      rec.onerror = (e: any) => {
-        if (e.error === "no-speech") return;
-        finish();
-      };
+        rec.onerror = (e: any) => {
+          if (e.error === "no-speech") return;
+          finish();
+        };
 
-      audio.onended = finish;
-      audio.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("Could not play audio for browser transcription"));
-      };
-
-      try {
-        rec.start();
-        audio.play().catch((error) => {
+        audio.onended = finish;
+        audio.onerror = () => {
           URL.revokeObjectURL(url);
-          reject(error instanceof Error ? error : new Error("Could not start browser transcription"));
-        });
-      } catch (error) {
-        URL.revokeObjectURL(url);
-        reject(error instanceof Error ? error : new Error("Could not start browser transcription"));
-      }
-    });
-  }, []);
-
-  const runModelTranscription = useCallback((buf: AudioBuffer, options: TranscriptionOptions) => {
-    return new Promise<TranscriptSegment[]>((resolve, reject) => {
-      let worker = transcriptionWorkerRef.current;
-      if (!worker) {
-        worker = new Worker(new URL("../workers/transcription.worker.ts", import.meta.url), { type: "module" });
-        worker.onmessage = (e) => {
-          const request = transcriptionRequestRef.current;
-          if (!request || e.data.id !== request.id) return;
-          if (e.data.type === "progress") {
-            setTranscribeProgress(e.data.message);
-            return;
-          }
-          transcriptionRequestRef.current = null;
-          if (e.data.type === "complete") {
-            const segments = Array.isArray(e.data.segments) && e.data.segments.length > 0
-              ? retimeSegments(e.data.segments, request.timing)
-              : createSubtitleSegments(String(e.data.text ?? ""), request.duration, request.timing);
-            request.resolve(segments);
-            return;
-          }
-          request.reject(new Error(e.data.message || "Moonshine transcription failed"));
+          reject(new Error("Could not play audio for browser transcription"));
         };
-        worker.onerror = () => {
-          const request = transcriptionRequestRef.current;
-          transcriptionRequestRef.current = null;
-          request?.reject(new Error("Moonshine worker failed"));
-        };
-        transcriptionWorkerRef.current = worker;
-      }
 
-      const id = ++transcriptionRequestIdRef.current;
-      const audio = resampleAudioBuffer(buf, 16000);
-      transcriptionRequestRef.current = { id, duration: buf.duration, timing: options.timing, resolve, reject };
-      worker.postMessage({ id, audio, model: options.model }, [audio.buffer]);
-    });
-  }, []);
+        try {
+          rec.start();
+          audio.play().catch((error) => {
+            URL.revokeObjectURL(url);
+            reject(
+              error instanceof Error
+                ? error
+                : new Error("Could not start browser transcription"),
+            );
+          });
+        } catch (error) {
+          URL.revokeObjectURL(url);
+          reject(
+            error instanceof Error
+              ? error
+              : new Error("Could not start browser transcription"),
+          );
+        }
+      });
+    },
+    [],
+  );
+
+  const runModelTranscription = useCallback(
+    (buf: AudioBuffer, options: TranscriptionOptions) => {
+      return new Promise<TranscriptSegment[]>((resolve, reject) => {
+        let worker = transcriptionWorkerRef.current;
+        if (!worker) {
+          worker = new Worker(
+            new URL("../workers/transcription.worker.ts", import.meta.url),
+            { type: "module" },
+          );
+          worker.onmessage = (e) => {
+            const request = transcriptionRequestRef.current;
+            if (!request || e.data.id !== request.id) return;
+            if (e.data.type === "progress") {
+              setTranscribeProgress(e.data.message);
+              return;
+            }
+            transcriptionRequestRef.current = null;
+            if (e.data.type === "complete") {
+              const segments =
+                Array.isArray(e.data.segments) && e.data.segments.length > 0
+                  ? retimeSegments(e.data.segments, request.timing)
+                  : createSubtitleSegments(
+                      String(e.data.text ?? ""),
+                      request.duration,
+                      request.timing,
+                    );
+              request.resolve(segments);
+              return;
+            }
+            request.reject(
+              new Error(e.data.message || "Moonshine transcription failed"),
+            );
+          };
+          worker.onerror = () => {
+            const request = transcriptionRequestRef.current;
+            transcriptionRequestRef.current = null;
+            request?.reject(new Error("Moonshine worker failed"));
+          };
+          transcriptionWorkerRef.current = worker;
+        }
+
+        const id = ++transcriptionRequestIdRef.current;
+        const audio = resampleAudioBuffer(buf, 16000);
+        transcriptionRequestRef.current = {
+          id,
+          duration: buf.duration,
+          timing: options.timing,
+          resolve,
+          reject,
+        };
+        worker.postMessage({ id, audio, model: options.model }, [audio.buffer]);
+      });
+    },
+    [],
+  );
 
   const handleConfiguredTranscribe = useCallback(async () => {
     const buf = decodedBufferRef.current;
     if (!buf || isTranscribing) return;
 
     setIsTranscribing(true);
-    setTranscribeProgress(transcriptionOptions.source === "model" ? "Loading Moonshine..." : "Starting browser transcription...");
+    setTranscribeProgress(
+      transcriptionOptions.source === "model"
+        ? "Loading Moonshine..."
+        : "Starting browser transcription...",
+    );
 
     try {
       const segments =
@@ -1267,16 +1521,27 @@ function WaveformPreview({
       }
       setIsTranscribeModalOpen(false);
     } catch (error) {
-      setTranscribeProgress(error instanceof Error ? error.message : "Transcription failed");
+      setTranscribeProgress(
+        error instanceof Error ? error.message : "Transcription failed",
+      );
       setTimeout(() => setTranscribeProgress(""), 3500);
     } finally {
       setIsTranscribing(false);
     }
-  }, [decodedBufferRef, isTranscribing, onTranscribe, runBrowserTranscription, runModelTranscription, transcriptionOptions]);
+  }, [
+    decodedBufferRef,
+    isTranscribing,
+    onTranscribe,
+    runBrowserTranscription,
+    runModelTranscription,
+    transcriptionOptions,
+  ]);
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
-  const selectionDuration = selection ? (selection.end - selection.start) * duration : null;
+  const selectionDuration = selection
+    ? (selection.end - selection.start) * duration
+    : null;
   const cursorTime = progress * duration;
 
   return (
@@ -1316,15 +1581,23 @@ function WaveformPreview({
           onClick={() => setIsTranscribeModalOpen(true)}
           style={{ color: isTranscribing ? "var(--accent)" : undefined }}
         >
-          {isTranscribing ? <Loader2 size={14} className="spin" /> : <MessageSquare size={14} />}
+          {isTranscribing ? (
+            <Loader2 size={14} className="spin" />
+          ) : (
+            <MessageSquare size={14} />
+          )}
           <span>Transcribe</span>
         </button>
         <div className="audio-toolbar-spacer" />
         <div className="audio-time-display">
           {selection ? (
             <span title="Selection duration">
-              {formatTime(selection.start * duration)} - {formatTime(selection.end * duration)}
-              <span className="audio-time-secondary"> ({formatTime(selectionDuration!)})</span>
+              {formatTime(selection.start * duration)} -{" "}
+              {formatTime(selection.end * duration)}
+              <span className="audio-time-secondary">
+                {" "}
+                ({formatTime(selectionDuration!)})
+              </span>
             </span>
           ) : (
             <span title="Playhead position">{formatTime(cursorTime)}</span>
@@ -1333,8 +1606,16 @@ function WaveformPreview({
         </div>
       </div>
       <div className="audio-controls">
-        <button className="audio-play-btn" title={playing ? "Stop (Space)" : "Play (Space)"} onClick={play}>
-          {playing ? <Square size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+        <button
+          className="audio-play-btn"
+          title={playing ? "Stop (Space)" : "Play (Space)"}
+          onClick={play}
+        >
+          {playing ? (
+            <Square size={20} fill="currentColor" />
+          ) : (
+            <Play size={20} fill="currentColor" />
+          )}
         </button>
         <div
           ref={containerRef}
@@ -1392,47 +1673,81 @@ export default function SoundTab() {
       changes: {
         data: {
           ...sprite.data,
-          sounds: sprite.data.sounds.map((s) => (s.id === id ? { ...s, ...changes } : s)),
+          sounds: sprite.data.sounds.map((s) =>
+            s.id === id ? { ...s, ...changes } : s,
+          ),
         },
       },
     });
   };
 
-  const handleTranscription = useCallback((segments: TranscriptSegment[], options = DEFAULT_TRANSCRIPTION_OPTIONS, soundId?: string) => {
-    if (!sprite || segments.length === 0) return;
+  const handleTranscription = useCallback(
+    (
+      segments: TranscriptSegment[],
+      options = DEFAULT_TRANSCRIPTION_OPTIONS,
+      soundId?: string,
+    ) => {
+      if (!sprite || segments.length === 0) return;
 
-    const subtitleData = {
-      fontFamily: options.font,
-      fontWeight: options.style,
-      color: "#f7fbff",
-      align: "center" as const,
-    };
+      const subtitleData = {
+        fontFamily: options.font,
+        fontWeight: options.style,
+        color: "#f7fbff",
+        align: "center" as const,
+      };
 
-    const escapeXml = (s: string) =>
-      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\n/g, "&#10;").replace(/\r/g, "");
+      const escapeXml = (s: string) =>
+        s
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/\n/g, "&#10;")
+          .replace(/\r/g, "");
 
-    const buildSubtitleXml = (segs: TranscriptSegment[]): string => {
-      const wordMode = options.timing === "word";
-      const transcriptVarId = "subtitle_transcript_var";
-      const lineVarId = "subtitle_line_var";
-      const entries = (wordMode ? (() => {
-        const out:any[]=[];
-        let phraseGap=0;
-        let accum="";
-        let lastEnd=0;
-        segs.forEach((seg,idx)=>{
-          const gap= idx===0?Math.max(0,seg.start):Math.max(0,seg.start-lastEnd);
-          if(gap>0.25){accum=seg.text; phraseGap=gap;}
-          else accum = accum?accum+" "+seg.text:seg.text;
-          lastEnd=seg.end;
-          out.push({text:wrapText(accum),gap:phraseGap,duration:Math.max(0.1,seg.end-seg.start)});
-          phraseGap=0;
-        });
-        return out;
-      })():segs.map((seg,idx)=>({text:seg.text,gap:idx===0?Math.max(0,seg.start):Math.max(0,seg.start-segs[idx-1].end),duration:Math.max(0.1,seg.end-seg.start)}))).map((seg, idx) => {
-        const gap = seg.gap;
-        const duration = seg.duration
-        return `<value name="ADD${idx}">
+      const buildSubtitleXml = (segs: TranscriptSegment[]): string => {
+        const wordMode = options.timing === "word";
+        const transcriptVarId = "subtitle_transcript_var";
+        const lineVarId = "subtitle_line_var";
+        const entries = (
+          wordMode
+            ? (() => {
+                const out: any[] = [];
+                let phraseGap = 0;
+                let accum = "";
+                let lastEnd = 0;
+                segs.forEach((seg, idx) => {
+                  const gap =
+                    idx === 0
+                      ? Math.max(0, seg.start)
+                      : Math.max(0, seg.start - lastEnd);
+                  if (gap > 0.25) {
+                    accum = seg.text;
+                    phraseGap = gap;
+                  } else accum = accum ? accum + " " + seg.text : seg.text;
+                  lastEnd = seg.end;
+                  out.push({
+                    text: wrapText(accum),
+                    gap: phraseGap,
+                    duration: Math.max(0.1, seg.end - seg.start),
+                  });
+                  phraseGap = 0;
+                });
+                return out;
+              })()
+            : segs.map((seg, idx) => ({
+                text: seg.text,
+                gap:
+                  idx === 0
+                    ? Math.max(0, seg.start)
+                    : Math.max(0, seg.start - segs[idx - 1].end),
+                duration: Math.max(0.1, seg.end - seg.start),
+              }))
+        )
+          .map((seg, idx) => {
+            const gap = seg.gap;
+            const duration = seg.duration;
+            return `<value name="ADD${idx}">
           <block type="dicts_create_with" id="subtitle_entry_${idx}">
             <mutation items="3"></mutation>
             <value name="KEY0"><shadow type="text"><field name="TEXT">text</field></shadow></value>
@@ -1443,17 +1758,22 @@ export default function SoundTab() {
             <value name="VALUE2"><shadow type="math_number"><field name="NUM">${duration.toFixed(3)}</field></shadow></value>
           </block>
         </value>`;
-      }).join("");
-      return `<xml xmlns="https:
+          })
+          .join("");
+        return `<xml xmlns="https:
   <variables>
     <variable id="${transcriptVarId}">transcript</variable>
     <variable id="${lineVarId}">line</variable>
   </variables>
   <block type="on_start" id="on_start_sub" x="20" y="20">
     <statement name="DO">
-      ${soundId ? `<block type="audio_play" id="subtitle_play_sound">
+      ${
+        soundId
+          ? `<block type="audio_play" id="subtitle_play_sound">
         <field name="SOUND">${soundId}</field>
-        <next>` : ""}
+        <next>`
+          : ""
+      }
       <block type="variables_set" id="subtitle_set_transcript">
         <field name="VAR" id="${transcriptVarId}">transcript</field>
         <value name="VALUE">
@@ -1524,42 +1844,44 @@ export default function SoundTab() {
     </statement>
   </block>
 </xml>`;
-    };
-
-    const xml = buildSubtitleXml(segments);
-
-    if (isTextData(sprite.data)) {
-      dispatch({
-        type: "UPDATE_SPRITE",
-        id: sprite.id,
-        changes: {
-          blocklyXml: xml,
-          data: { ...sprite.data, ...subtitleData },
-        },
-      });
-    } else {
-      const count = state.sprites.filter((s) => s.type === "text").length + 1;
-      const newSprite = createTextSprite(`Subtitles ${count}`);
-      const updatedSprite = {
-        ...newSprite,
-        blocklyXml: xml,
-        data: { ...newSprite.data, ...subtitleData },
       };
-      dispatch({ type: "ADD_SPRITE", sprite: updatedSprite });
-      dispatch({ type: "SELECT_SPRITE", id: updatedSprite.id });
-    }
 
-    setTimeout(() => {
-      window.dispatchEvent(new Event("resize"));
-      const ws=(window as any).Blockly?.getMainWorkspace?.();
-      if(ws){
-        ws.refresh?.();
-        ws.render?.();
-        ws.resizeContents?.();
+      const xml = buildSubtitleXml(segments);
+
+      if (isTextData(sprite.data)) {
+        dispatch({
+          type: "UPDATE_SPRITE",
+          id: sprite.id,
+          changes: {
+            blocklyXml: xml,
+            data: { ...sprite.data, ...subtitleData },
+          },
+        });
+      } else {
+        const count = state.sprites.filter((s) => s.type === "text").length + 1;
+        const newSprite = createTextSprite(`Subtitles ${count}`);
+        const updatedSprite = {
+          ...newSprite,
+          blocklyXml: xml,
+          data: { ...newSprite.data, ...subtitleData },
+        };
+        dispatch({ type: "ADD_SPRITE", sprite: updatedSprite });
+        dispatch({ type: "SELECT_SPRITE", id: updatedSprite.id });
       }
-      window.dispatchEvent(new CustomEvent("workspace-refresh"));
-    }, 50);
-  }, [sprite, state.sprites, dispatch]);
+
+      setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+        const ws = (window as any).Blockly?.getMainWorkspace?.();
+        if (ws) {
+          ws.refresh?.();
+          ws.render?.();
+          ws.resizeContents?.();
+        }
+        window.dispatchEvent(new CustomEvent("workspace-refresh"));
+      }, 50);
+    },
+    [sprite, state.sprites, dispatch],
+  );
 
   const readSoundFile = (file: File, replaceId?: string) => {
     const reader = new FileReader();
@@ -1579,13 +1901,21 @@ export default function SoundTab() {
         dispatch({
           type: "UPDATE_SPRITE",
           id: sprite!.id,
-          changes: { data: { ...sprite!.data, sounds: currentSounds, currentSoundId: replaceId } },
+          changes: {
+            data: {
+              ...sprite!.data,
+              sounds: currentSounds,
+              currentSoundId: replaceId,
+            },
+          },
         });
       } else {
         const id = generateMediaSoundId();
         currentSounds.push({
           id,
-          name: file.name.replace(/\.[^.]+$/, "") || `Sound ${currentSounds.length + 1}`,
+          name:
+            file.name.replace(/\.[^.]+$/, "") ||
+            `Sound ${currentSounds.length + 1}`,
           src,
           volume: 1,
         });
@@ -1593,7 +1923,13 @@ export default function SoundTab() {
         dispatch({
           type: "UPDATE_SPRITE",
           id: sprite!.id,
-          changes: { data: { ...sprite!.data, sounds: currentSounds, currentSoundId: id } },
+          changes: {
+            data: {
+              ...sprite!.data,
+              sounds: currentSounds,
+              currentSoundId: id,
+            },
+          },
         });
       }
     };
@@ -1636,7 +1972,10 @@ export default function SoundTab() {
         data: {
           ...sprite.data,
           sounds: nextSounds,
-          currentSoundId: sprite.data.currentSoundId === id ? nextId : sprite.data.currentSoundId,
+          currentSoundId:
+            sprite.data.currentSoundId === id
+              ? nextId
+              : sprite.data.currentSoundId,
         },
       },
     });
@@ -1668,10 +2007,13 @@ export default function SoundTab() {
                     autoFocus
                     className="asset-card-name-input"
                     value={s.name}
-                    onChange={(e) => updateSoundById(s.id, { name: e.target.value })}
+                    onChange={(e) =>
+                      updateSoundById(s.id, { name: e.target.value })
+                    }
                     onBlur={() => setEditingId(null)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === "Escape") setEditingId(null);
+                      if (e.key === "Enter" || e.key === "Escape")
+                        setEditingId(null);
                     }}
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -1706,10 +2048,15 @@ export default function SoundTab() {
                 className="asset-editor-name-input"
                 type="text"
                 value={activeItem.name}
-                onChange={(e) => updateSoundById(activeItem.id, { name: e.target.value })}
+                onChange={(e) =>
+                  updateSoundById(activeItem.id, { name: e.target.value })
+                }
               />
               <div className="media-actions">
-                <button className="properties-btn" onClick={() => handleReplaceSound(activeItem.id)}>
+                <button
+                  className="properties-btn"
+                  onClick={() => handleReplaceSound(activeItem.id)}
+                >
                   <Replace size={14} /> Replace
                 </button>
                 <button
@@ -1727,7 +2074,9 @@ export default function SoundTab() {
                 src={activeItem.src}
                 soundId={activeItem.id}
                 volume={activeItem.volume ?? 1}
-                onUpdateSrc={(newSrc) => updateSoundById(activeItem.id, { src: newSrc })}
+                onUpdateSrc={(newSrc) =>
+                  updateSoundById(activeItem.id, { src: newSrc })
+                }
                 onTranscribe={handleTranscription}
               />
               <div className="asset-properties-grid">
@@ -1743,9 +2092,16 @@ export default function SoundTab() {
                     max={100}
                     step={1}
                     value={Math.round((activeItem.volume ?? 1) * 100)}
-                    onChange={(e) => updateSoundById(activeItem.id, { volume: Number(e.target.value) / 100 })}
+                    onChange={(e) =>
+                      updateSoundById(activeItem.id, {
+                        volume: Number(e.target.value) / 100,
+                      })
+                    }
                   />
-                  <span className="properties-value" style={{ minWidth: "32px" }}>
+                  <span
+                    className="properties-value"
+                    style={{ minWidth: "32px" }}
+                  >
                     {Math.round((activeItem.volume ?? 1) * 100)}%
                   </span>
                 </div>
@@ -1763,14 +2119,21 @@ export default function SoundTab() {
       <Menu id={MENU_ID}>
         <Item
           onClick={(e) => {
-            setSelectedIdx(sprite.data.sounds.findIndex((s) => s.id === e.props.sound.id));
+            setSelectedIdx(
+              sprite.data.sounds.findIndex((s) => s.id === e.props.sound.id),
+            );
             setEditingId(e.props.sound.id);
           }}
         >
           Rename
         </Item>
-        <Item onClick={(e) => handleReplaceSound(e.props.sound.id)}>Replace</Item>
-        <Item onClick={(e) => handleDeleteSound(e.props.sound.id)} style={{ color: "var(--danger)" }}>
+        <Item onClick={(e) => handleReplaceSound(e.props.sound.id)}>
+          Replace
+        </Item>
+        <Item
+          onClick={(e) => handleDeleteSound(e.props.sound.id)}
+          style={{ color: "var(--danger)" }}
+        >
           Delete
         </Item>
       </Menu>

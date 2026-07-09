@@ -1,10 +1,17 @@
-import { useReducer, useState, useMemo, useCallback, useEffect, useRef } from "react";
+import {
+  useReducer,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import { X } from "lucide-react";
 import {
   SpriteContext,
   spriteReducer,
   initialSpriteState,
-  type SpriteAction
+  type SpriteAction,
 } from "./lib/sprites";
 import HeaderBar from "./components/HeaderBar";
 import SpritePanel from "./components/SpritePanel";
@@ -16,7 +23,7 @@ import CreditsModal from "./components/CreditsModal";
 import SettingsModal from "./components/SettingsModal";
 import {
   dismissBrowserCompatWarning,
-  shouldShowBrowserCompatWarning
+  shouldShowBrowserCompatWarning,
 } from "./lib/browser";
 import runtime from "./lib/runtime";
 import { serializeProject, deserializeProject } from "./lib/projectFormat";
@@ -24,7 +31,7 @@ import { registerExtension, clearExtensions } from "./lib/extensions/manager";
 import {
   DEFAULT_PROJECT_SETTINGS,
   ProjectSettingsContext,
-  type ProjectSettings
+  type ProjectSettings,
 } from "./lib/settings";
 import {
   getThemeColors,
@@ -32,7 +39,7 @@ import {
   loadTheme,
   saveTheme,
   ThemeContext,
-  type ThemeConfig
+  type ThemeConfig,
 } from "./lib/themes";
 import "./styles/editor.css";
 import "./styles/asset-tab.css";
@@ -47,7 +54,13 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 hljs.registerLanguage("javascript", javascript);
 
 const MODAL_EXIT_MS = 120;
-type ModalKey = "js" | "credits" | "settings" | "browserCompat" | "welcome" | "devTools";
+type ModalKey =
+  | "js"
+  | "credits"
+  | "settings"
+  | "browserCompat"
+  | "welcome"
+  | "devTools";
 
 export default function App() {
   const [state, dispatch] = useReducer(spriteReducer, initialSpriteState);
@@ -55,24 +68,26 @@ export default function App() {
   const [generatedJS, setGeneratedJS] = useState("");
   const [projectName, setProjectName] = useState("Untitled Project");
   const [projectSettings, setProjectSettings] = useState<ProjectSettings>(
-    DEFAULT_PROJECT_SETTINGS
+    DEFAULT_PROJECT_SETTINGS,
   );
   const [showCredits, setShowCredits] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showBrowserCompat, setShowBrowserCompat] = useState(
-    shouldShowBrowserCompatWarning
+    shouldShowBrowserCompatWarning,
   );
   const [showWelcome, setShowWelcome] = useState(false);
   const [showDevTools, setShowDevTools] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [closingModals, setClosingModals] = useState<Record<ModalKey, boolean>>({
-    js: false,
-    credits: false,
-    settings: false,
-    browserCompat: false,
-    welcome: false,
-    devTools: false
-  });
+  const [closingModals, setClosingModals] = useState<Record<ModalKey, boolean>>(
+    {
+      js: false,
+      credits: false,
+      settings: false,
+      browserCompat: false,
+      welcome: false,
+      devTools: false,
+    },
+  );
   const [theme, setTheme] = useState<ThemeConfig>(loadTheme);
   const handleThemeChange = useCallback((t: ThemeConfig) => {
     setTheme(t);
@@ -83,33 +98,43 @@ export default function App() {
 
   useEffect(() => {
     return () => {
-      Object.values(modalCloseTimers.current).forEach(timer => {
+      Object.values(modalCloseTimers.current).forEach((timer) => {
         if (timer) window.clearTimeout(timer);
       });
     };
   }, []);
 
-  const openModal = useCallback((key: ModalKey, setOpen: (open: boolean) => void) => {
-    const timer = modalCloseTimers.current[key];
-    if (timer) {
-      window.clearTimeout(timer);
-      delete modalCloseTimers.current[key];
-    }
-    setClosingModals(current => (current[key] ? { ...current, [key]: false } : current));
-    setOpen(true);
-  }, []);
-
-  const closeModal = useCallback((key: ModalKey, setOpen: (open: boolean) => void) => {
-    if (modalCloseTimers.current[key]) return;
-    setClosingModals(current => (current[key] ? current : { ...current, [key]: true }));
-    modalCloseTimers.current[key] = window.setTimeout(() => {
-      setOpen(false);
-      setClosingModals(current =>
-        current[key] ? { ...current, [key]: false } : current
+  const openModal = useCallback(
+    (key: ModalKey, setOpen: (open: boolean) => void) => {
+      const timer = modalCloseTimers.current[key];
+      if (timer) {
+        window.clearTimeout(timer);
+        delete modalCloseTimers.current[key];
+      }
+      setClosingModals((current) =>
+        current[key] ? { ...current, [key]: false } : current,
       );
-      delete modalCloseTimers.current[key];
-    }, MODAL_EXIT_MS);
-  }, []);
+      setOpen(true);
+    },
+    [],
+  );
+
+  const closeModal = useCallback(
+    (key: ModalKey, setOpen: (open: boolean) => void) => {
+      if (modalCloseTimers.current[key]) return;
+      setClosingModals((current) =>
+        current[key] ? current : { ...current, [key]: true },
+      );
+      modalCloseTimers.current[key] = window.setTimeout(() => {
+        setOpen(false);
+        setClosingModals((current) =>
+          current[key] ? { ...current, [key]: false } : current,
+        );
+        delete modalCloseTimers.current[key];
+      }, MODAL_EXIT_MS);
+    },
+    [],
+  );
 
   const hasTriggeredWelcome = useRef(false);
 
@@ -120,9 +145,12 @@ export default function App() {
     }
   }, [showBrowserCompat, openModal]);
 
-  const updateProjectSettings = useCallback((changes: Partial<ProjectSettings>) => {
-    setProjectSettings(current => ({ ...current, ...changes }));
-  }, []);
+  const updateProjectSettings = useCallback(
+    (changes: Partial<ProjectSettings>) => {
+      setProjectSettings((current) => ({ ...current, ...changes }));
+    },
+    [],
+  );
 
   const dispatchTracked = useCallback((action: SpriteAction) => {
     if (action.type !== "SELECT_SPRITE") {
@@ -136,10 +164,13 @@ export default function App() {
     setIsDirty(true);
   }, []);
 
-  const handleProjectSettingsChange = useCallback((settings: ProjectSettings) => {
-    setProjectSettings(settings);
-    setIsDirty(true);
-  }, []);
+  const handleProjectSettingsChange = useCallback(
+    (settings: ProjectSettings) => {
+      setProjectSettings(settings);
+      setIsDirty(true);
+    },
+    [],
+  );
 
   useEffect(() => {
     const unlock = () => {
@@ -192,12 +223,12 @@ export default function App() {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = ".atm";
-    input.onchange = e => {
+    input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = async re => {
+      reader.onload = async (re) => {
         try {
           const buffer = re.target?.result as ArrayBuffer;
           const project = await deserializeProject(buffer);
@@ -222,7 +253,7 @@ export default function App() {
         } catch (err) {
           console.error("failed to load this project:", err);
           alert(
-            "There was an error loading the project file. The format is likely invalid."
+            "There was an error loading the project file. The format is likely invalid.",
           );
         }
       };
@@ -252,7 +283,7 @@ export default function App() {
       setProjectName(name);
       closeModal("welcome", setShowWelcome);
     },
-    [closeModal]
+    [closeModal],
   );
 
   return (
@@ -262,7 +293,7 @@ export default function App() {
           value={{
             settings: projectSettings,
             setSettings: setProjectSettings,
-            updateSettings: updateProjectSettings
+            updateSettings: updateProjectSettings,
           }}
         >
           <div className="editor-shell">
@@ -276,7 +307,11 @@ export default function App() {
               onOpenSettings={() => openModal("settings", setShowSettings)}
               onOpenDevTools={() => openModal("devTools", setShowDevTools)}
             />
-            <PanelGroup direction="horizontal" className="content-area" autoSaveId="content-area">
+            <PanelGroup
+              direction="horizontal"
+              className="content-area"
+              autoSaveId="content-area"
+            >
               <Panel defaultSize={70} minSize={30}>
                 <TabSection showMenu={setShowExtMenu} />
               </Panel>
@@ -284,12 +319,20 @@ export default function App() {
               <PanelResizeHandle className="resize-handle" />
 
               <Panel defaultSize={30} minSize={20}>
-                <PanelGroup direction="vertical" className="right-column" autoSaveId="right-column">
+                <PanelGroup
+                  direction="vertical"
+                  className="right-column"
+                  autoSaveId="right-column"
+                >
                   <Panel defaultSize={25} minSize={15}>
                     <StageView />
                   </Panel>
                   <PanelResizeHandle className="resize-handle" />
-                  <Panel defaultSize={55} minSize={15} style={{ overflowY: "auto" }}>
+                  <Panel
+                    defaultSize={55}
+                    minSize={15}
+                    style={{ overflowY: "auto" }}
+                  >
                     <PropertiesPanel />
                     <SpritePanel />
                   </Panel>
@@ -336,7 +379,10 @@ export default function App() {
               className={`modal-overlay ${closingModals.js ? "is-closing" : ""}`}
               onClick={() => closeModal("js", setShowJS)}
             >
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div
+                className="modal-content"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="modal-header">
                   <h2>Generated JavaScript</h2>
                   <button
@@ -349,13 +395,15 @@ export default function App() {
                 <div className="modal-body">
                   <div className="code-container">
                     <div className="line-numbers">
-                      {lineNumbers.map(n => (
+                      {lineNumbers.map((n) => (
                         <div key={n}>{n}</div>
                       ))}
                     </div>
                     <pre
                       className="code-content"
-                      dangerouslySetInnerHTML={{ __html: highlightedCode || "" }}
+                      dangerouslySetInnerHTML={{
+                        __html: highlightedCode || "",
+                      }}
                     />
                   </div>
                 </div>

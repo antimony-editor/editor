@@ -53,9 +53,14 @@ async function disposeTranscriber() {
   }
 }
 
-async function getTranscriber(id: number, model: string, device: "webgpu" | "wasm") {
-  if (transcriber && loadedModel === model && currentDevice === device) return transcriber;
-  
+async function getTranscriber(
+  id: number,
+  model: string,
+  device: "webgpu" | "wasm",
+) {
+  if (transcriber && loadedModel === model && currentDevice === device)
+    return transcriber;
+
   await disposeTranscriber();
 
   loadedModel = model;
@@ -66,7 +71,9 @@ async function getTranscriber(id: number, model: string, device: "webgpu" | "was
     if (message?.startsWith("Loading Moonshine... ") && message.endsWith("%")) {
       const value = Number.parseInt(message.replace(/\D+/g, ""), 10);
       const previous = progressByRequest.get(id) ?? 0;
-      const next = Number.isFinite(value) ? Math.max(previous, Math.min(100, value)) : previous;
+      const next = Number.isFinite(value)
+        ? Math.max(previous, Math.min(100, value))
+        : previous;
       progressByRequest.set(id, next);
       message = `Loading Moonshine... ${next}%`;
     }
@@ -91,7 +98,9 @@ async function getTranscriber(id: number, model: string, device: "webgpu" | "was
   return transcriber;
 }
 
-function normalizeChunks(chunks: PipelineResult["chunks"]): TranscriptSegment[] {
+function normalizeChunks(
+  chunks: PipelineResult["chunks"],
+): TranscriptSegment[] {
   if (!Array.isArray(chunks)) return [];
   return chunks.flatMap((chunk) => {
     const timestamp = chunk.timestamp ?? chunk.timestamps;
@@ -110,14 +119,15 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   try {
     progressByRequest.set(id, 0);
     postProgress(id, "Loading Moonshine...");
-    
-    let finalResult: { text: string; segments: TranscriptSegment[] } | null = null;
+
+    let finalResult: { text: string; segments: TranscriptSegment[] } | null =
+      null;
 
     const runChunkedGeneration = async (transcriberInstance: any) => {
       const SAMPLE_RATE = 16000;
       const CHUNK_SEC = 30;
       const CHUNK_SIZE = CHUNK_SEC * SAMPLE_RATE;
-      
+
       let allSegments: TranscriptSegment[] = [];
       let fullText = "";
 
@@ -125,37 +135,39 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         const chunkAudio = audio.slice(i, i + CHUNK_SIZE);
         const chunkStartSec = i / SAMPLE_RATE;
         const progressPct = Math.round((i / audio.length) * 100);
-        
+
         postProgress(id, `Transcribing... ${progressPct}%`);
-        
+
         let output;
         try {
-          output = await transcriberInstance(chunkAudio, { return_timestamps: true });
+          output = await transcriberInstance(chunkAudio, {
+            return_timestamps: true,
+          });
         } catch {
           output = await transcriberInstance(chunkAudio);
         }
-        
+
         const res = Array.isArray(output) ? output[0] : output;
-        
+
         if (res?.text) {
           fullText += (fullText ? " " : "") + res.text.trim();
         }
-        
+
         const chunkSegments = normalizeChunks(res?.chunks);
         if (chunkSegments.length === 0 && res?.text) {
-            allSegments.push({
-                text: res.text.trim(),
-                start: chunkStartSec,
-                end: chunkStartSec + (chunkAudio.length / SAMPLE_RATE)
-            });
+          allSegments.push({
+            text: res.text.trim(),
+            start: chunkStartSec,
+            end: chunkStartSec + chunkAudio.length / SAMPLE_RATE,
+          });
         } else {
-            for (const seg of chunkSegments) {
-              allSegments.push({
-                text: seg.text,
-                start: seg.start + chunkStartSec,
-                end: seg.end + chunkStartSec,
-              });
-            }
+          for (const seg of chunkSegments) {
+            allSegments.push({
+              text: seg.text,
+              start: seg.start + chunkStartSec,
+              end: seg.end + chunkStartSec,
+            });
+          }
         }
       }
       return { text: fullText.trim(), segments: allSegments };
@@ -168,7 +180,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     } catch (gpuError) {
       console.warn("WebGPU execution failed, falling back to WASM:", gpuError);
       postProgress(id, "WebGPU failed. Retrying safely with WASM...");
-      
+
       const pipeWasm = await getTranscriber(id, model, "wasm");
       postProgress(id, "Transcribing with Moonshine (WASM)...");
       finalResult = await runChunkedGeneration(pipeWasm);
@@ -184,7 +196,10 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
     self.postMessage({
       id,
       type: "error",
-      message: error instanceof Error ? error.message : "Moonshine transcription failed",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Moonshine transcription failed",
     });
   } finally {
     progressByRequest.delete(id);

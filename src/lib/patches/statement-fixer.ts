@@ -4,7 +4,7 @@ const originalSetNext = Blockly.Block.prototype.setNextStatement;
 if (typeof originalSetNext === "function") {
   Blockly.Block.prototype.setNextStatement = function (
     newBoolean: boolean,
-    opt_check: any
+    opt_check: any,
   ) {
     let check = opt_check;
     if (newBoolean && (check === null || check === undefined)) {
@@ -18,7 +18,7 @@ const originalSetPrev = Blockly.Block.prototype.setPreviousStatement;
 if (typeof originalSetPrev === "function") {
   Blockly.Block.prototype.setPreviousStatement = function (
     newBoolean: boolean,
-    opt_check: any
+    opt_check: any,
   ) {
     let check = opt_check;
     if (newBoolean && (check === null || check === undefined)) {

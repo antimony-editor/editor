@@ -2,7 +2,7 @@ type PendingRun = {
   resolve: (value: unknown) => void;
   reject: (error: Error) => void;
 };
-// yes i just stole this form rarry.. because i am Evil 
+// yes i just stole this form rarry.. because i am Evil
 async function requestPermission(extId: string, action: string) {
   if (
     window.confirm(
@@ -21,11 +21,7 @@ export class ExtensionBridge {
   private pendingRuns = new Map<number, PendingRun>();
   private runCounter = 0;
 
-  constructor(
-    extId: string,
-    code: string,
-    onReady: (extInfo: any) => void,
-  ) {
+  constructor(extId: string, code: string, onReady: (extInfo: any) => void) {
     this.extId = extId;
     this.worker = new Worker(new URL("./worker.ts", import.meta.url), {
       type: "module",

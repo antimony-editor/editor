@@ -7,15 +7,21 @@ Blockly.Blocks["checkbox"] = {
     this.appendDummyInput().appendField(new Checkbox("false"), "BOOL");
     this.setOutput(true, "Boolean");
     this.setStyle("logic_blocks");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["checkbox"] = function (block: Blockly.Block) {
-  return [block.getFieldValue("BOOL") === "TRUE" ? "true" : "false", Order.ATOMIC];
+  return [
+    block.getFieldValue("BOOL") === "TRUE" ? "true" : "false",
+    Order.ATOMIC,
+  ];
 };
 
-javascriptGenerator.forBlock["controls_whileUntil"] = function (block: Blockly.Block) {
-  const condition = javascriptGenerator.valueToCode(block, "BOOL", Order.NONE) || "false";
+javascriptGenerator.forBlock["controls_whileUntil"] = function (
+  block: Blockly.Block,
+) {
+  const condition =
+    javascriptGenerator.valueToCode(block, "BOOL", Order.NONE) || "false";
 
   const statements = javascriptGenerator.statementToCode(block, "DO");
 
@@ -42,11 +48,12 @@ Blockly.Blocks["logic_switch"] = {
     this.setNextStatement(true, null);
     this.setStyle("logic_blocks");
     this.setTooltip("Switch on a value with case/default blocks inside");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["logic_switch"] = function (block: Blockly.Block) {
-  const value = javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
+  const value =
+    javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
   const cases = javascriptGenerator.statementToCode(block, "CASES");
   const safeId = (block.id || "").toString().replace(/\W/g, "_");
   const label = `SWITCH_${safeId}`;
@@ -61,13 +68,14 @@ Blockly.Blocks["logic_case"] = {
     this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip(
-      "Case for switch: runs its body if value matches (or when fallthrough)"
+      "Case for switch: runs its body if value matches (or when fallthrough)",
     );
-  }
+  },
 };
 
 javascriptGenerator.forBlock["logic_case"] = function (block: Blockly.Block) {
-  const val = javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
+  const val =
+    javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
   const stm = javascriptGenerator.statementToCode(block, "DO");
   let parent = block.getSurroundParent && block.getSurroundParent();
   while (parent && parent.type !== "logic_switch")
@@ -88,10 +96,12 @@ Blockly.Blocks["logic_default"] = {
     this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip("Default case for switch");
-  }
+  },
 };
 
-javascriptGenerator.forBlock["logic_default"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["logic_default"] = function (
+  block: Blockly.Block,
+) {
   const stm = javascriptGenerator.statementToCode(block, "DO");
   let parent = block.getSurroundParent && block.getSurroundParent();
   while (parent && parent.type !== "logic_switch")
@@ -111,10 +121,12 @@ Blockly.Blocks["logic_exit_case"] = {
     this.setNextStatement(true, "default");
     this.setStyle("logic_blocks");
     this.setTooltip("Exit the current case (break)");
-  }
+  },
 };
 
-javascriptGenerator.forBlock["logic_exit_case"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["logic_exit_case"] = function (
+  block: Blockly.Block,
+) {
   let parent = block.getSurroundParent && block.getSurroundParent();
   while (parent && parent.type !== "logic_switch")
     parent = parent.getSurroundParent && parent.getSurroundParent();
@@ -132,14 +144,17 @@ Blockly.Blocks["logic_runNextCaseWhen"] = {
     this.setNextStatement(true, "switchCase");
     this.setStyle("logic_blocks");
     this.setTooltip(
-      "If the switch value matches, cause the next case to run (fallthrough)"
+      "If the switch value matches, cause the next case to run (fallthrough)",
     );
     this.setInputsInline(true);
-  }
+  },
 };
 
-javascriptGenerator.forBlock["logic_runNextCaseWhen"] = function (block: Blockly.Block) {
-  const val = javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
+javascriptGenerator.forBlock["logic_runNextCaseWhen"] = function (
+  block: Blockly.Block,
+) {
+  const val =
+    javascriptGenerator.valueToCode(block, "VALUE", Order.NONE) || "null";
   return `if (__switch_val === (${val})) { __fallthrough = true; }\n`;
 };
 
@@ -151,7 +166,7 @@ Blockly.Blocks["logic_ternary"] = {
     this.setInputsInline(true);
     this.setOutput(true, null);
     this.setStyle("logic_blocks");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["logic_ternary"] = function (block, generator) {

@@ -22,7 +22,7 @@ export default function HeaderBar({
   onLoad,
   onOpenCredits,
   onOpenSettings,
-  onOpenDevTools
+  onOpenDevTools,
 }: HeaderBarProps) {
   const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -80,11 +80,19 @@ export default function HeaderBar({
           )}
         </div>
 
-        <button className="file-tab-btn" title="Credits" onClick={onOpenCredits}>
+        <button
+          className="file-tab-btn"
+          title="Credits"
+          onClick={onOpenCredits}
+        >
           <BookOpen size={20} />
         </button>
 
-        <button className="file-tab-btn" title="Settings" onClick={onOpenSettings}>
+        <button
+          className="file-tab-btn"
+          title="Settings"
+          onClick={onOpenSettings}
+        >
           <Settings size={20} />
         </button>
 
@@ -103,7 +111,7 @@ export default function HeaderBar({
         <input
           type="text"
           value={projectName}
-          onChange={e => onProjectNameChange(e.target.value)}
+          onChange={(e) => onProjectNameChange(e.target.value)}
         />
       </div>
     </div>
