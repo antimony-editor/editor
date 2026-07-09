@@ -16,7 +16,7 @@ export default function CollapsableSection({
   ...props
 }: CollapsableSectionProps) {
   const [collapsed, setCollapsed] = useState(
-    collapsedSections[title] ?? defaultCollapsed
+    collapsedSections[title] ?? defaultCollapsed,
   );
 
   useEffect(() => {
@@ -27,11 +27,16 @@ export default function CollapsableSection({
     <div className="properties-section" {...props}>
       <div className="properties-section-header">
         <div className="properties-section-title">{title}</div>
-        <button className="file-tab-btn" onClick={() => setCollapsed(!collapsed)}>
+        <button
+          className="file-tab-btn"
+          onClick={() => setCollapsed(!collapsed)}
+        >
           {collapsed ? <ChevronRight /> : <ChevronDown />}
         </button>
       </div>
-      {!collapsed && <div className="properties-section-content">{children}</div>}
+      {!collapsed && (
+        <div className="properties-section-content">{children}</div>
+      )}
     </div>
   );
 }

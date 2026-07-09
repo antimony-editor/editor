@@ -17,7 +17,7 @@ export const THEME_COLOR_KEYS = [
   "textDim",
   "danger",
   "success",
-  "warning"
+  "warning",
 ] as const;
 
 export type ThemeColorKey = (typeof THEME_COLOR_KEYS)[number];
@@ -42,7 +42,7 @@ export const DARK_THEME: ThemeColors = {
   textDim: "#3a3a42",
   danger: "#e03e3e",
   success: "#22c55e",
-  warning: "#e8940a"
+  warning: "#e8940a",
 };
 
 // oooww my eyes
@@ -63,7 +63,7 @@ export const LIGHT_THEME: ThemeColors = {
   textDim: "#d1d5db",
   danger: "#dc2626",
   success: "#16a34a",
-  warning: "#d97706"
+  warning: "#d97706",
 };
 
 const CSS_VAR_MAP: Record<ThemeColorKey, string> = {
@@ -83,12 +83,12 @@ const CSS_VAR_MAP: Record<ThemeColorKey, string> = {
   textDim: "--text-dim",
   danger: "--danger",
   success: "--success",
-  warning: "--warning"
+  warning: "--warning",
 };
 
 export function getThemeColors(
   preset: ThemePreset,
-  custom: Partial<ThemeColors>
+  custom: Partial<ThemeColors>,
 ): ThemeColors {
   const base = preset === "light" ? LIGHT_THEME : DARK_THEME;
   if (preset === "custom") {
@@ -122,10 +122,14 @@ export function loadTheme(): ThemeConfig {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      if (parsed && typeof parsed === "object" && typeof parsed.preset === "string") {
+      if (
+        parsed &&
+        typeof parsed === "object" &&
+        typeof parsed.preset === "string"
+      ) {
         return {
           preset: parsed.preset as ThemePreset,
-          custom: parsed.custom ?? {}
+          custom: parsed.custom ?? {},
         };
       }
     }
@@ -165,7 +169,7 @@ export function buildAmtTheme(colors: ThemeColors, name: string): ThemeFile {
   return {
     formatVersion: amtFormatVersion,
     name,
-    colors
+    colors,
   };
 }
 
@@ -182,7 +186,7 @@ export function validateTheme(data: ThemeFile) {
   // Colors isn't missing & it's an object
   if (!data.colors || typeof data.colors !== "object") return false;
 
-  return THEME_COLOR_KEYS.every(key => typeof data.colors[key] === "string");
+  return THEME_COLOR_KEYS.every((key) => typeof data.colors[key] === "string");
 }
 
 export function downloadAmtFile(amt: ThemeFile): void {

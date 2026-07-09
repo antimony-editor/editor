@@ -40,8 +40,10 @@ Blockly.Blocks["timing_getCurrentTime"] = {
     this.appendDummyInput().appendField("current video time");
     this.setOutput(true, "Number");
     this.setStyle("timing_blocks");
-    this.setTooltip("Get the current elapsed time in seconds since the video started");
-  }
+    this.setTooltip(
+      "Get the current elapsed time in seconds since the video started",
+    );
+  },
 };
 
 javascriptGenerator.forBlock["timing_getCurrentTime"] = function () {

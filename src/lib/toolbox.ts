@@ -44,12 +44,12 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "logic_compare",
       value("A", shadow("math_number", field("NUM", 0))),
-      value("B", shadow("math_number", field("NUM", 0)))
+      value("B", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "logic_operation",
       value("A", shadow("checkbox", field("BOOL", "FALSE"))),
-      value("B", shadow("checkbox", field("BOOL", "FALSE")))
+      value("B", shadow("checkbox", field("BOOL", "FALSE"))),
     )}
     ${block("logic_negate", value("BOOL", shadow("checkbox", field("BOOL", "FALSE"))))}
     ${block("checkbox")}
@@ -60,7 +60,7 @@ export default function (mediaType: BlockSourceType) {
       "logic_ternary",
       value("IF", shadow("checkbox", field("BOOL", "FALSE"))),
       value("THEN", textShadow("")),
-      value("ELSE", textShadow(""))
+      value("ELSE", textShadow("")),
     )}
     ${sep(50)}
     ${block("logic_switch", value("VALUE", textShadow("")))}
@@ -72,26 +72,26 @@ export default function (mediaType: BlockSourceType) {
   <category name="Loops" categorystyle="loop_blocks">
     ${block(
       "controls_repeat_ext",
-      value("TIMES", shadow("math_number", field("NUM", 10)))
+      value("TIMES", shadow("math_number", field("NUM", 10))),
     )}
     ${block("controls_forever")}
     ${block(
       "controls_forLoop",
       value("VAR", shadow("controls_forLoop_var")),
       value("START", shadow("math_number", field("NUM", 1))),
-      value("END", shadow("math_number", field("NUM", 10)))
+      value("END", shadow("math_number", field("NUM", 10))),
     )}
     ${block(
       "controls_for",
       value("FROM", shadow("math_number", field("NUM", 1))),
       value("TO", shadow("math_number", field("NUM", 10))),
-      value("BY", shadow("math_number", field("NUM", 1)))
+      value("BY", shadow("math_number", field("NUM", 1))),
     )}
     ${block("controls_forEach")}
     ${sep(50)}
     ${block(
       "controls_whileUntil",
-      value("BOOL", shadow("checkbox", field("BOOL", "FALSE")))
+      value("BOOL", shadow("checkbox", field("BOOL", "FALSE"))),
     )}
     ${block("controls_flow_statements")}
   </category>
@@ -99,32 +99,32 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "math_arithmetic",
       value("A", shadow("math_number", field("NUM", 1))),
-      value("B", shadow("math_number", field("NUM", 1)))
+      value("B", shadow("math_number", field("NUM", 1))),
     )}
     ${block("math_single", value("NUM", shadow("math_number", field("NUM", 9))))}
     ${block(
       "math_modulo",
       value("DIVIDEND", shadow("math_number", field("NUM", 64))),
-      value("DIVISOR", shadow("math_number", field("NUM", 10)))
+      value("DIVISOR", shadow("math_number", field("NUM", 10))),
     )}
     ${block("math_constants")}
     ${block("math_trig", value("NUM", shadow("math_number", field("NUM", 45))))}
     ${block("math_round", value("NUM", shadow("math_number", field("NUM", 3.1))))}
     ${block(
       "math_number_property",
-      value("NUMBER_TO_CHECK", shadow("math_number", field("NUM", 0)))
+      value("NUMBER_TO_CHECK", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "math_random_int",
       value("FROM", shadow("math_number", field("NUM", 1))),
-      value("TO", shadow("math_number", field("NUM", 100)))
+      value("TO", shadow("math_number", field("NUM", 100))),
     )}
     ${block("math_random_float")}
     ${block(
       "math_constrain",
       value("VALUE", shadow("math_number", field("NUM", 50))),
       value("LOW", shadow("math_number", field("NUM", 1))),
-      value("HIGH", shadow("math_number", field("NUM", 100)))
+      value("HIGH", shadow("math_number", field("NUM", 100))),
     )}
     ${block("math_on_list")}
   </category>
@@ -141,18 +141,18 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "text_indexOf",
       value("VALUE", textShadow("")),
-      value("FIND", textShadow(""))
+      value("FIND", textShadow("")),
     )}
     ${block(
       "text_charAt",
       value("VALUE", textShadow("")),
-      value("AT", shadow("math_number", field("NUM", 0)))
+      value("AT", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "text_getSubstring",
       value("STRING", textShadow("")),
       value("AT1", shadow("math_number", field("NUM", 0))),
-      value("AT2", shadow("math_number", field("NUM", 0)))
+      value("AT2", shadow("math_number", field("NUM", 0))),
     )}
     ${sep(50)}
     ${block("text_print", value("TEXT", textShadow("abc")))}
@@ -178,7 +178,7 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "dicts_set_value",
       value("KEY", textShadow("key1")),
-      value("VALUE", textShadow("value1"))
+      value("VALUE", textShadow("value1")),
     )}
     ${block("dicts_has_key", value("KEY", textShadow("key1")))}
     ${block("dicts_delete_key", value("KEY", textShadow("key1")))}
@@ -195,30 +195,30 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "motion_goTo",
       value("X", shadow("math_number", field("NUM", 0))),
-      value("Y", shadow("math_number", field("NUM", 0)))
+      value("Y", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "motion_moveBy",
       value("DX", shadow("math_number", field("NUM", 10))),
-      value("DY", shadow("math_number", field("NUM", 0)))
+      value("DY", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "motion_glideSecsTo",
       value("SECS", shadow("math_number", field("NUM", 1))),
       value("X", shadow("math_number", field("NUM", 0))),
-      value("Y", shadow("math_number", field("NUM", 0)))
+      value("Y", shadow("math_number", field("NUM", 0))),
     )}
     ${sep(50)}
     ${block("motion_moveSteps", value("STEPS", shadow("math_number", field("NUM", 10))))}
     ${block(
       "motion_setXY",
       field("AXIS", "X"),
-      value("VALUE", shadow("math_number", field("NUM", 0)))
+      value("VALUE", shadow("math_number", field("NUM", 0))),
     )}
     ${sep(50)}
     ${block(
       "motion_pointDirection",
-      value("ANGLE", shadow("math_number", field("NUM", 90)))
+      value("ANGLE", shadow("math_number", field("NUM", 90))),
     )}
     ${block("motion_rotate", value("ANGLE", shadow("math_number", field("NUM", 15))))}
     ${sep(50)}
@@ -228,18 +228,18 @@ export default function (mediaType: BlockSourceType) {
       "motion_setCharPosition",
       value("INDEX", shadow("math_number", field("NUM", 1))),
       value("X", shadow("math_number", field("NUM", 0))),
-      value("Y", shadow("math_number", field("NUM", 0)))
+      value("Y", shadow("math_number", field("NUM", 0))),
     )}
     ${block(
       "motion_tweenCharPosition",
       value("INDEX", shadow("math_number", field("NUM", 1))),
       value("X", shadow("math_number", field("NUM", 0))),
       value("Y", shadow("math_number", field("NUM", 0))),
-      value("DURATION", shadow("math_number", field("NUM", 1)))
+      value("DURATION", shadow("math_number", field("NUM", 1))),
     )}
     ${block(
       "motion_forEachCharacter",
-      value("VAR", shadow("motion_forEachCharacter_var"))
+      value("VAR", shadow("motion_forEachCharacter_var")),
     )}
   </category>
   <category name="Appearance" categorystyle="appearance_blocks">
@@ -248,17 +248,17 @@ export default function (mediaType: BlockSourceType) {
     ${sep(50)}
     ${block(
       "appearance_setSize",
-      value("SIZE", shadow("math_number", field("NUM", 100)))
+      value("SIZE", shadow("math_number", field("NUM", 100))),
     )}
     ${block(
       "appearance_changeSize",
-      value("CHANGE", shadow("math_number", field("NUM", 10)))
+      value("CHANGE", shadow("math_number", field("NUM", 10))),
     )}
     ${block("appearance_getSize")}
     ${sep(50)}
     ${block(
       "appearance_setOpacity",
-      value("OPACITY", shadow("math_number", field("NUM", 100)))
+      value("OPACITY", shadow("math_number", field("NUM", 100))),
     )}
     ${block("appearance_getOpacity")}
     ${block("appearance_setColor")}
@@ -266,7 +266,7 @@ export default function (mediaType: BlockSourceType) {
     ${sep(50)}
     ${block(
       "appearance_setImageIndex",
-      value("INDEX", shadow("math_number", field("NUM", 1)))
+      value("INDEX", shadow("math_number", field("NUM", 1))),
     )}
     ${block("appearance_setImageName", value("NAME", textShadow("Image 1")))}
     ${block("appearance_nextImage")}
@@ -283,7 +283,7 @@ export default function (mediaType: BlockSourceType) {
     ${block(
       "effects_tween",
       value("VALUE", shadow("math_number", field("NUM", 100))),
-      value("DURATION", shadow("math_number", field("NUM", 1)))
+      value("DURATION", shadow("math_number", field("NUM", 1))),
     )}
     ${block("effects_setTweenMode")}
     ${block("effects_setPropertyTweenMode")}
@@ -297,7 +297,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("effects_clear_canvas")}
     ${block(
       "effects_change_canvas",
-      value("DELTA", shadow("math_number", field("NUM", 5)))
+      value("DELTA", shadow("math_number", field("NUM", 5))),
     )}
   </category>
   <category name="Layers" categorystyle="layers_blocks">
@@ -317,23 +317,23 @@ export default function (mediaType: BlockSourceType) {
     ${block("audio_setVolume", value("VOLUME", shadow("math_number", field("NUM", 100))))}
     ${block(
       "audio_changeVolume",
-      value("VOLUME", shadow("math_number", field("NUM", 10)))
+      value("VOLUME", shadow("math_number", field("NUM", 10))),
     )}
     ${block("audio_getVolume")}
     ${block(
       "audio_fade",
       value("VOLUME", shadow("math_number", field("NUM", 0))),
-      value("SECONDS", shadow("math_number", field("NUM", 1)))
+      value("SECONDS", shadow("math_number", field("NUM", 1))),
     )}
     ${block("audio_setPitch", value("PITCH", shadow("math_number", field("NUM", 100))))}
     ${sep(50)}
     ${block(
       "audio_setProjectVolume",
-      value("VOLUME", shadow("math_number", field("NUM", 100)))
+      value("VOLUME", shadow("math_number", field("NUM", 100))),
     )}
     ${block(
       "audio_changeProjectVolume",
-      value("VOLUME", shadow("math_number", field("NUM", 10)))
+      value("VOLUME", shadow("math_number", field("NUM", 10))),
     )}
     ${block("audio_getProjectVolume")}
     ${sep(50)}
@@ -345,21 +345,21 @@ export default function (mediaType: BlockSourceType) {
     ${sep(50)}
     ${block(
       "video_setPlaybackRate",
-      value("RATE", shadow("math_number", field("NUM", 1)))
+      value("RATE", shadow("math_number", field("NUM", 1))),
     )}
     ${block("video_setVolume", value("VOLUME", shadow("math_number", field("NUM", 100))))}
     ${block("video_setLoop")}
     ${sep(50)}
     ${block(
       "video_setCurrentTime",
-      value("TIME", shadow("math_number", field("NUM", 0)))
+      value("TIME", shadow("math_number", field("NUM", 0))),
     )}
     ${block("video_getCurrentTime")}
     ${block("video_getDuration")}
     ${sep(50)}
     ${block(
       "video_setVideoIndex",
-      value("INDEX", shadow("math_number", field("NUM", 1)))
+      value("INDEX", shadow("math_number", field("NUM", 1))),
     )}
     ${block("video_setVideoName", value("NAME", textShadow("Video 1")))}
     ${block("video_nextVideo")}

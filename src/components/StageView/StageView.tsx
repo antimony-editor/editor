@@ -107,7 +107,9 @@ function SpriteRenderer({
   isPlaying: boolean;
   isPaused: boolean;
   isPlayingRef: React.MutableRefObject<boolean>;
-  videoShouldPlayRefs: React.MutableRefObject<Map<string, { current: boolean }>>;
+  videoShouldPlayRefs: React.MutableRefObject<
+    Map<string, { current: boolean }>
+  >;
 }) {
   const { toCanvasX, toCanvasY, fromCanvasX, fromCanvasY } = stageCoords;
   const nodeRef = useRef<Konva.Node | null>(null);
@@ -134,6 +136,7 @@ function SpriteRenderer({
     : null;
 
   const mediaSrc = activeImage?.src || activeVideo?.src || "";
+  const mediaSrc = activeImage?.src || activeVideo?.src || "";
   const [mediaElement, setMediaElement] = useState<
     HTMLImageElement | HTMLVideoElement | null
   >(null);
@@ -141,7 +144,8 @@ function SpriteRenderer({
   const isVideo = useMemo(() => {
     if (sprite.type === "video") return true;
     if (!mediaSrc) return false;
-    if (mediaSrc.startsWith("data:video/") || mediaSrc.startsWith("blob:")) return true;
+    if (mediaSrc.startsWith("data:video/") || mediaSrc.startsWith("blob:"))
+      return true;
     return /\.(mp4|webm|ogg|mov)$/i.test(mediaSrc);
   }, [mediaSrc, sprite.type]);
 
@@ -233,7 +237,8 @@ function SpriteRenderer({
             return;
           }
           const shouldPlay = videoShouldPlayRef.current && !isPaused;
-          if (shouldPlay && mediaElement.paused) mediaElement.play().catch(() => {});
+          if (shouldPlay && mediaElement.paused)
+            mediaElement.play().catch(() => {});
           else if (!shouldPlay && !mediaElement.paused) mediaElement.pause();
           nodeRef.current?.getLayer()?.batchDraw();
           rafId = requestAnimationFrame(updateVideo);
@@ -334,8 +339,14 @@ function SpriteRenderer({
       ? snapToGrid
         ? snapCanvasCoord(rawNodeX, gridSize)
         : rawNodeX
+      ? snapToGrid
+        ? snapCanvasCoord(rawNodeX, gridSize)
+        : rawNodeX
       : fallbackCx;
     const cy = Number.isFinite(rawNodeY)
+      ? snapToGrid
+        ? snapCanvasCoord(rawNodeY, gridSize)
+        : rawNodeY
       ? snapToGrid
         ? snapCanvasCoord(rawNodeY, gridSize)
         : rawNodeY
@@ -794,10 +805,18 @@ export default function StageView() {
     };
 
     const paintVideoProxies = (proxies: VideoProxy[]) => {
-      for (const { spriteId, proxyCanvas, proxyCtx, frameCache, duration } of proxies) {
+      for (const {
+        spriteId,
+        proxyCanvas,
+        proxyCtx,
+        frameCache,
+        duration,
+      } of proxies) {
         const liveSprite = runtime.getSpriteContext(spriteId)?.sprite as any;
         let targetTime = liveSprite?.videoCurrentTime ?? 0;
         const loop = liveSprite?.videoLoop ?? false;
+        if (duration > 0 && loop)
+          targetTime = ((targetTime % duration) + duration) % duration;
         if (duration > 0 && loop)
           targetTime = ((targetTime % duration) + duration) % duration;
         targetTime = Math.max(0, Math.min(targetTime, duration));
@@ -808,6 +827,10 @@ export default function StageView() {
         let bestDelta = Infinity;
         for (const [t, bmp] of frameCache) {
           const delta = Math.abs(t - targetTime);
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            best = bmp;
+          }
           if (delta < bestDelta) {
             bestDelta = delta;
             best = bmp;
@@ -842,6 +865,7 @@ export default function StageView() {
         type: "module"
       });
 
+      const workerMessage = <T = void,>(): Promise<T> =>
       const workerMessage = <T = void,>(): Promise<T> =>
         new Promise<T>((resolve, reject) => {
           const handler = (e: MessageEvent) => {
@@ -880,6 +904,13 @@ export default function StageView() {
         .catch(() => {
           kickoffSettled = true;
         });
+      playPromise
+        .then(() => {
+          kickoffSettled = true;
+        })
+        .catch(() => {
+          kickoffSettled = true;
+        });
 
       await new Promise<void>(r =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
@@ -890,7 +921,7 @@ export default function StageView() {
       setIsPreparing(false);
 
       const videoDurations = new Map<string, number>(
-        videoProxies.map(({ spriteId, duration }) => [spriteId, duration])
+        videoProxies.map(({ spriteId, duration }) => [spriteId, duration]),
       );
 
       const originalExportFps = settings.fps;
@@ -908,6 +939,10 @@ export default function StageView() {
         const bitmap = captureFrame();
         const samples = runtime.getAudioSamples(1 / fps, sampleRate);
 
+        if (abortRecordingRef.current) {
+          bitmap.close();
+          break;
+        }
         if (abortRecordingRef.current) {
           bitmap.close();
           break;
@@ -931,8 +966,12 @@ export default function StageView() {
           if (!liveSprite || !liveSprite.videoPlaying) continue;
           const playbackRate = liveSprite.videoPlaybackRate ?? 1;
           const duration = videoDurations.get(id) ?? Infinity;
-          const nextTime = (liveSprite.videoCurrentTime ?? 0) + (1 / fps) * playbackRate;
+          const nextTime =
+            (liveSprite.videoCurrentTime ?? 0) + (1 / fps) * playbackRate;
           if (nextTime >= duration) {
+            liveSprite.videoCurrentTime = liveSprite.videoLoop
+              ? nextTime % duration
+              : duration;
             liveSprite.videoCurrentTime = liveSprite.videoLoop
               ? nextTime % duration
               : duration;
@@ -942,6 +981,13 @@ export default function StageView() {
           }
         }
 
+        if (
+          kickoffSettled &&
+          !runtime.hasLiveWaiters() &&
+          !hasActiveVideoPlayback() &&
+          frameCounter >= minimumFrames
+        )
+          break;
         if (
           kickoffSettled &&
           !runtime.hasLiveWaiters() &&
@@ -1374,9 +1420,25 @@ export default function StageView() {
             typeof spriteData.fontSize === "number"
               ? spriteData.fontSize
               : (sprite.data as any).fontSize;
+          const textVal =
+            typeof spriteData.text === "string"
+              ? spriteData.text
+              : (sprite.data as any).content;
+          const fillVal =
+            typeof spriteData.color === "string"
+              ? spriteData.color
+              : (sprite.data as any).color;
+          const sizeVal =
+            typeof spriteData.fontSize === "number"
+              ? spriteData.fontSize
+              : (sprite.data as any).fontSize;
           const fontFam = (sprite.data as any).fontFamily;
           const fontW = (sprite.data as any).fontWeight;
           const alignVal = (sprite.data as any).align;
+          const positions = (spriteData.charPositions || {}) as Record<
+            number,
+            { x: number; y: number }
+          >;
           const positions = (spriteData.charPositions || {}) as Record<
             number,
             { x: number; y: number }
@@ -1405,7 +1467,9 @@ export default function StageView() {
             hitRect.setAttrs({ width, height });
           }
 
-          const mainText = group.findOne(".main-text") as Konva.Text | undefined;
+          const mainText = group.findOne(".main-text") as
+            | Konva.Text
+            | undefined;
 
           if (layout.length === 0) {
             const children = group.getChildren();
@@ -1453,9 +1517,13 @@ export default function StageView() {
             for (let i = 0; i < layout.length; i++) {
               const item = layout[i];
               const charIdx = i + 1;
-              let charNode = group.findOne(`.char-${charIdx}`) as Konva.Text | undefined;
+              let charNode = group.findOne(`.char-${charIdx}`) as
+                | Konva.Text
+                | undefined;
 
               if (item.char === "\n") {
+                if (charNode) charNode.destroy();
+                continue;
                 if (charNode) charNode.destroy();
                 continue;
               }
@@ -1748,7 +1816,10 @@ export default function StageView() {
           }
           if (property === "videoPlaybackRate") {
             if (current && isVideoData(current.data)) {
-              const rate = getFiniteNumber(value, current.data.videoPlaybackRate ?? 1);
+              const rate = getFiniteNumber(
+                value,
+                current.data.videoPlaybackRate ?? 1,
+              );
               target.videoPlaybackRate = rate;
               const video = getVideoElementFromNode(
                 spriteNodeRefs.current.get(sprite.id) ?? null
@@ -1969,7 +2040,9 @@ export default function StageView() {
               sprite={sprite}
               isSelected={state.selectedSpriteId === sprite.id}
               showTransformer={showTransformers}
-              onSelect={() => dispatch({ type: "SELECT_SPRITE", id: sprite.id })}
+              onSelect={() =>
+                dispatch({ type: "SELECT_SPRITE", id: sprite.id })
+              }
               onNodeReady={handleSpriteNodeReady}
               stageCoords={stageCoords}
               snapToGrid={settings.snapToGrid}
@@ -2176,3 +2249,4 @@ export default function StageView() {
     </div>
   );
 }
+

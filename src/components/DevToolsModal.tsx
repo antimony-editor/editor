@@ -8,7 +8,7 @@ interface DevToolsModalProps {
 
 export default function DevToolsModal({
   isClosing = false,
-  onClose
+  onClose,
 }: DevToolsModalProps) {
   function logWorkspaceXML() {
     const workspace = Blockly.getMainWorkspace();
@@ -23,7 +23,10 @@ export default function DevToolsModal({
 
   return (
     <div className={`modal-overlay ${isClosing ? "is-closing" : ""}`}>
-      <div className="modal-content credits-modal" onClick={e => e.stopPropagation()}>
+      <div
+        className="modal-content credits-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
           <h2>Developer Tools</h2>
           <button className="close-modal-btn" onClick={onClose}>

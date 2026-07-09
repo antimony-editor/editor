@@ -6,7 +6,7 @@ import {
   generateMediaImageId,
   generateMediaSoundId,
   type TextSpriteData,
-  type MediaSpriteData
+  type MediaSpriteData,
 } from "../../lib/sprites";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -18,13 +18,13 @@ import {
   buildFontStack,
   detectAvailableFonts,
   requestFontAccess,
-  getFontPermissionState
+  getFontPermissionState,
 } from "../../lib/fonts";
 import CollapsableSection from "./CollapsableSection";
 
 export default function PropertiesPanel() {
   const { state, dispatch } = useSprites();
-  const sprite = state.sprites.find(s => s.id === state.selectedSpriteId);
+  const sprite = state.sprites.find((s) => s.id === state.selectedSpriteId);
 
   const committedName = useRef(sprite?.name ?? "");
   const [fonts, setFonts] = useState<string[]>([]);
@@ -32,7 +32,9 @@ export default function PropertiesPanel() {
     "granted" | "denied" | "prompt" | "unknown"
   >("unknown");
   const [requestingFonts, setRequestingFonts] = useState(false);
-  const [activeAssetType, setActiveAssetType] = useState<"images" | "sounds">("images");
+  const [activeAssetType, setActiveAssetType] = useState<"images" | "sounds">(
+    "images",
+  );
 
   useEffect(() => {
     if (!sprite) return;
@@ -61,12 +63,16 @@ export default function PropertiesPanel() {
         if (state === "granted") {
           const found = await detectAvailableFonts(COMMON_FONTS);
           if (!mounted) return;
-          setFonts(Array.from(new Set([...safe, ...found, ...google, ...system])));
+          setFonts(
+            Array.from(new Set([...safe, ...found, ...google, ...system])),
+          );
           return;
         }
         const fallback = getAvailableFonts(COMMON_FONTS);
         if (!mounted) return;
-        setFonts(Array.from(new Set([...safe, ...fallback, ...google, ...system])));
+        setFonts(
+          Array.from(new Set([...safe, ...fallback, ...google, ...system])),
+        );
       } catch {
         if (!mounted) return;
         setFonts(
@@ -77,9 +83,9 @@ export default function PropertiesPanel() {
               "Arial",
               "Georgia",
               "monospace",
-              ...GOOGLE_FONTS
-            ])
-          )
+              ...GOOGLE_FONTS,
+            ]),
+          ),
         );
       }
     })();
@@ -104,9 +110,9 @@ export default function PropertiesPanel() {
               "system-ui",
               "sans-serif",
               "serif",
-              "monospace"
-            ])
-          )
+              "monospace",
+            ]),
+          ),
         );
         setFontPermission("granted");
       } else {
@@ -129,12 +135,17 @@ export default function PropertiesPanel() {
 
   const updateMediaData = (
     data: MediaSpriteData,
-    extraChanges: Record<string, unknown> = {}
+    extraChanges: Record<string, unknown> = {},
   ) => {
     update({ ...extraChanges, data });
   };
 
-  const numField = (label: string, value: number, key: string, isData = false) => (
+  const numField = (
+    label: string,
+    value: number,
+    key: string,
+    isData = false,
+  ) => (
     <div className="properties-row">
       <span className="properties-label">{label}</span>
       <input
@@ -142,7 +153,7 @@ export default function PropertiesPanel() {
         type="number"
         step="0.01"
         value={Number(value.toFixed(2))}
-        onChange={e => {
+        onChange={(e) => {
           const v = parseFloat(e.target.value) || 0;
           if (isData) updateData({ [key]: v });
           else update({ [key]: v });
@@ -161,8 +172,8 @@ export default function PropertiesPanel() {
               className="properties-input"
               type="text"
               value={sprite.name}
-              onChange={e => update({ name: e.target.value })}
-              onBlur={e => {
+              onChange={(e) => update({ name: e.target.value })}
+              onBlur={(e) => {
                 const v = e.target.value.trim();
                 if (!v) update({ name: committedName.current });
                 else committedName.current = v;
@@ -189,14 +200,14 @@ export default function PropertiesPanel() {
               max={1}
               step={0.01}
               value={sprite.opacity}
-              onChange={e => update({ opacity: parseFloat(e.target.value) })}
+              onChange={(e) => update({ opacity: parseFloat(e.target.value) })}
             />
             <span
               style={{
                 fontSize: "11px",
                 color: "var(--text-muted)",
                 width: "32px",
-                textAlign: "right"
+                textAlign: "right",
               }}
             >
               {Math.round(sprite.opacity * 100)}%
@@ -227,22 +238,25 @@ export default function PropertiesPanel() {
                   <textarea
                     className="properties-textarea"
                     value={d.content}
-                    onChange={e => updateData({ content: e.target.value })}
+                    onChange={(e) => updateData({ content: e.target.value })}
                   />
                 </div>
-                <div className="properties-row" style={{ alignItems: "center" }}>
+                <div
+                  className="properties-row"
+                  style={{ alignItems: "center" }}
+                >
                   <span className="properties-label">Font</span>
                   <select
                     className="properties-select"
                     value={d.fontFamily}
-                    onChange={e => {
+                    onChange={(e) => {
                       const f = e.target.value;
                       loadGoogleFont(f);
                       updateData({ fontFamily: f });
                     }}
                     style={{
                       minWidth: 160,
-                      fontFamily: buildFontStack(d.fontFamily)
+                      fontFamily: buildFontStack(d.fontFamily),
                     }}
                   >
                     {!fonts.includes(d.fontFamily) && d.fontFamily ? (
@@ -253,8 +267,12 @@ export default function PropertiesPanel() {
                         {d.fontFamily}
                       </option>
                     ) : null}
-                    {fonts.map(f => (
-                      <option key={f} value={f} style={{ fontFamily: buildFontStack(f) }}>
+                    {fonts.map((f) => (
+                      <option
+                        key={f}
+                        value={f}
+                        style={{ fontFamily: buildFontStack(f) }}
+                      >
                         {f}
                       </option>
                     ))}
@@ -276,7 +294,9 @@ export default function PropertiesPanel() {
                   <select
                     className="properties-select"
                     value={d.fontWeight}
-                    onChange={e => updateData({ fontWeight: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      updateData({ fontWeight: parseInt(e.target.value) })
+                    }
                   >
                     <option value={300}>Light</option>
                     <option value={400}>Regular</option>
@@ -291,14 +311,14 @@ export default function PropertiesPanel() {
                     <input
                       type="color"
                       value={d.color}
-                      onChange={e => updateData({ color: e.target.value })}
+                      onChange={(e) => updateData({ color: e.target.value })}
                     />
                   </div>
                   <input
                     className="properties-input"
                     type="text"
                     value={d.color}
-                    onChange={e => updateData({ color: e.target.value })}
+                    onChange={(e) => updateData({ color: e.target.value })}
                   />
                 </div>
                 <div className="properties-row">
@@ -306,7 +326,7 @@ export default function PropertiesPanel() {
                   <select
                     className="properties-select"
                     value={d.align}
-                    onChange={e => updateData({ align: e.target.value })}
+                    onChange={(e) => updateData({ align: e.target.value })}
                   >
                     <option value="left">Left</option>
                     <option value="center">Center</option>

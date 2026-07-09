@@ -16,20 +16,23 @@ defineExpandableBlock({
   slots: [
     {
       prefix: "ADD",
-      shadow: index => ({
+      shadow: (index) => ({
         type: "text",
-        fields: { TEXT: listDefaultValues[index] ?? "" }
-      })
-    }
-  ]
+        fields: { TEXT: listDefaultValues[index] ?? "" },
+      }),
+    },
+  ],
 });
 
-javascriptGenerator.forBlock["lists_create_with"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["lists_create_with"] = function (
+  block: Blockly.Block,
+) {
   const expandableBlock = block as ExpandableBlock;
   const items: string[] = [];
 
   for (let i = 0; i < expandableBlock.itemCount_; i++) {
-    const value = javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "null";
+    const value =
+      javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "null";
     items.push(value);
   }
 
@@ -41,7 +44,7 @@ Blockly.Blocks["text"] = {
     this.appendDummyInput().appendField(new Blockly.FieldTextInput(""), "TEXT");
     this.setOutput(true, "String");
     this.setStyle("text_blocks");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["text"] = function (block: Blockly.Block) {
@@ -57,11 +60,12 @@ Blockly.Blocks["text_setText"] = {
     this.setNextStatement(true, null);
     this.setStyle("text_blocks");
     this.setTooltip("Change the text content");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["text_setText"] = function (block: Blockly.Block) {
-  const text = javascriptGenerator.valueToCode(block, "TEXT", Order.ATOMIC) || "''";
+  const text =
+    javascriptGenerator.valueToCode(block, "TEXT", Order.ATOMIC) || "''";
   return `context.sprite.text = ${text};\n`;
 };
 
@@ -72,7 +76,10 @@ Blockly.Blocks["text_getText"] = {
     this.setOutput(true, "String");
     this.setStyle("text_blocks");
     this.setTooltip("Get the text content");
-  }
+  },
 };
 
-javascriptGenerator.forBlock["text_getText"] = () => [`context.sprite.text`, Order.NONE];
+javascriptGenerator.forBlock["text_getText"] = () => [
+  `context.sprite.text`,
+  Order.NONE,
+];

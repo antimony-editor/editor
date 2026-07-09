@@ -1,4 +1,14 @@
-import { X, Gauge, FileVideo, Loader2, HardDrive, Video, Lightbulb, Square, Film } from "lucide-react";
+import {
+  X,
+  Gauge,
+  FileVideo,
+  Loader2,
+  HardDrive,
+  Video,
+  Lightbulb,
+  Square,
+  Film,
+} from "lucide-react";
 import { useState, useEffect, useRef, useContext } from "react";
 import { SpriteContext } from "../lib/sprites";
 import { ProjectSettingsContext } from "../lib/settings";
@@ -28,13 +38,19 @@ function buildDynamicFacts(
   projectFps: number,
   loadedExtensionCount: number,
   spriteNames: string[],
-  spriteTypes: Record<string, number>
+  spriteTypes: Record<string, number>,
 ): string[] {
   const facts: string[] = [];
 
-  facts.push(`There are ${TWEEN_MODE_OPTIONS.length} different tween modes available in Antimony.`);
-  facts.push(`Antimony has ${builtinExtensions.length} built-in extensions ready to use.`);
-  facts.push(`Antimony is built on top of ${Object.keys(Blockly.Blocks).length} registered block types.`);
+  facts.push(
+    `There are ${TWEEN_MODE_OPTIONS.length} different tween modes available in Antimony.`,
+  );
+  facts.push(
+    `Antimony has ${builtinExtensions.length} built-in extensions ready to use.`,
+  );
+  facts.push(
+    `Antimony is built on top of ${Object.keys(Blockly.Blocks).length} registered block types.`,
+  );
 
   if (spriteCount === 1) {
     facts.push(`Your project has only 1 source. More the merrier!`);
@@ -43,45 +59,73 @@ function buildDynamicFacts(
   }
 
   if (blockCount > 0) {
-    facts.push(`Your project contains ${blockCount} block${blockCount === 1 ? "" : "s"} of code across all sources.`);
+    facts.push(
+      `Your project contains ${blockCount} block${blockCount === 1 ? "" : "s"} of code across all sources.`,
+    );
   } else {
-    facts.push(`Your project has no blocks yet. There's a whole toolbox waiting for you!`);
+    facts.push(
+      `Your project has no blocks yet. There's a whole toolbox waiting for you!`,
+    );
   }
 
   if (spriteNames.length > 0) {
-    const nameList = spriteNames.length === 1
-      ? `"${spriteNames[0]}"`
-      : spriteNames.slice(0, -1).map(n => `"${n}"`).join(", ") + ` and "${spriteNames[spriteNames.length - 1]}"`;
-    facts.push(`The source${spriteNames.length === 1 ? "" : "s"} in your project ${spriteNames.length === 1 ? "is" : "are"} ${nameList}.`);
+    const nameList =
+      spriteNames.length === 1
+        ? `"${spriteNames[0]}"`
+        : spriteNames
+            .slice(0, -1)
+            .map((n) => `"${n}"`)
+            .join(", ") + ` and "${spriteNames[spriteNames.length - 1]}"`;
+    facts.push(
+      `The source${spriteNames.length === 1 ? "" : "s"} in your project ${spriteNames.length === 1 ? "is" : "are"} ${nameList}.`,
+    );
   }
 
-  if (spriteTypes.text > 0 && spriteTypes.media === 0 && spriteTypes.video === 0) {
+  if (
+    spriteTypes.text > 0 &&
+    spriteTypes.media === 0 &&
+    spriteTypes.video === 0
+  ) {
     facts.push(`Your project is text-only. Sometimes, words are all you need.`);
   }
   if (spriteTypes.video > 0) {
-    facts.push(`Your project has ${spriteTypes.video} video source${spriteTypes.video === 1 ? "" : "s"}. Lights, camera, Antimony!`);
+    facts.push(
+      `Your project has ${spriteTypes.video} video source${spriteTypes.video === 1 ? "" : "s"}. Lights, camera, Antimony!`,
+    );
   }
   if (spriteTypes.media > 0) {
-    facts.push(`Your project uses ${spriteTypes.media} image source${spriteTypes.media === 1 ? "" : "s"}.`);
+    facts.push(
+      `Your project uses ${spriteTypes.media} image source${spriteTypes.media === 1 ? "" : "s"}.`,
+    );
   }
 
   const totalPixels = projectWidth * projectHeight;
-  facts.push(`Your canvas is ${projectWidth}×${projectHeight}; that's exactly ${totalPixels.toLocaleString()} pixels to fill!`);
+  facts.push(
+    `Your canvas is ${projectWidth}×${projectHeight}; that's exactly ${totalPixels.toLocaleString()} pixels to fill!`,
+  );
 
   if (projectFps === 60) {
     facts.push(`Your project runs at 60 FPS. Buttery smooth!`);
   } else if (projectFps >= 30) {
     facts.push(`Your project targets ${projectFps} FPS. Solid and smooth.`);
   } else {
-    facts.push(`Your project runs at ${projectFps} FPS. Going for that cinematic feel?`);
+    facts.push(
+      `Your project runs at ${projectFps} FPS. Going for that cinematic feel?`,
+    );
   }
 
   if (loadedExtensionCount === 0) {
-    facts.push(`You have no extensions loaded. Did you know Antimony has a Camera extension?`);
+    facts.push(
+      `You have no extensions loaded. Did you know Antimony has a Camera extension?`,
+    );
   } else if (loadedExtensionCount === 1) {
-    facts.push(`You're using 1 extension. Extensions can add a lot of power to your project!`);
+    facts.push(
+      `You're using 1 extension. Extensions can add a lot of power to your project!`,
+    );
   } else {
-    facts.push(`You have ${loadedExtensionCount} extensions loaded. You're really going all out here!`);
+    facts.push(
+      `You have ${loadedExtensionCount} extensions loaded. You're really going all out here!`,
+    );
   }
 
   return facts;
@@ -96,7 +140,7 @@ function buildFunFacts(
   projectFps: number,
   loadedExtensionCount: number,
   spriteNames: string[],
-  spriteTypes: Record<string, number>
+  spriteTypes: Record<string, number>,
 ): string[] {
   if (staticFacts.length === 0) return [];
 
@@ -108,7 +152,7 @@ function buildFunFacts(
     projectFps,
     loadedExtensionCount,
     spriteNames,
-    spriteTypes
+    spriteTypes,
   );
 
   const all = [...staticFacts, ...dynamic];
@@ -249,7 +293,7 @@ export default function ExportModal({
   const spriteNames = sprites.map((s) => s.name);
   const spriteTypes = sprites.reduce(
     (acc, s) => ({ ...acc, [s.type]: (acc[s.type] ?? 0) + 1 }),
-    {} as Record<string, number>
+    {} as Record<string, number>,
   );
   const blockCount = sprites.reduce((total, s) => {
     if (!s.blocklyXml) return total;
@@ -266,12 +310,15 @@ export default function ExportModal({
     settings?.fps ?? 60,
     activeExtensions.length,
     spriteNames,
-    spriteTypes
+    spriteTypes,
   );
 
   const isActive = isExporting || isPreparing || isEncoding;
   const isRecording = isExporting && !isEncoding && !isPreparing;
-  const { fact: funFact, visible: funFactVisible } = useFunFact(isActive, funFacts);
+  const { fact: funFact, visible: funFactVisible } = useFunFact(
+    isActive,
+    funFacts,
+  );
 
   return (
     <div
@@ -285,7 +332,13 @@ export default function ExportModal({
       >
         <div className="modal-header">
           <h2>
-            {isPreparing ? "Preparing..." : isRecording ? "Processing Video..." : isEncoding ? "Finalizing..." : "Export Video"}
+            {isPreparing
+              ? "Preparing..."
+              : isRecording
+                ? "Processing Video..."
+                : isEncoding
+                  ? "Finalizing..."
+                  : "Export Video"}
           </h2>
           {!isActive && (
             <button className="close-modal-btn" onClick={onClose}>
@@ -297,7 +350,8 @@ export default function ExportModal({
           {!isActive && (
             <>
               <div className="export-warning">
-                The exporting process is highly unstable at the moment. Please report any bugs you find to us through Discord!
+                The exporting process is highly unstable at the moment. Please
+                report any bugs you find to us through Discord!
               </div>
               <section className="settings-section">
                 <div className="settings-section-title">
@@ -375,10 +429,17 @@ export default function ExportModal({
                 Preparing video sources...
               </div>
               <div className="export-encoding-sublabel">
-                Pre-decoding video frames for fast export. This may take a moment.
+                Pre-decoding video frames for fast export. This may take a
+                moment.
               </div>
-              <div className="export-fun-fact" style={{ opacity: funFactVisible ? 1 : 0 }}>
-                <span className="export-fun-fact-label"><Lightbulb size={11} />Did you know?</span>
+              <div
+                className="export-fun-fact"
+                style={{ opacity: funFactVisible ? 1 : 0 }}
+              >
+                <span className="export-fun-fact-label">
+                  <Lightbulb size={11} />
+                  Did you know?
+                </span>
                 {funFact}
               </div>
             </div>
@@ -390,13 +451,21 @@ export default function ExportModal({
                 <Video size={28} />
               </div>
               <div className="export-encoding-label">
-                {frameCount > 0 ? `${frameCount} frame${frameCount === 1 ? "" : "s"} captured` : "Starting up..."}
+                {frameCount > 0
+                  ? `${frameCount} frame${frameCount === 1 ? "" : "s"} captured`
+                  : "Starting up..."}
               </div>
               <div className="export-encoding-sublabel">
                 Capturing and encoding on the fly. Do not close this window...
               </div>
-              <div className="export-fun-fact" style={{ opacity: funFactVisible ? 1 : 0 }}>
-                <span className="export-fun-fact-label"><Lightbulb size={11} />Did you know?</span>
+              <div
+                className="export-fun-fact"
+                style={{ opacity: funFactVisible ? 1 : 0 }}
+              >
+                <span className="export-fun-fact-label">
+                  <Lightbulb size={11} />
+                  Did you know?
+                </span>
                 {funFact}
               </div>
               {(onStopAndExport || onAbortRecording) && (
@@ -404,7 +473,11 @@ export default function ExportModal({
                   {onStopAndExport && (
                     <button
                       className="primary-btn"
-                      style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
                       onClick={onStopAndExport}
                     >
                       <FileVideo size={15} />
@@ -414,7 +487,11 @@ export default function ExportModal({
                   {onAbortRecording && (
                     <button
                       className="danger-btn"
-                      style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
                       onClick={onAbortRecording}
                     >
                       <Square size={15} />
@@ -431,9 +508,7 @@ export default function ExportModal({
               <div className="export-encoding-icon">
                 <Loader2 className="animate-spin-slow" size={28} />
               </div>
-              <div className="export-encoding-label">
-                Finalizing File...
-              </div>
+              <div className="export-encoding-label">Finalizing File...</div>
               <div className="export-encoding-sublabel">
                 Writing video headers and metadata. Just a moment!
               </div>
@@ -445,8 +520,14 @@ export default function ExportModal({
                   />
                 </div>
               </div>
-              <div className="export-fun-fact" style={{ opacity: funFactVisible ? 1 : 0 }}>
-                <span className="export-fun-fact-label"><Lightbulb size={11} />Did you know?</span>
+              <div
+                className="export-fun-fact"
+                style={{ opacity: funFactVisible ? 1 : 0 }}
+              >
+                <span className="export-fun-fact-label">
+                  <Lightbulb size={11} />
+                  Did you know?
+                </span>
                 {funFact}
               </div>
             </div>

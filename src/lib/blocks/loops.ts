@@ -8,7 +8,7 @@ Blockly.Blocks["controls_forLoop_var"] = {
     this.setStyle("loop_blocks");
     this.setTooltip("The current value of i in the for loop.");
     this.duplicateOnDrag = true;
-  }
+  },
 };
 
 javascriptGenerator.forBlock["controls_forLoop_var"] = function () {
@@ -25,8 +25,10 @@ Blockly.Blocks["controls_forLoop"] = {
     this.setPreviousStatement(true, "default");
     this.setNextStatement(true, "default");
     this.setStyle("loop_blocks");
-    this.setTooltip("Runs the code for each value of i from start to end (inclusive).");
-  }
+    this.setTooltip(
+      "Runs the code for each value of i from start to end (inclusive).",
+    );
+  },
 };
 
 Blockly.Blocks["controls_forever"] = {
@@ -37,7 +39,7 @@ Blockly.Blocks["controls_forever"] = {
     this.setNextStatement(false);
     this.setStyle("loop_blocks");
     this.setTooltip("Loops forever.");
-  }
+  },
 };
 
 javascriptGenerator.forBlock["controls_forever"] = function (block, generator) {
@@ -48,8 +50,10 @@ javascriptGenerator.forBlock["controls_forever"] = function (block, generator) {
 };
 
 javascriptGenerator.forBlock["controls_forLoop"] = function (block, generator) {
-  const variableName = javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
-  const start = javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
+  const variableName =
+    javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
+  const start =
+    javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
   const end = javascriptGenerator.valueToCode(block, "END", Order.NONE) || "0";
   const body = javascriptGenerator.statementToCode(block, "DO");
 

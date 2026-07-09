@@ -179,48 +179,50 @@ export default function SpritePanel() {
         </div>
       </div>
       <div className="add-sprite-area">
-        {showMenu && buttonRect && createPortal(
-          <div
-            ref={menuRef}
-            className="add-sprite-menu"
-            style={{
-              position: "fixed",
-              left: buttonRect.left,
-              bottom: window.innerHeight - buttonRect.top + 4,
-              width: buttonRect.width,
-              zIndex: 1000,
-            }}
-          >
-            <button
-              className="add-sprite-option"
-              onClick={() => handleAdd("text")}
+        {showMenu &&
+          buttonRect &&
+          createPortal(
+            <div
+              ref={menuRef}
+              className="add-sprite-menu"
+              style={{
+                position: "fixed",
+                left: buttonRect.left,
+                bottom: window.innerHeight - buttonRect.top + 4,
+                width: buttonRect.width,
+                zIndex: 1000,
+              }}
             >
-              <span style={{ color: "var(--accent)", display: "flex" }}>
-                <Type size={14} />
-              </span>{" "}
-              Text
-            </button>
-            <button
-              className="add-sprite-option"
-              onClick={() => handleAdd("media")}
-            >
-              <span style={{ color: "var(--accent)", display: "flex" }}>
-                <Image size={14} />
-              </span>{" "}
-              Image
-            </button>
-            <button
-              className="add-sprite-option"
-              onClick={() => handleAdd("video")}
-            >
-              <span style={{ color: "var(--accent)", display: "flex" }}>
-                <Video size={14} />
-              </span>{" "}
-              Video
-            </button>
-          </div>,
-          document.body
-        )}
+              <button
+                className="add-sprite-option"
+                onClick={() => handleAdd("text")}
+              >
+                <span style={{ color: "var(--accent)", display: "flex" }}>
+                  <Type size={14} />
+                </span>{" "}
+                Text
+              </button>
+              <button
+                className="add-sprite-option"
+                onClick={() => handleAdd("media")}
+              >
+                <span style={{ color: "var(--accent)", display: "flex" }}>
+                  <Image size={14} />
+                </span>{" "}
+                Image
+              </button>
+              <button
+                className="add-sprite-option"
+                onClick={() => handleAdd("video")}
+              >
+                <span style={{ color: "var(--accent)", display: "flex" }}>
+                  <Video size={14} />
+                </span>{" "}
+                Video
+              </button>
+            </div>,
+            document.body,
+          )}
         <button
           ref={addBtnRef}
           className="add-sprite-btn"

@@ -28,15 +28,19 @@ export default function BrowserCompatibilityModal({
           <div className="browser-compat-warning">
             <AlertTriangle size={18} />
             <p>
-              Antimony is built and tested primarily for Chromium-based browsers.
-              You may encounter bugs and compatibility issues in other browsers.
+              Antimony is built and tested primarily for Chromium-based
+              browsers. You may encounter bugs and compatibility issues in other
+              browsers.
             </p>
           </div>
           <p className="browser-compat-suggestion">
-            For the most reliable experience, consider using the Antimony desktop
-            app instead of your current browser.
+            For the most reliable experience, consider using the Antimony
+            desktop app instead of your current browser.
           </p>
-          <button className="btn primary browser-compat-dismiss-btn" onClick={onClose}>
+          <button
+            className="btn primary browser-compat-dismiss-btn"
+            onClick={onClose}
+          >
             Continue anyway
           </button>
         </div>

@@ -17,9 +17,7 @@ javascriptGenerator.forBlock["functions_argument"] = function () {
 
 Blockly.Blocks["functions_lambda"] = {
   init: function () {
-    this.appendValueInput("ARG")
-      .setCheck(null)
-      .appendField("new lambda");
+    this.appendValueInput("ARG").setCheck(null).appendField("new lambda");
     this.appendStatementInput("BODY");
     this.setOutput(true, null);
     this.setStyle("procedure_blocks");
@@ -78,4 +76,4 @@ javascriptGenerator.forBlock["functions_return"] = function (
   return `return (${val});\n`;
 };
 
-export { };
+export {};
