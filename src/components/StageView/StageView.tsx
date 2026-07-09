@@ -815,7 +815,7 @@ export default function StageView() {
     let videoProxies: VideoProxy[] = [];
 
     try {
-      const worker = new Worker(new URL("../workers/export.worker.ts", import.meta.url), {
+      const worker = new Worker(new URL("../../workers/export.worker.ts", import.meta.url), {
         type: "module"
       });
 

@@ -133,14 +133,14 @@ export function loadTheme(): ThemeConfig {
         };
       }
     }
-  } catch {}
+  } catch { /* empty */ }
   return { preset: "dark", custom: {} };
 }
 
 export function saveTheme(theme: ThemeConfig): void {
   try {
     localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(theme));
-  } catch {}
+  } catch { /* empty */ }
 }
 
 export interface ThemeContextValue {
