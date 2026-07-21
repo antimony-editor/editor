@@ -1,4 +1,9 @@
-import { isMediaData, isVideoData, type Sprite, type SpriteAction } from "./sprites";
+import {
+  isMediaData,
+  isVideoData,
+  type Sprite,
+  type SpriteAction,
+} from "./sprites";
 import type { Dispatch } from "react";
 import {
   applyTweenMode,
@@ -170,9 +175,10 @@ class Runtime {
   private spritesProvider: (() => Sprite[]) | null = null;
   private nextMonitoringTime = 0;
 
-  private cameras: Map<string, { x: number; y: number; zoom: number; rotation: number }> = new Map([
-    ["default", { x: 0, y: 0, zoom: 1, rotation: 0 }]
-  ]);
+  private cameras: Map<
+    string,
+    { x: number; y: number; zoom: number; rotation: number }
+  > = new Map([["default", { x: 0, y: 0, zoom: 1, rotation: 0 }]]);
   private activeCameraId: string = "default";
 
   private mouseX = 0;
@@ -183,6 +189,7 @@ class Runtime {
   private inputTargetEl: HTMLElement | null = null;
   private inputListenersAttached = false;
   private timerStart = 0;
+  private startTime = 0;
 
   public getCamera(id: string) {
     return this.cameras.get(id) || { x: 0, y: 0, zoom: 1, rotation: 0 };
@@ -192,7 +199,10 @@ class Runtime {
     return this.getCamera(this.activeCameraId);
   }
 
-  public setCamera(id: string, camera: Partial<{ x: number; y: number; zoom: number; rotation: number }>) {
+  public setCamera(
+    id: string,
+    camera: Partial<{ x: number; y: number; zoom: number; rotation: number }>,
+  ) {
     const current = this.getCamera(id);
     this.cameras.set(id, { ...current, ...camera });
   }
@@ -220,12 +230,8 @@ class Runtime {
     const rect = el.getBoundingClientRect();
 
     return {
-      x:
-        ((clientX - rect.left) / rect.width) * stage.width -
-        stage.width / 2,
-      y:
-        stage.height / 2 -
-        ((clientY - rect.top) / rect.height) * stage.height,
+      x: ((clientX - rect.left) / rect.width) * stage.width - stage.width / 2,
+      y: stage.height / 2 - ((clientY - rect.top) / rect.height) * stage.height,
     };
   }
 
@@ -341,10 +347,7 @@ class Runtime {
     return this.sprites.get(spriteId) ?? null;
   }
 
-  distanceToSprite(
-    from: { x: number; y: number },
-    targetName: string,
-  ): number {
+  distanceToSprite(from: { x: number; y: number }, targetName: string): number {
     const target = this.getSpriteByName(targetName);
     if (!target) return Infinity;
     return Math.hypot(from.x - target.x, from.y - target.y);
@@ -465,10 +468,16 @@ class Runtime {
   private getDecodeContext() {
     if (!this.decodeCtx) {
       const OfflineCtx =
-        (window as unknown as { OfflineAudioContext?: typeof OfflineAudioContext })
-          .OfflineAudioContext ??
-        (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext })
-          .webkitOfflineAudioContext;
+        (
+          window as unknown as {
+            OfflineAudioContext?: typeof OfflineAudioContext;
+          }
+        ).OfflineAudioContext ??
+        (
+          window as unknown as {
+            webkitOfflineAudioContext?: typeof OfflineAudioContext;
+          }
+        ).webkitOfflineAudioContext;
       this.decodeCtx = OfflineCtx
         ? new OfflineCtx(1, 1, 44100)
         : this.getAudioContext();
@@ -485,16 +494,20 @@ class Runtime {
     if (buffer.sampleRate === targetRate) return buffer;
 
     const OfflineCtx =
-      (window as unknown as { OfflineAudioContext?: typeof OfflineAudioContext })
-        .OfflineAudioContext ??
-      (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext })
-          .webkitOfflineAudioContext;
+      (
+        window as unknown as {
+          OfflineAudioContext?: typeof OfflineAudioContext;
+        }
+      ).OfflineAudioContext ??
+      (
+        window as unknown as {
+          webkitOfflineAudioContext?: typeof OfflineAudioContext;
+        }
+      ).webkitOfflineAudioContext;
     if (!OfflineCtx) return buffer;
 
     try {
-      const targetLength = Math.ceil(
-        (buffer.duration * targetRate),
-      );
+      const targetLength = Math.ceil(buffer.duration * targetRate);
       const renderCtx = new OfflineCtx(
         buffer.numberOfChannels,
         targetLength,
@@ -622,7 +635,9 @@ class Runtime {
 
       if (sprite.type === "video" && isVideoData(sprite.data)) {
         const video = sprite.data;
-        const activeVideo = video.videos.find((v) => v.id === video.currentVideoId) ?? video.videos[0];
+        const activeVideo =
+          video.videos.find((v) => v.id === video.currentVideoId) ??
+          video.videos[0];
         src = activeVideo?.src;
 
         const liveSprite = this.sprites.get(id)?.sprite as any;
@@ -635,8 +650,14 @@ class Runtime {
         }
       } else if (sprite.type === "media" && isMediaData(sprite.data)) {
         const media = sprite.data;
-        const activeImage = media.images.find((img) => img.id === media.currentImageId) ?? media.images[0];
-        if (activeImage && (activeImage.src.startsWith("data:video/") || /\.(mp4|webm|ogg|mov)$/i.test(activeImage.src))) {
+        const activeImage =
+          media.images.find((img) => img.id === media.currentImageId) ??
+          media.images[0];
+        if (
+          activeImage &&
+          (activeImage.src.startsWith("data:video/") ||
+            /\.(mp4|webm|ogg|mov)$/i.test(activeImage.src))
+        ) {
           src = activeImage.src;
           videoPlaying = true;
           videoVolume = 1;
@@ -654,20 +675,24 @@ class Runtime {
 
         if (videoPlaying && videoVolume > 0) {
           const ch0 = buffer.getChannelData(0);
-          const ch1 = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : ch0;
+          const ch1 =
+            buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : ch0;
 
           const audioSampleRate = buffer.sampleRate;
           const len = ch0.length;
 
           for (let i = 0; i < numSamples; i++) {
             const sampleTime = i / sampleRate;
-            const currentVideoTime = videoCurrentTime + sampleTime * videoPlaybackRate;
+            const currentVideoTime =
+              videoCurrentTime + sampleTime * videoPlaybackRate;
 
             if (currentVideoTime >= buffer.duration && !videoLoop) {
               continue;
             }
 
-            const adjustedTime = videoLoop ? (currentVideoTime % buffer.duration) : currentVideoTime;
+            const adjustedTime = videoLoop
+              ? currentVideoTime % buffer.duration
+              : currentVideoTime;
             const pos = adjustedTime * audioSampleRate;
             const idx0 = Math.floor(pos);
             const idx1 = idx0 + 1;
@@ -744,11 +769,15 @@ class Runtime {
 
   now() {
     if (this.isStepping) return this.virtualTime;
-    return performance.now() - this.totalPausedMs - (this.paused ? performance.now() - this.pausedAt : 0);
+    return (
+      performance.now() -
+      this.totalPausedMs -
+      (this.paused ? performance.now() - this.pausedAt : 0)
+    );
   }
 
   getCurrentTime(): number {
-    return this.now() / 1000;
+    return (this.now() - this.startTime) / 1000;
   }
 
   enableStepping() {
@@ -1011,8 +1040,7 @@ class Runtime {
           this.audioContext.currentTime,
         );
         this.masterGain.gain.value = 1;
-      } catch {
-      }
+      } catch {}
     }
   }
 
@@ -1020,11 +1048,15 @@ class Runtime {
     this.stopAllSounds();
     this.activePlayingSounds.clear();
     if (this.masterGain) {
-      try { this.masterGain.disconnect(); } catch { }
+      try {
+        this.masterGain.disconnect();
+      } catch {}
       this.masterGain = null;
     }
     if (this.audioContext) {
-      try { this.audioContext.close(); } catch { }
+      try {
+        this.audioContext.close();
+      } catch {}
       this.audioContext = null;
     }
     this.resetAudioState();
@@ -1078,7 +1110,16 @@ class Runtime {
 
     await this.ensureAudioRunning();
 
-    return this.playLive(src, id, false, clamp01(volume), 1, true, startOffsetSec, durationSec);
+    return this.playLive(
+      src,
+      id,
+      false,
+      clamp01(volume),
+      1,
+      true,
+      startOffsetSec,
+      durationSec,
+    );
   }
 
   private async playLive(
@@ -1109,8 +1150,7 @@ class Runtime {
     if (ctx.state === "suspended" && !this.paused) {
       try {
         await ctx.resume();
-      } catch {
-      }
+      } catch {}
     }
 
     const source = ctx.createBufferSource();
@@ -1135,8 +1175,7 @@ class Runtime {
         try {
           source.disconnect();
           gain.disconnect();
-        } catch {
-        }
+        } catch {}
       };
 
       source.onended = () => {
@@ -1147,7 +1186,11 @@ class Runtime {
       try {
         const start = Math.max(0, Math.min(buffer.duration, startOffsetSec));
         if (durationSec !== undefined) {
-          source.start(0, start, Math.max(0, Math.min(buffer.duration - start, durationSec)));
+          source.start(
+            0,
+            start,
+            Math.max(0, Math.min(buffer.duration - start, durationSec)),
+          );
         } else {
           source.start(0, start);
         }
@@ -1172,8 +1215,7 @@ class Runtime {
         voice.source.stop();
         voice.source.disconnect();
         voice.gain.disconnect();
-      } catch {
-      }
+      } catch {}
     }
     this.liveVoices.delete(id);
   }
@@ -1186,8 +1228,7 @@ class Runtime {
           voice.source.stop();
           voice.source.disconnect();
           voice.gain.disconnect();
-        } catch {
-        }
+        } catch {}
       }
     }
     this.liveVoices.clear();
@@ -1403,7 +1444,7 @@ class Runtime {
       ) as Record<TweenableProperty, TweenMode>;
 
       const durationMs = Math.max(0, durationSec) * 1000;
-      let startTime = this.now();
+      const startTime = this.now();
 
       if (durationMs === 0) {
         for (const [property, targetValue] of entries) {
@@ -1602,7 +1643,11 @@ class Runtime {
     for (const sprite of spritesSnapshot) {
       if (sprite.type === "media" && isMediaData(sprite.data)) {
         for (const img of sprite.data.images) {
-          if (img.src && (img.src.startsWith("data:video/") || /\.(mp4|webm|ogg|mov)$/i.test(img.src))) {
+          if (
+            img.src &&
+            (img.src.startsWith("data:video/") ||
+              /\.(mp4|webm|ogg|mov)$/i.test(img.src))
+          ) {
             sources.add(img.src);
           }
         }
@@ -1624,13 +1669,14 @@ class Runtime {
     this.stopped = false;
     this.paused = false;
     this.lastFrameTime = performance.now();
+    this.startTime = this.now();
     this.resetTimer();
     this.justPressedKeys.clear();
 
     try {
       const ctx = await this.ensureAudioRunning();
       if (!ctx || ctx.state !== "running") return;
-    } catch { }
+    } catch {}
 
     const myEpoch = this.runEpoch;
 
@@ -1670,7 +1716,10 @@ class Runtime {
   }
 }
 
-const runtime = (typeof window !== "undefined" && window.RUNTIME) ? window.RUNTIME : new Runtime();
+const runtime =
+  typeof window !== "undefined" && window.RUNTIME
+    ? window.RUNTIME
+    : new Runtime();
 
 if (typeof window !== "undefined") {
   const alreadyRunning = window.RUNTIME === runtime;

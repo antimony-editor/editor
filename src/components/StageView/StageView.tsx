@@ -1,14 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import {
-  Play,
-  Square,
-  Pause,
-  Video,
-  Maximize,
-  X,
-  Download,
-  Loader2,
-} from "lucide-react";
+import { Play, Square, Pause, Video, Maximize, X, Download, Loader2 } from "lucide-react";
 import {
   Stage,
   Layer,
@@ -17,7 +8,7 @@ import {
   Transformer,
   Line,
   Image as KonvaImage,
-  Group,
+  Group
 } from "react-konva";
 import KonvaCore from "konva";
 import type Konva from "konva";
@@ -26,149 +17,35 @@ import {
   isTextData,
   isMediaData,
   isVideoData,
-  type Sprite,
-} from "../lib/sprites";
-import { buildFontStack, loadGoogleFont } from "../lib/fonts";
-import { useProjectSettings } from "../lib/settings";
+  type Sprite
+} from "../../lib/sprites";
+import { buildFontStack, loadGoogleFont } from "../../lib/fonts";
+import { useProjectSettings } from "../../lib/settings";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
-import runtime, { type SpriteContext } from "../lib/runtime";
-import ExportModal, { type ExportOptions } from "./ExportModal";
-import { isChromiumBrowser } from "../lib/browser";
+import runtime, { type SpriteContext } from "../../lib/runtime";
+import ExportModal, { type ExportOptions } from "../ExportModal";
+import { isChromiumBrowser } from "../../lib/browser";
 import { Plyr } from "plyr-react";
+import { StageGrid } from "../stage/StageGrid";
+import {
+  LINE_HEIGHT,
+  createStageCoords,
+  getCharLayout,
+  getFiniteNumber,
+  getFpsColor,
+  getFrameMs,
+  getGridColorFromBackground,
+  getStagePixelRatio,
+  getVideoElementFromNode,
+  measureTextContentSize,
+  snapCanvasCoord,
+  snapCanvasPoint
+} from "../../lib/stage/utils";
 import "plyr/dist/plyr.css";
-
-const LINE_HEIGHT = 1.2;
-
-function createStageCoords(virtualWidth: number, virtualHeight: number) {
-  return {
-    toCanvasX: (x: number) => x + virtualWidth / 2,
-    toCanvasY: (y: number) => virtualHeight / 2 - y,
-    fromCanvasX: (cx: number) => cx - virtualWidth / 2,
-    fromCanvasY: (cy: number) => virtualHeight / 2 - cy,
-  };
-}
-
-function snapCanvasCoord(value: number, gridSize: number) {
-  return Math.round(value / gridSize) * gridSize;
-}
-
-function snapCanvasPoint(x: number, y: number, gridSize: number) {
-  return {
-    x: snapCanvasCoord(x, gridSize),
-    y: snapCanvasCoord(y, gridSize),
-  };
-}
-
-function getFpsColor(fps: number, targetFps: number): string {
-  if (fps <= 0) return "var(--text-muted)";
-  const ratio = fps / targetFps;
-  if (ratio >= 0.9) return "var(--success)";
-  if (ratio >= 0.7) return "#84cc16";
-  if (ratio >= 0.5) return "var(--warning)";
-  if (ratio >= 0.3) return "#f97316";
-  return "var(--danger)";
-}
-
-function getStagePixelRatio() {
-  if (typeof window === "undefined") return 2;
-  return Math.min(3, Math.max(2, window.devicePixelRatio || 1));
-}
+import styles from "./StageView.module.css";
 
 KonvaCore.pixelRatio = getStagePixelRatio();
-
-function getFrameMs(fps: number): number {
-  return 1000 / Math.max(1, fps);
-}
-
-function getFiniteNumber(value: unknown, fallback = 0): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function getVideoElementFromNode(
-  node: Konva.Node | null,
-): HTMLVideoElement | null {
-  if (!node || !(node instanceof KonvaCore.Container)) return null;
-
-  const imageNode = node.findOne("Image") as Konva.Image | undefined;
-  const media = imageNode?.image();
-
-  return media instanceof HTMLVideoElement ? media : null;
-}
-
-function parseHexColor(color: string): [number, number, number] | null {
-  let hex = color.trim();
-  if (!hex.startsWith("#")) hex = `#${hex}`;
-  hex = hex.slice(1);
-  if (hex.length === 3) {
-    hex = hex
-      .split("")
-      .map((c) => c + c)
-      .join("");
-  }
-  if (hex.length !== 6 || !/^[0-9a-fA-F]+$/.test(hex)) return null;
-  return [
-    parseInt(hex.slice(0, 2), 16),
-    parseInt(hex.slice(2, 4), 16),
-    parseInt(hex.slice(4, 6), 16),
-  ];
-}
-
-function toHexByte(value: number) {
-  return Math.round(value).toString(16).padStart(2, "0");
-}
-
-function getGridColorFromBackground(backgroundColor: string): string {
-  const rgb = parseHexColor(backgroundColor);
-  if (!rgb) return "#2a2a2a";
-  const [r, g, b] = rgb;
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  const mix = luminance < 0.5 ? 0.18 : 0.14;
-  const target = luminance < 0.5 ? 255 : 0;
-  return `#${toHexByte(r + (target - r) * mix)}${toHexByte(g + (target - g) * mix)}${toHexByte(b + (target - b) * mix)}`;
-}
-
-function StageGrid({
-  width,
-  height,
-  gridSize,
-  stroke,
-}: {
-  width: number;
-  height: number;
-  gridSize: number;
-  stroke: string;
-}) {
-  const lines = useMemo(() => {
-    const elements: React.ReactNode[] = [];
-    for (let x = 0; x <= width; x += gridSize) {
-      elements.push(
-        <Line
-          key={`v-${x}`}
-          points={[x, 0, x, height]}
-          stroke={stroke}
-          strokeWidth={1}
-          listening={false}
-        />,
-      );
-    }
-    for (let y = 0; y <= height; y += gridSize) {
-      elements.push(
-        <Line
-          key={`h-${y}`}
-          points={[0, y, width, y]}
-          stroke={stroke}
-          strokeWidth={1}
-          listening={false}
-        />,
-      );
-    }
-    return elements;
-  }, [width, height, gridSize, stroke]);
-
-  return <>{lines}</>;
-}
 
 function StageROT({ width, height }: { width: number; height: number }) {
   const lines = useMemo(() => {
@@ -184,7 +61,7 @@ function StageROT({ width, height }: { width: number; height: number }) {
           stroke={rotColor}
           strokeWidth={2}
           listening={false}
-        />,
+        />
       );
     }
     for (let y = 1; y <= 2; y++) {
@@ -195,7 +72,7 @@ function StageROT({ width, height }: { width: number; height: number }) {
           stroke={rotColor}
           strokeWidth={2}
           listening={false}
-        />,
+        />
       );
     }
 
@@ -203,110 +80,6 @@ function StageROT({ width, height }: { width: number; height: number }) {
   }, [width, height]);
 
   return <>{lines}</>;
-}
-
-function measureTextContentSize(
-  content: string,
-  fontFamily: string,
-  fontSize: number,
-  fontWeight: number,
-): { width: number; height: number } {
-  const normalizedContent = content.replace(/\r\n/g, "\n");
-  const lines = normalizedContent.split("\n");
-  const lineHeight = fontSize * LINE_HEIGHT;
-
-  if (typeof document === "undefined") {
-    const widest = Math.max(...lines.map((l) => l.length), 1);
-    return { width: widest * fontSize * 0.6, height: lines.length * lineHeight };
-  }
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    const widest = Math.max(...lines.map((l) => l.length), 1);
-    return { width: widest * fontSize * 0.6, height: lines.length * lineHeight };
-  }
-
-  const fontStyle = fontWeight >= 600 ? "bold" : "normal";
-  ctx.font = `${fontStyle} ${fontSize}px ${buildFontStack(fontFamily)}`;
-
-  const widest = lines.reduce(
-    (max, line) => Math.max(max, ctx.measureText(line).width),
-    0,
-  );
-
-  return { width: widest, height: lines.length * lineHeight };
-}
-
-function getCharLayout(
-  content: string,
-  fontFamily: string,
-  fontSize: number,
-  fontWeight: number,
-  align: "left" | "center" | "right",
-  totalWidth: number,
-  totalHeight: number
-) {
-  const normalizedContent = content.replace(/\r\n/g, "\n");
-
-  if (typeof document === "undefined") {
-    return normalizedContent.split("").map((char, index) => ({
-      char,
-      x: index * fontSize * 0.6,
-      y: 0,
-    }));
-  }
-
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    return normalizedContent.split("").map((char, index) => ({
-      char,
-      x: index * fontSize * 0.6,
-      y: 0,
-    }));
-  }
-
-  const fontStyle = fontWeight >= 600 ? "bold" : "normal";
-  ctx.font = `${fontStyle} ${fontSize}px ${buildFontStack(fontFamily)}`;
-
-  const lines = normalizedContent.split("\n");
-  const lineHeight = fontSize * LINE_HEIGHT;
-  const totalTextHeight = lines.length * lineHeight;
-  const leading = (lineHeight - fontSize) / 2;
-
-  const startY = (totalHeight - totalTextHeight) / 2 + leading;
-  let currentY = startY;
-
-  const layout: { char: string; x: number; y: number }[] = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const lineChars = line.split("");
-    const widths = lineChars.map(c => ctx.measureText(c).width);
-    const totalTextWidth = widths.reduce((sum, w) => sum + w, 0);
-
-    let startX = 0;
-    if (align === "center") {
-      startX = (totalWidth - totalTextWidth) / 2;
-    } else if (align === "right") {
-      startX = totalWidth - totalTextWidth;
-    }
-
-    let currentX = startX;
-    for (let j = 0; j < lineChars.length; j++) {
-      layout.push({
-        char: lineChars[j],
-        x: currentX,
-        y: currentY,
-      });
-      currentX += widths[j];
-    }
-
-    currentY += lineHeight;
-  }
-
-  return layout;
 }
 
 function SpriteRenderer({
@@ -321,7 +94,7 @@ function SpriteRenderer({
   isPlaying,
   isPaused,
   isPlayingRef,
-  videoShouldPlayRefs,
+  videoShouldPlayRefs
 }: {
   sprite: Sprite;
   isSelected: boolean;
@@ -334,7 +107,9 @@ function SpriteRenderer({
   isPlaying: boolean;
   isPaused: boolean;
   isPlayingRef: React.MutableRefObject<boolean>;
-  videoShouldPlayRefs: React.MutableRefObject<Map<string, { current: boolean }>>;
+  videoShouldPlayRefs: React.MutableRefObject<
+    Map<string, { current: boolean }>
+  >;
 }) {
   const { toCanvasX, toCanvasY, fromCanvasX, fromCanvasY } = stageCoords;
   const nodeRef = useRef<Konva.Node | null>(null);
@@ -350,19 +125,17 @@ function SpriteRenderer({
   const { dispatch } = useSprites();
   const mediaData = isMediaData(sprite.data) ? sprite.data : null;
   const activeImage = mediaData
-    ? (mediaData.images.find(
-      (image) => image.id === mediaData.currentImageId,
-    ) ?? mediaData.images[0])
+    ? (mediaData.images.find(image => image.id === mediaData.currentImageId) ??
+      mediaData.images[0])
     : null;
 
   const videoData = isVideoData(sprite.data) ? sprite.data : null;
   const activeVideo = videoData
-    ? (videoData.videos.find(
-      (v) => v.id === videoData.currentVideoId,
-    ) ?? videoData.videos[0])
+    ? (videoData.videos.find(v => v.id === videoData.currentVideoId) ??
+      videoData.videos[0])
     : null;
 
-  const mediaSrc = (activeImage?.src || activeVideo?.src) || "";
+  const mediaSrc = activeImage?.src || activeVideo?.src || "";
   const [mediaElement, setMediaElement] = useState<
     HTMLImageElement | HTMLVideoElement | null
   >(null);
@@ -370,7 +143,8 @@ function SpriteRenderer({
   const isVideo = useMemo(() => {
     if (sprite.type === "video") return true;
     if (!mediaSrc) return false;
-    if (mediaSrc.startsWith("data:video/") || mediaSrc.startsWith("blob:")) return true;
+    if (mediaSrc.startsWith("data:video/") || mediaSrc.startsWith("blob:"))
+      return true;
     return /\.(mp4|webm|ogg|mov)$/i.test(mediaSrc);
   }, [mediaSrc, sprite.type]);
 
@@ -427,10 +201,14 @@ function SpriteRenderer({
 
   useEffect(() => {
     if (isVideo && mediaElement instanceof HTMLVideoElement && isVideoData(sprite.data)) {
-      if (mediaElement.volume !== sprite.data.videoVolume) mediaElement.volume = sprite.data.videoVolume;
-      if (mediaElement.loop !== sprite.data.videoLoop) mediaElement.loop = sprite.data.videoLoop;
-      if (mediaElement.playbackRate !== sprite.data.videoPlaybackRate) mediaElement.playbackRate = sprite.data.videoPlaybackRate;
-      if (mediaElement.muted !== (sprite.data.videoVolume === 0)) mediaElement.muted = sprite.data.videoVolume === 0;
+      if (mediaElement.volume !== sprite.data.videoVolume)
+        mediaElement.volume = sprite.data.videoVolume;
+      if (mediaElement.loop !== sprite.data.videoLoop)
+        mediaElement.loop = sprite.data.videoLoop;
+      if (mediaElement.playbackRate !== sprite.data.videoPlaybackRate)
+        mediaElement.playbackRate = sprite.data.videoPlaybackRate;
+      if (mediaElement.muted !== (sprite.data.videoVolume === 0))
+        mediaElement.muted = sprite.data.videoVolume === 0;
     }
   }, [mediaElement, isVideo, sprite.data]);
 
@@ -458,7 +236,8 @@ function SpriteRenderer({
             return;
           }
           const shouldPlay = videoShouldPlayRef.current && !isPaused;
-          if (shouldPlay && mediaElement.paused) mediaElement.play().catch(() => {});
+          if (shouldPlay && mediaElement.paused)
+            mediaElement.play().catch(() => {});
           else if (!shouldPlay && !mediaElement.paused) mediaElement.pause();
           nodeRef.current?.getLayer()?.batchDraw();
           rafId = requestAnimationFrame(updateVideo);
@@ -513,8 +292,8 @@ function SpriteRenderer({
       id: sprite.id,
       changes: {
         x: fromCanvasX(cx),
-        y: fromCanvasY(cy),
-      },
+        y: fromCanvasY(cy)
+      }
     });
   };
 
@@ -535,9 +314,7 @@ function SpriteRenderer({
       ? Math.max(5, Number(rawHeight.toFixed(2)))
       : sprite.height;
     const rawRotation = node.rotation();
-    const updatedRotation = Number.isFinite(rawRotation)
-      ? rawRotation
-      : sprite.rotation;
+    const updatedRotation = Number.isFinite(rawRotation) ? rawRotation : sprite.rotation;
     const changes: {
       x: number;
       y: number;
@@ -550,7 +327,7 @@ function SpriteRenderer({
       y: 0,
       width: updatedWidth,
       height: updatedHeight,
-      rotation: updatedRotation,
+      rotation: updatedRotation
     };
 
     const rawNodeX = node.x();
@@ -558,10 +335,14 @@ function SpriteRenderer({
     const fallbackCx = toCanvasX(sprite.x);
     const fallbackCy = toCanvasY(sprite.y);
     const cx = Number.isFinite(rawNodeX)
-      ? (snapToGrid ? snapCanvasCoord(rawNodeX, gridSize) : rawNodeX)
+      ? snapToGrid
+        ? snapCanvasCoord(rawNodeX, gridSize)
+        : rawNodeX
       : fallbackCx;
     const cy = Number.isFinite(rawNodeY)
-      ? (snapToGrid ? snapCanvasCoord(rawNodeY, gridSize) : rawNodeY)
+      ? snapToGrid
+        ? snapCanvasCoord(rawNodeY, gridSize)
+        : rawNodeY
       : fallbackCy;
     changes.x = fromCanvasX(cx);
     changes.y = fromCanvasY(cy);
@@ -577,14 +358,14 @@ function SpriteRenderer({
         ...sprite.data,
         fontSize: Number.isFinite(newFontSize)
           ? Math.max(8, Number(newFontSize.toFixed(2)))
-          : sprite.data.fontSize,
+          : sprite.data.fontSize
       };
     }
 
     dispatch({
       type: "UPDATE_SPRITE",
       id: sprite.id,
-      changes,
+      changes
     });
   };
 
@@ -598,16 +379,12 @@ function SpriteRenderer({
           sprite.data.content,
           sprite.data.fontFamily,
           sprite.data.fontSize,
-          sprite.data.fontWeight,
+          sprite.data.fontWeight
         )
       : null;
 
-  const boxWidth = textContentSize
-    ? Math.max(textContentSize.width, 1)
-    : sprite.width;
-  const boxHeight = textContentSize
-    ? Math.max(textContentSize.height, 1)
-    : sprite.height;
+  const boxWidth = textContentSize ? Math.max(textContentSize.width, 1) : sprite.width;
+  const boxHeight = textContentSize ? Math.max(textContentSize.height, 1) : sprite.height;
 
   const contentLeft =
     textContentSize && isTextData(sprite.data)
@@ -633,7 +410,7 @@ function SpriteRenderer({
     onTap: onSelect,
     onDragMove: handleDragMove,
     onDragEnd: handleDragEnd,
-    onTransformEnd: handleTransformEnd,
+    onTransformEnd: handleTransformEnd
   };
 
   if (!sprite.visible) return null;
@@ -647,10 +424,7 @@ function SpriteRenderer({
     const textY = (sprite.height - textHeight) / 2 - contentTop;
 
     element = (
-      <Group
-        {...commonProps}
-        ref={nodeRef as React.RefObject<Konva.Group | null>}
-      >
+      <Group {...commonProps} ref={nodeRef as React.RefObject<Konva.Group | null>}>
         <Rect
           name="hit-rect"
           x={0}
@@ -678,10 +452,7 @@ function SpriteRenderer({
     );
   } else if (isMediaData(sprite.data) || isVideoData(sprite.data)) {
     element = (
-      <Group
-        {...commonProps}
-        ref={nodeRef as React.RefObject<Konva.Group | null>}
-      >
+      <Group {...commonProps} ref={nodeRef as React.RefObject<Konva.Group | null>}>
         <Rect
           x={0}
           y={0}
@@ -689,11 +460,7 @@ function SpriteRenderer({
           height={sprite.height}
           fill={mediaElement ? "transparent" : "rgba(255,255,255,0.01)"}
           stroke={
-            mediaElement
-              ? undefined
-              : isSelected
-                ? "#a63ef5"
-                : "rgba(255,255,255,0.16)"
+            mediaElement ? undefined : isSelected ? "#a63ef5" : "rgba(255,255,255,0.16)"
           }
           strokeWidth={mediaElement ? 0 : 1}
           dash={mediaElement ? undefined : [8, 5]}
@@ -736,8 +503,7 @@ function SpriteRenderer({
           }
           borderDash={isTextSprite ? [6, 4] : undefined}
           boundBoxFunc={(oldBox, newBox) => {
-            if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5)
-              return oldBox;
+            if (Math.abs(newBox.width) < 5 || Math.abs(newBox.height) < 5) return oldBox;
             return newBox;
           }}
         />
@@ -757,11 +523,11 @@ export default function StageView() {
   const videoShouldPlayRefs = useRef(new Map<string, { current: boolean }>());
   const [normalStageSize, setNormalStageSize] = useState({
     width: 0,
-    height: 0,
+    height: 0
   });
   const [fullScreenStageSize, setFullScreenStageSize] = useState({
     width: 0,
-    height: 0,
+    height: 0
   });
   const [stagePixelRatio, setStagePixelRatio] = useState(getStagePixelRatio);
   const { state, dispatch } = useSprites();
@@ -773,7 +539,7 @@ export default function StageView() {
   const playGenerationRef = useRef(0);
   const spritesRef = useRef(state.sprites);
   const pendingPlaybackChangesRef = useRef(
-    new Map<string, Partial<Omit<Sprite, "id" | "type">>>(),
+    new Map<string, Partial<Omit<Sprite, "id" | "type">>>()
   );
   spritesRef.current = state.sprites;
 
@@ -832,19 +598,17 @@ export default function StageView() {
   const stageSize = isFullScreen ? fullScreenStageSize : normalStageSize;
   const stageCoords = useMemo(
     () => createStageCoords(virtualWidth, virtualHeight),
-    [virtualWidth, virtualHeight],
+    [virtualWidth, virtualHeight]
   );
   const scale = stageSize.width / virtualWidth;
 
   const hasBlocks = useMemo(() => {
     return state.sprites.some(
-      (sprite) => sprite.blocklyXml && sprite.blocklyXml.includes("<block"),
+      sprite => sprite.blocklyXml && sprite.blocklyXml.includes("<block")
     );
   }, [state.sprites]);
 
-  const [canvasEffects, setCanvasEffects] = useState<Record<string, number>>(
-    {},
-  );
+  const [canvasEffects, setCanvasEffects] = useState<Record<string, number>>({});
 
   const plyrSource = useMemo(() => {
     if (!exportedVideo) return undefined;
@@ -853,11 +617,9 @@ export default function StageView() {
       sources: [
         {
           src: exportedVideo.url,
-          type: exportedVideo.name.endsWith(".mp4")
-            ? "video/mp4"
-            : "video/webm",
-        },
-      ],
+          type: exportedVideo.name.endsWith(".mp4") ? "video/mp4" : "video/webm"
+        }
+      ]
     };
   }, [exportedVideo?.url, exportedVideo?.name]);
 
@@ -865,9 +627,9 @@ export default function StageView() {
     () => ({
       autoplay: true,
       hideControls: false,
-      resetOnEnd: true,
+      resetOnEnd: true
     }),
-    [],
+    []
   );
 
   const resetRecordingState = useCallback(() => {
@@ -880,45 +642,6 @@ export default function StageView() {
     abortRecordingRef.current = false;
     stopAndExportRef.current = false;
   }, []);
-
-  const syncAndVerifyVideos = (advance: boolean = false, stepSec?: number) => {
-    const rt = runtime;
-    const resolvedStepSec = stepSec ?? rt.getStepMs() / 1000;
-
-    for (const [id, node] of spriteNodeRefs.current.entries()) {
-      const video = getVideoElementFromNode(node);
-      if (!video) continue;
-
-      const sprite = spritesRef.current.find((s) => s.id === id);
-      if (!sprite || !isVideoData(sprite.data)) continue;
-
-      const liveSprite = rt.getSpriteContext(id)?.sprite as any;
-      if (!liveSprite) continue;
-
-      let targetTime = liveSprite.videoCurrentTime ?? 0;
-
-      if (advance && liveSprite.videoPlaying) {
-        const playbackRate = liveSprite.videoPlaybackRate ?? 1;
-        const nextTime = targetTime + resolvedStepSec * playbackRate;
-
-        if (nextTime >= video.duration) {
-          if (liveSprite.videoLoop) {
-            targetTime = nextTime % video.duration;
-          } else {
-            targetTime = video.duration;
-            liveSprite.videoPlaying = false;
-          }
-        } else {
-          targetTime = nextTime;
-        }
-        liveSprite.videoCurrentTime = targetTime;
-      }
-
-      if (Math.abs(video.currentTime - targetTime) > 0.001) {
-        video.currentTime = targetTime;
-      }
-    }
-  };
 
   const handleExport = async (options: ExportOptions) => {
     const stage = stageRef.current;
@@ -942,7 +665,7 @@ export default function StageView() {
     stopAndExportRef.current = false;
 
     const hasActiveVideoPlayback = () =>
-      Array.from(videoShouldPlayRefs.current.values()).some((ref) => ref.current);
+      Array.from(videoShouldPlayRefs.current.values()).some(ref => ref.current);
 
     type VideoProxy = {
       spriteId: string;
@@ -954,8 +677,10 @@ export default function StageView() {
       duration: number;
     };
 
-    const decodeVideoFrames = (video: HTMLVideoElement): Promise<Map<number, ImageBitmap>> =>
-      new Promise<Map<number, ImageBitmap>>((resolve) => {
+    const decodeVideoFrames = (
+      video: HTMLVideoElement
+    ): Promise<Map<number, ImageBitmap>> =>
+      new Promise<Map<number, ImageBitmap>>(resolve => {
         const cache = new Map<number, ImageBitmap>();
         const w = video.videoWidth || 1280;
         const h = video.videoHeight || 720;
@@ -1013,7 +738,15 @@ export default function StageView() {
 
         const frameCache = await decodeVideoFrames(video);
 
-        proxies.push({ spriteId, video, imageNode, proxyCanvas, proxyCtx, frameCache, duration: video.duration });
+        proxies.push({
+          spriteId,
+          video,
+          imageNode,
+          proxyCanvas,
+          proxyCtx,
+          frameCache,
+          duration: video.duration
+        });
       }
       return proxies;
     };
@@ -1026,11 +759,20 @@ export default function StageView() {
     };
 
     const paintVideoProxies = (proxies: VideoProxy[]) => {
-      for (const { spriteId, proxyCanvas, proxyCtx, frameCache, duration } of proxies) {
+      for (const {
+        spriteId,
+        proxyCanvas,
+        proxyCtx,
+        frameCache,
+        duration,
+      } of proxies) {
         const liveSprite = runtime.getSpriteContext(spriteId)?.sprite as any;
         let targetTime = liveSprite?.videoCurrentTime ?? 0;
         const loop = liveSprite?.videoLoop ?? false;
-        if (duration > 0 && loop) targetTime = ((targetTime % duration) + duration) % duration;
+        if (duration > 0 && loop)
+          targetTime = ((targetTime % duration) + duration) % duration;
+        if (duration > 0 && loop)
+          targetTime = ((targetTime % duration) + duration) % duration;
         targetTime = Math.max(0, Math.min(targetTime, duration));
 
         if (frameCache.size === 0) continue;
@@ -1039,7 +781,14 @@ export default function StageView() {
         let bestDelta = Infinity;
         for (const [t, bmp] of frameCache) {
           const delta = Math.abs(t - targetTime);
-          if (delta < bestDelta) { bestDelta = delta; best = bmp; }
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            best = bmp;
+          }
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            best = bmp;
+          }
         }
         if (best) {
           proxyCtx.clearRect(0, 0, proxyCanvas.width, proxyCanvas.height);
@@ -1066,20 +815,19 @@ export default function StageView() {
     let videoProxies: VideoProxy[] = [];
 
     try {
-      const worker = new Worker(
-        new URL("../workers/export.worker.ts", import.meta.url),
-        { type: "module" },
-      );
+      const worker = new Worker(new URL("../../workers/export.worker.ts", import.meta.url), {
+        type: "module"
+      });
 
-      const workerMessage = <T = void>(): Promise<T> =>
-        new Promise<T>((resolve, reject) => {
+      const workerMessage = (): Promise<void> =>
+        new Promise<void>((resolve, reject) => {
           const handler = (e: MessageEvent) => {
             if (e.data.type === "error") {
               worker.removeEventListener("message", handler);
               reject(new Error(e.data.error));
             } else if (e.data.type !== "frameDone") {
               worker.removeEventListener("message", handler);
-              resolve(e.data as T);
+              resolve(e.data as void);
             }
           };
           worker.addEventListener("message", handler);
@@ -1087,7 +835,14 @@ export default function StageView() {
 
       worker.postMessage({
         type: "init",
-        payload: { options, sampleRate, width: physicalWidth, height: physicalHeight, fps, isChromium: isChromiumBrowser() },
+        payload: {
+          options,
+          sampleRate,
+          width: physicalWidth,
+          height: physicalHeight,
+          fps,
+          isChromium: isChromiumBrowser()
+        }
       });
       await workerMessage();
 
@@ -1095,16 +850,31 @@ export default function StageView() {
 
       let kickoffSettled = false;
       const playPromise = handlePlay({ stepping: true });
-      playPromise.then(() => { kickoffSettled = true; }).catch(() => { kickoffSettled = true; });
+      playPromise
+        .then(() => {
+          kickoffSettled = true;
+        })
+        .catch(() => {
+          kickoffSettled = true;
+        });
+      playPromise
+        .then(() => {
+          kickoffSettled = true;
+        })
+        .catch(() => {
+          kickoffSettled = true;
+        });
 
-      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+      await new Promise<void>(r =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
+      );
 
       setIsPreparing(true);
       videoProxies = await buildVideoProxies();
       setIsPreparing(false);
 
       const videoDurations = new Map<string, number>(
-        videoProxies.map(({ spriteId, duration }) => [spriteId, duration])
+        videoProxies.map(({ spriteId, duration }) => [spriteId, duration]),
       );
 
       const originalExportFps = settings.fps;
@@ -1122,33 +892,62 @@ export default function StageView() {
         const bitmap = captureFrame();
         const samples = runtime.getAudioSamples(1 / fps, sampleRate);
 
-        if (abortRecordingRef.current) { bitmap.close(); break; }
+        if (abortRecordingRef.current) {
+          bitmap.close();
+          break;
+        }
+        if (abortRecordingRef.current) {
+          bitmap.close();
+          break;
+        }
 
         const transfers: Transferable[] = [bitmap];
         if (samples?.buffer) transfers.push(samples.buffer);
-        worker.postMessage({ type: "frame", payload: { bitmap, audio: samples ?? null } }, transfers);
+        worker.postMessage(
+          { type: "frame", payload: { bitmap, audio: samples ?? null } },
+          transfers
+        );
 
         frameCounter++;
         setExportFrameCount(frameCounter);
 
         await runtime.step();
         for (const [id] of spriteNodeRefs.current.entries()) {
-          const sprite = spritesRef.current.find((s) => s.id === id);
+          const sprite = spritesRef.current.find(s => s.id === id);
           if (!sprite || !isVideoData(sprite.data)) continue;
           const liveSprite = runtime.getSpriteContext(id)?.sprite as any;
           if (!liveSprite || !liveSprite.videoPlaying) continue;
           const playbackRate = liveSprite.videoPlaybackRate ?? 1;
           const duration = videoDurations.get(id) ?? Infinity;
-          const nextTime = (liveSprite.videoCurrentTime ?? 0) + (1 / fps) * playbackRate;
+          const nextTime =
+            (liveSprite.videoCurrentTime ?? 0) + (1 / fps) * playbackRate;
           if (nextTime >= duration) {
-            liveSprite.videoCurrentTime = liveSprite.videoLoop ? nextTime % duration : duration;
+            liveSprite.videoCurrentTime = liveSprite.videoLoop
+              ? nextTime % duration
+              : duration;
+            liveSprite.videoCurrentTime = liveSprite.videoLoop
+              ? nextTime % duration
+              : duration;
             if (!liveSprite.videoLoop) liveSprite.videoPlaying = false;
           } else {
             liveSprite.videoCurrentTime = nextTime;
           }
         }
 
-        if (kickoffSettled && !runtime.hasLiveWaiters() && !hasActiveVideoPlayback() && frameCounter >= minimumFrames) break;
+        if (
+          kickoffSettled &&
+          !runtime.hasLiveWaiters() &&
+          !hasActiveVideoPlayback() &&
+          frameCounter >= minimumFrames
+        )
+          break;
+        if (
+          kickoffSettled &&
+          !runtime.hasLiveWaiters() &&
+          !hasActiveVideoPlayback() &&
+          frameCounter >= minimumFrames
+        )
+          break;
       }
 
       runtime.disableStepping();
@@ -1160,7 +959,9 @@ export default function StageView() {
       }
 
       if (frameCounter === 0) {
-        throw new Error("Nothing was recorded. Add a block to run when the video starts.");
+        throw new Error(
+          "Nothing was recorded. Add a block to run when the video starts."
+        );
       }
 
       setIsEncoding(true);
@@ -1175,7 +976,12 @@ export default function StageView() {
       const ts = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
       const fileName = `export_${ts}.${options.format}`;
       const blob = new Blob([buffer], {
-        type: options.format === "gif" ? "image/gif" : options.format === "mp4" ? "video/mp4" : "video/webm",
+        type:
+          options.format === "gif"
+            ? "image/gif"
+            : options.format === "mp4"
+              ? "video/mp4"
+              : "video/webm"
       });
       const url = URL.createObjectURL(blob);
       setExportedVideo({ url, name: fileName });
@@ -1198,7 +1004,7 @@ export default function StageView() {
       "brightness",
       "invert",
       "sepia",
-      "transparency",
+      "transparency"
     ];
 
     const readEffects = () => {
@@ -1227,23 +1033,19 @@ export default function StageView() {
     const parts: string[] = [];
     if ((e.blur ?? 0) !== 0) parts.push(`blur(${e.blur}px)`);
     if ((e.contrast ?? 0) !== 0) parts.push(`contrast(${100 + e.contrast}%)`);
-    if ((e.saturation ?? 0) !== 0)
-      parts.push(`saturate(${100 + e.saturation}%)`);
-    if ((e["color_shift"] ?? 0) !== 0)
-      parts.push(`hue-rotate(${e["color_shift"]}deg)`);
-    if ((e.brightness ?? 0) !== 0)
-      parts.push(`brightness(${100 + e.brightness}%)`);
+    if ((e.saturation ?? 0) !== 0) parts.push(`saturate(${100 + e.saturation}%)`);
+    if ((e["color_shift"] ?? 0) !== 0) parts.push(`hue-rotate(${e["color_shift"]}deg)`);
+    if ((e.brightness ?? 0) !== 0) parts.push(`brightness(${100 + e.brightness}%)`);
     if ((e.invert ?? 0) !== 0) parts.push(`invert(${e.invert}%)`);
     if ((e.sepia ?? 0) !== 0) parts.push(`sepia(${e.sepia}%)`);
     const opacity = 1 - (e.transparency ?? 0) / 100;
     return {
       filter: parts.join(" "),
-      opacity: Math.max(0, Math.min(1, opacity)),
+      opacity: Math.max(0, Math.min(1, opacity))
     };
   };
 
-  const { filter: stageFilter, opacity: stageOpacity } =
-    computeFilterAndOpacity();
+  const { filter: stageFilter, opacity: stageOpacity } = computeFilterAndOpacity();
 
   useEffect(() => {
     const updatePixelRatio = () => setStagePixelRatio(getStagePixelRatio());
@@ -1258,7 +1060,7 @@ export default function StageView() {
     if (!stage) return;
     stage.bufferCanvas.setPixelRatio(stagePixelRatio);
     stage.bufferHitCanvas.setPixelRatio(stagePixelRatio);
-    stage.getLayers().forEach((layer) => {
+    stage.getLayers().forEach(layer => {
       layer.getCanvas().setPixelRatio(stagePixelRatio);
       layer.getHitCanvas().setPixelRatio(stagePixelRatio);
       layer.batchDraw();
@@ -1268,7 +1070,7 @@ export default function StageView() {
   useEffect(() => {
     runtime.setCompiler(() => {
       const parts: string[] = [];
-      state.sprites.forEach((sprite) => {
+      state.sprites.forEach(sprite => {
         if (!sprite.blocklyXml) return;
         const tempWorkspace = new Blockly.Workspace();
         (tempWorkspace as any).sprites = state.sprites;
@@ -1281,21 +1083,18 @@ export default function StageView() {
             .getTopBlocks(true)
             .filter(
               (block: Blockly.Block) =>
-                block.previousConnection === null &&
-                block.outputConnection === null,
+                block.previousConnection === null && block.outputConnection === null
             );
 
           javascriptGenerator.init(tempWorkspace);
           const rawCode = hatBlocks
-            .map((block: Blockly.Block) =>
-              javascriptGenerator.blockToCode(block),
-            )
+            .map((block: Blockly.Block) => javascriptGenerator.blockToCode(block))
             .join("");
           const code = javascriptGenerator.finish(rawCode);
 
           if (code.trim()) {
             parts.push(
-              `window.RUNTIME?.setCurrentSprite(${JSON.stringify(sprite.id)});\ncontext = spriteContextMap[${JSON.stringify(sprite.id)}];\n${code.trim()}`,
+              `window.RUNTIME?.setCurrentSprite(${JSON.stringify(sprite.id)});\ncontext = spriteContextMap[${JSON.stringify(sprite.id)}];\n${code.trim()}`
             );
           }
         } catch (e) {
@@ -1325,14 +1124,13 @@ export default function StageView() {
     return () => runtime.detachInput();
   }, [isFullScreen, stageSize.width, stageSize.height]);
 
-
   useEffect(() => {
     const layer = layerRef.current;
     if (!layer) return;
 
     const targetFps = settings.fps;
 
-    const anim = new KonvaCore.Animation((frame) => {
+    const anim = new KonvaCore.Animation(frame => {
       if (!frame || frame.timeDiff === 0) return;
       const fps = Math.min(Math.round(1000 / frame.timeDiff), targetFps);
 
@@ -1358,7 +1156,7 @@ export default function StageView() {
   useEffect(() => {
     if (!parentRef.current) return;
     const ratio = virtualWidth / virtualHeight;
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width: pw, height: ph } = entry.contentRect;
         if (pw === 0 || ph === 0) continue;
@@ -1378,7 +1176,7 @@ export default function StageView() {
   useEffect(() => {
     if (!isFullScreen || !fullScreenParentRef.current) return;
     const ratio = virtualWidth / virtualHeight;
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         const { width: pw, height: ph } = entry.contentRect;
         if (pw === 0 || ph === 0) continue;
@@ -1404,26 +1202,23 @@ export default function StageView() {
         dispatch({ type: "SELECT_SPRITE", id: null });
       }
     },
-    [dispatch],
+    [dispatch]
   );
 
-  const handleSpriteNodeReady = useCallback(
-    (id: string, node: Konva.Node | null) => {
-      if (node) {
-        spriteNodeRefs.current.set(id, node);
-      } else {
-        spriteNodeRefs.current.delete(id);
-      }
-    },
-    [],
-  );
+  const handleSpriteNodeReady = useCallback((id: string, node: Konva.Node | null) => {
+    if (node) {
+      spriteNodeRefs.current.set(id, node);
+    } else {
+      spriteNodeRefs.current.delete(id);
+    }
+  }, []);
 
   const queuePlaybackStateUpdate = useCallback(
     (id: string, changes: Partial<Omit<Sprite, "id" | "type">>) => {
       const pending = pendingPlaybackChangesRef.current.get(id) ?? {};
       pendingPlaybackChangesRef.current.set(id, { ...pending, ...changes });
     },
-    [],
+    []
   );
 
   const flushPlaybackStateUpdates = useCallback(() => {
@@ -1435,29 +1230,25 @@ export default function StageView() {
       dispatch({
         type: "UPDATE_SPRITE",
         id,
-        changes,
+        changes
       });
     }
   }, [dispatch]);
 
-  const pauseAllVideoElements = useCallback(
-    (options?: { resetTime?: boolean }) => {
-      for (const node of spriteNodeRefs.current.values()) {
-        const mediaElement = getVideoElementFromNode(node);
+  const pauseAllVideoElements = useCallback((options?: { resetTime?: boolean }) => {
+    for (const node of spriteNodeRefs.current.values()) {
+      const mediaElement = getVideoElementFromNode(node);
 
-        if (!mediaElement || typeof mediaElement.pause !== "function") {
-          continue;
-        }
-
-        try {
-          mediaElement.pause();
-          if (options?.resetTime) mediaElement.currentTime = 0;
-        } catch {
-        }
+      if (!mediaElement || typeof mediaElement.pause !== "function") {
+        continue;
       }
-    },
-    [],
-  );
+
+      try {
+        mediaElement.pause();
+        if (options?.resetTime) mediaElement.currentTime = 0;
+      } catch { /* empty */ }
+    }
+  }, []);
 
   const resetTextSpriteNodes = useCallback(() => {
     for (const node of spriteNodeRefs.current.values()) {
@@ -1481,7 +1272,7 @@ export default function StageView() {
     const generation = ++playGenerationRef.current;
     runtime.stop();
 
-    layerRef.current?.find("Transformer").forEach((tr) => {
+    layerRef.current?.find("Transformer").forEach(tr => {
       (tr as Konva.Transformer).nodes([]);
       tr.hide();
     });
@@ -1497,7 +1288,7 @@ export default function StageView() {
     setIsPaused(false);
     setIsLoading(true);
 
-    state.sprites.forEach((sprite) => {
+    state.sprites.forEach(sprite => {
       const spriteData: Record<string, any> = {
         x: sprite.x,
         y: sprite.y,
@@ -1508,7 +1299,7 @@ export default function StageView() {
         visible: sprite.visible,
         zIndex: sprite.zIndex,
         tweenMode: sprite.tweenMode,
-        tweenModes: { ...sprite.tweenModes },
+        tweenModes: { ...sprite.tweenModes }
       };
 
       if (sprite.type === "text" && isTextData(sprite.data)) {
@@ -1520,7 +1311,7 @@ export default function StageView() {
         const media = sprite.data;
         const imageIndex = Math.max(
           0,
-          media.images.findIndex((image) => image.id === media.currentImageId),
+          media.images.findIndex(image => image.id === media.currentImageId)
         );
         spriteData.imageIndex = imageIndex + 1;
         spriteData.imageName = media.images[imageIndex]?.name ?? "";
@@ -1530,7 +1321,7 @@ export default function StageView() {
         const video = sprite.data;
         const videoIndex = Math.max(
           0,
-          video.videos.findIndex((v) => v.id === video.currentVideoId),
+          video.videos.findIndex(v => v.id === video.currentVideoId)
         );
         spriteData.videoIndex = videoIndex + 1;
         spriteData.videoName = video.videos[videoIndex]?.name ?? "";
@@ -1565,24 +1356,44 @@ export default function StageView() {
           height,
           rotation,
           opacity,
-          visible,
+          visible
         });
 
         if (sprite.type === "text") {
           const group = node as Konva.Group;
-          const textVal = typeof spriteData.text === "string" ? spriteData.text : (sprite.data as any).content;
-          const fillVal = typeof spriteData.color === "string" ? spriteData.color : (sprite.data as any).color;
-          const sizeVal = typeof spriteData.fontSize === "number" ? spriteData.fontSize : (sprite.data as any).fontSize;
+          const textVal =
+            typeof spriteData.text === "string"
+              ? spriteData.text
+              : (sprite.data as any).content;
+          const fillVal =
+            typeof spriteData.color === "string"
+              ? spriteData.color
+              : (sprite.data as any).color;
+          const sizeVal =
+            typeof spriteData.fontSize === "number"
+              ? spriteData.fontSize
+              : (sprite.data as any).fontSize;
           const fontFam = (sprite.data as any).fontFamily;
           const fontW = (sprite.data as any).fontWeight;
           const alignVal = (sprite.data as any).align;
-          const positions = (spriteData.charPositions || {}) as Record<number, { x: number; y: number }>;
+          const positions = (spriteData.charPositions || {}) as Record<
+            number,
+            { x: number; y: number }
+          >;
 
           const textValStr = String(textVal);
           let layout: ReturnType<typeof getCharLayout> = [];
           if (textValStr.length > 0) {
             try {
-              layout = getCharLayout(textValStr, fontFam, sizeVal, fontW, alignVal, width, height);
+              layout = getCharLayout(
+                textValStr,
+                fontFam,
+                sizeVal,
+                fontW,
+                alignVal,
+                width,
+                height
+              );
             } catch {
               layout = [];
             }
@@ -1593,7 +1404,9 @@ export default function StageView() {
             hitRect.setAttrs({ width, height });
           }
 
-          const mainText = group.findOne(".main-text") as Konva.Text | undefined;
+          const mainText = group.findOne(".main-text") as
+            | Konva.Text
+            | undefined;
 
           if (layout.length === 0) {
             const children = group.getChildren();
@@ -1605,7 +1418,7 @@ export default function StageView() {
             }
             if (mainText) {
               const linesCount = textValStr.replace(/\r\n/g, "\n").split("\n").length;
-              const textY = (height - (linesCount * sizeVal * LINE_HEIGHT)) / 2;
+              const textY = (height - linesCount * sizeVal * LINE_HEIGHT) / 2;
               mainText.setAttrs({
                 visible: true,
                 x: 0,
@@ -1619,7 +1432,7 @@ export default function StageView() {
                 fontStyle: fontW >= 600 ? "bold" : "normal",
                 align: alignVal,
                 verticalAlign: "top",
-                wrap: "none",
+                wrap: "none"
               });
             }
           } else {
@@ -1641,11 +1454,13 @@ export default function StageView() {
             for (let i = 0; i < layout.length; i++) {
               const item = layout[i];
               const charIdx = i + 1;
-              let charNode = group.findOne(`.char-${charIdx}`) as Konva.Text | undefined;
+              let charNode = group.findOne(`.char-${charIdx}`) as
+                | Konva.Text
+                | undefined;
 
               if (item.char === "\n") {
-                 if (charNode) charNode.destroy();
-                 continue;
+                if (charNode) charNode.destroy();
+                continue;
               }
 
               if (!charNode) {
@@ -1664,7 +1479,7 @@ export default function StageView() {
                 fontStyle: fontW >= 600 ? "bold" : "normal",
                 fill: fillVal,
                 align: "left",
-                verticalAlign: "top",
+                verticalAlign: "top"
               });
             }
           }
@@ -1674,7 +1489,7 @@ export default function StageView() {
 
       const spriteProxy = new Proxy(spriteData, {
         get: (target, property) => {
-          const current = spritesRef.current.find((s) => s.id === sprite.id);
+          const current = spritesRef.current.find(s => s.id === sprite.id);
           if (property === "play") {
             return () => {
               (spriteProxy as any).videoPlaying = true;
@@ -1693,8 +1508,7 @@ export default function StageView() {
           }
           if (property === "tweenModes") {
             return {
-              ...((target.tweenModes as Record<string, unknown>) ??
-                current?.tweenModes),
+              ...((target.tweenModes as Record<string, unknown>) ?? current?.tweenModes)
             };
           }
           if (property === "setCharPosition") {
@@ -1716,15 +1530,13 @@ export default function StageView() {
             return target.text;
           }
           if (property === "imageCount") {
-            return current && isMediaData(current.data)
-              ? current.data.images.length
-              : 0;
+            return current && isMediaData(current.data) ? current.data.images.length : 0;
           }
           if (property === "imageIndex") {
             if (!current || !isMediaData(current.data)) return 0;
             const media = current.data;
             const index = media.images.findIndex(
-              (image) => image.id === media.currentImageId,
+              image => image.id === media.currentImageId
             );
             return Math.max(0, index) + 1;
           }
@@ -1732,34 +1544,30 @@ export default function StageView() {
             if (!current || !isMediaData(current.data)) return "";
             const media = current.data;
             const image =
-              media.images.find((entry) => entry.id === media.currentImageId) ??
+              media.images.find(entry => entry.id === media.currentImageId) ??
               media.images[0];
             return image?.name ?? "";
           }
           if (property === "videoCount") {
-            return current && isVideoData(current.data)
-              ? current.data.videos.length
-              : 0;
+            return current && isVideoData(current.data) ? current.data.videos.length : 0;
           }
           if (property === "videoIndex") {
             if (!current || !isVideoData(current.data)) return 0;
             const video = current.data;
-            const index = video.videos.findIndex(
-              (v) => v.id === video.currentVideoId,
-            );
+            const index = video.videos.findIndex(v => v.id === video.currentVideoId);
             return Math.max(0, index) + 1;
           }
           if (property === "videoName") {
             if (!current || !isVideoData(current.data)) return "";
             const video = current.data;
             const v =
-              video.videos.find((entry) => entry.id === video.currentVideoId) ??
+              video.videos.find(entry => entry.id === video.currentVideoId) ??
               video.videos[0];
             return v?.name ?? "";
           }
           if (property === "videoDuration") {
             const video = getVideoElementFromNode(
-              spriteNodeRefs.current.get(sprite.id) ?? null,
+              spriteNodeRefs.current.get(sprite.id) ?? null
             );
             return getFiniteNumber(video?.duration, 0);
           }
@@ -1767,15 +1575,15 @@ export default function StageView() {
             const rt = (window as any).RUNTIME;
             if (rt?.isStepping) {
               return getFiniteNumber(
-                (target.videoCurrentTime as number | undefined) ?? 0,
+                (target.videoCurrentTime as number | undefined) ?? 0
               );
             }
             const video = getVideoElementFromNode(
-              spriteNodeRefs.current.get(sprite.id) ?? null,
+              spriteNodeRefs.current.get(sprite.id) ?? null
             );
             return getFiniteNumber(
               video?.currentTime ?? 0,
-              (target.videoCurrentTime as number | undefined) ?? 0,
+              (target.videoCurrentTime as number | undefined) ?? 0
             );
           }
           if (property === "sounds") {
@@ -1784,13 +1592,13 @@ export default function StageView() {
           return target[property as keyof typeof target];
         },
         set: (target, property, value) => {
-          const current = spritesRef.current.find((s) => s.id === sprite.id);
+          const current = spritesRef.current.find(s => s.id === sprite.id);
           if (property === "tweenMode") {
             target.tweenMode = value;
             dispatch({
               type: "UPDATE_SPRITE",
               id: sprite.id,
-              changes: { tweenMode: value as typeof sprite.tweenMode },
+              changes: { tweenMode: value as typeof sprite.tweenMode }
             });
             return true;
           }
@@ -1799,7 +1607,7 @@ export default function StageView() {
             dispatch({
               type: "UPDATE_SPRITE",
               id: sprite.id,
-              changes: { tweenModes: value as typeof sprite.tweenModes },
+              changes: { tweenModes: value as typeof sprite.tweenModes }
             });
             return true;
           }
@@ -1808,7 +1616,7 @@ export default function StageView() {
               target.color = value;
               applyLiveSprite();
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, color: value as string },
+                data: { ...current.data, color: value as string }
               });
             }
             return true;
@@ -1818,28 +1626,21 @@ export default function StageView() {
               target.text = value;
               applyLiveSprite();
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, content: value as string },
+                data: { ...current.data, content: value as string }
               });
             }
             return true;
           }
           if (property === "imageIndex") {
-            if (
-              current &&
-              isMediaData(current.data) &&
-              current.data.images.length > 0
-            ) {
+            if (current && isMediaData(current.data) && current.data.images.length > 0) {
               const media = current.data;
               const index = Math.max(
                 0,
-                Math.min(
-                  media.images.length - 1,
-                  Math.round(Number(value) || 1) - 1,
-                ),
+                Math.min(media.images.length - 1, Math.round(Number(value) || 1) - 1)
               );
               const nextData = {
                 ...media,
-                currentImageId: media.images[index].id,
+                currentImageId: media.images[index].id
               };
               target.imageIndex = index + 1;
               target.imageName = media.images[index].name;
@@ -1847,27 +1648,21 @@ export default function StageView() {
               dispatch({
                 type: "UPDATE_SPRITE",
                 id: sprite.id,
-                changes: { data: nextData },
+                changes: { data: nextData }
               });
               queuePlaybackStateUpdate(sprite.id, { data: nextData });
             }
             return true;
           }
           if (property === "imageName") {
-            if (
-              current &&
-              isMediaData(current.data) &&
-              current.data.images.length > 0
-            ) {
+            if (current && isMediaData(current.data) && current.data.images.length > 0) {
               const media = current.data;
               const requested = String(value);
-              const index = media.images.findIndex(
-                (image) => image.name === requested,
-              );
+              const index = media.images.findIndex(image => image.name === requested);
               if (index !== -1) {
                 const nextData = {
                   ...media,
-                  currentImageId: media.images[index].id,
+                  currentImageId: media.images[index].id
                 };
                 target.imageIndex = index + 1;
                 target.imageName = media.images[index].name;
@@ -1875,7 +1670,7 @@ export default function StageView() {
                 dispatch({
                   type: "UPDATE_SPRITE",
                   id: sprite.id,
-                  changes: { data: nextData },
+                  changes: { data: nextData }
                 });
                 queuePlaybackStateUpdate(sprite.id, { data: nextData });
               }
@@ -1883,22 +1678,15 @@ export default function StageView() {
             return true;
           }
           if (property === "videoIndex") {
-            if (
-              current &&
-              isVideoData(current.data) &&
-              current.data.videos.length > 0
-            ) {
+            if (current && isVideoData(current.data) && current.data.videos.length > 0) {
               const video = current.data;
               const index = Math.max(
                 0,
-                Math.min(
-                  video.videos.length - 1,
-                  Math.round(Number(value) || 1) - 1,
-                ),
+                Math.min(video.videos.length - 1, Math.round(Number(value) || 1) - 1)
               );
               const nextData = {
                 ...video,
-                currentVideoId: video.videos[index].id,
+                currentVideoId: video.videos[index].id
               };
               target.videoIndex = index + 1;
               target.videoName = video.videos[index].name;
@@ -1906,27 +1694,21 @@ export default function StageView() {
               dispatch({
                 type: "UPDATE_SPRITE",
                 id: sprite.id,
-                changes: { data: nextData },
+                changes: { data: nextData }
               });
               queuePlaybackStateUpdate(sprite.id, { data: nextData });
             }
             return true;
           }
           if (property === "videoName") {
-            if (
-              current &&
-              isVideoData(current.data) &&
-              current.data.videos.length > 0
-            ) {
+            if (current && isVideoData(current.data) && current.data.videos.length > 0) {
               const video = current.data;
               const requested = String(value);
-              const index = video.videos.findIndex(
-                (v) => v.name === requested,
-              );
+              const index = video.videos.findIndex(v => v.name === requested);
               if (index !== -1) {
                 const nextData = {
                   ...video,
-                  currentVideoId: video.videos[index].id,
+                  currentVideoId: video.videos[index].id
                 };
                 target.videoIndex = index + 1;
                 target.videoName = video.videos[index].name;
@@ -1934,7 +1716,7 @@ export default function StageView() {
                 dispatch({
                   type: "UPDATE_SPRITE",
                   id: sprite.id,
-                  changes: { data: nextData },
+                  changes: { data: nextData }
                 });
                 queuePlaybackStateUpdate(sprite.id, { data: nextData });
               }
@@ -1950,7 +1732,7 @@ export default function StageView() {
               const rt = (window as any).RUNTIME;
               if (!rt?.isStepping) {
                 const video = getVideoElementFromNode(
-                  spriteNodeRefs.current.get(sprite.id) ?? null,
+                  spriteNodeRefs.current.get(sprite.id) ?? null
                 );
                 if (video) {
                   if (playing) {
@@ -1962,21 +1744,24 @@ export default function StageView() {
                 }
               }
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, videoPlaying: playing },
+                data: { ...current.data, videoPlaying: playing }
               });
             }
             return true;
           }
           if (property === "videoPlaybackRate") {
             if (current && isVideoData(current.data)) {
-              const rate = getFiniteNumber(value, current.data.videoPlaybackRate ?? 1);
+              const rate = getFiniteNumber(
+                value,
+                current.data.videoPlaybackRate ?? 1,
+              );
               target.videoPlaybackRate = rate;
               const video = getVideoElementFromNode(
-                spriteNodeRefs.current.get(sprite.id) ?? null,
+                spriteNodeRefs.current.get(sprite.id) ?? null
               );
               if (video) video.playbackRate = rate;
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, videoPlaybackRate: rate },
+                data: { ...current.data, videoPlaybackRate: rate }
               });
             }
             return true;
@@ -1985,18 +1770,18 @@ export default function StageView() {
             if (current && isVideoData(current.data)) {
               const volume = Math.max(
                 0,
-                Math.min(1, getFiniteNumber(value, current.data.videoVolume ?? 1)),
+                Math.min(1, getFiniteNumber(value, current.data.videoVolume ?? 1))
               );
               target.videoVolume = volume;
               const video = getVideoElementFromNode(
-                spriteNodeRefs.current.get(sprite.id) ?? null,
+                spriteNodeRefs.current.get(sprite.id) ?? null
               );
               if (video) {
                 video.volume = volume;
                 video.muted = volume === 0;
               }
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, videoVolume: volume },
+                data: { ...current.data, videoVolume: volume }
               });
             }
             return true;
@@ -2006,11 +1791,11 @@ export default function StageView() {
               const loop = Boolean(value);
               target.videoLoop = loop;
               const video = getVideoElementFromNode(
-                spriteNodeRefs.current.get(sprite.id) ?? null,
+                spriteNodeRefs.current.get(sprite.id) ?? null
               );
               if (video) video.loop = loop;
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, videoLoop: loop },
+                data: { ...current.data, videoLoop: loop }
               });
             }
             return true;
@@ -2019,15 +1804,15 @@ export default function StageView() {
             if (current && isVideoData(current.data)) {
               const time = Math.max(
                 0,
-                getFiniteNumber(value, current.data.videoCurrentTime ?? 0),
+                getFiniteNumber(value, current.data.videoCurrentTime ?? 0)
               );
               target.videoCurrentTime = time;
               const video = getVideoElementFromNode(
-                spriteNodeRefs.current.get(sprite.id) ?? null,
+                spriteNodeRefs.current.get(sprite.id) ?? null
               );
               if (video) video.currentTime = time;
               queuePlaybackStateUpdate(sprite.id, {
-                data: { ...current.data, videoCurrentTime: time },
+                data: { ...current.data, videoCurrentTime: time }
               });
             }
             return true;
@@ -2041,28 +1826,37 @@ export default function StageView() {
                 const newFontSize = Math.max(1, current.data.fontSize * scale);
                 target.fontSize = newFontSize;
                 queuePlaybackStateUpdate(sprite.id, {
-                  data: { ...current.data, fontSize: newFontSize },
+                  data: { ...current.data, fontSize: newFontSize }
                 });
               }
             }
 
             target[property] = value;
 
-            const updatableProps = ["x", "y", "width", "height", "rotation", "opacity", "visible", "zIndex"];
+            const updatableProps = [
+              "x",
+              "y",
+              "width",
+              "height",
+              "rotation",
+              "opacity",
+              "visible",
+              "zIndex"
+            ];
             if (updatableProps.includes(property)) {
               applyLiveSprite();
               queuePlaybackStateUpdate(sprite.id, { [property]: value });
             }
           }
           return true;
-        },
+        }
       });
 
       runtime.registerSprite(sprite.id, {
         sprite: spriteProxy as SpriteContext["sprite"],
         spriteId: sprite.id,
         dispatch,
-        getSprites: () => spritesRef.current,
+        getSprites: () => spritesRef.current
       });
       applyLiveSprite();
     });
@@ -2116,15 +1910,15 @@ export default function StageView() {
       ref.current = false;
     }
 
-    state.sprites.forEach((sprite) => {
+    state.sprites.forEach(sprite => {
       if (isVideoData(sprite.data)) {
         if (sprite.data.videoPlaying || sprite.data.videoCurrentTime !== 0) {
           dispatch({
             type: "UPDATE_SPRITE",
             id: sprite.id,
             changes: {
-              data: { ...sprite.data, videoPlaying: false, videoCurrentTime: 0 },
-            },
+              data: { ...sprite.data, videoPlaying: false, videoCurrentTime: 0 }
+            }
           });
         }
       }
@@ -2136,10 +1930,9 @@ export default function StageView() {
   const sorted = [...state.sprites].sort((a, b) => a.zIndex - b.zIndex);
   const gridColor = useMemo(
     () => getGridColorFromBackground(settings.backgroundColor),
-    [settings.backgroundColor],
+    [settings.backgroundColor]
   );
-  const showGrid =
-    settings.showGrid && !(isPlaying && !isPaused) && !isRecording;
+  const showGrid = settings.showGrid && !(isPlaying && !isPaused) && !isRecording;
   const showROT = settings.showROT && !(isPlaying && !isPaused) && !isRecording;
   const showTransformers = (!isPlaying || isPaused) && !isRecording;
 
@@ -2151,11 +1944,10 @@ export default function StageView() {
       scaleX={scale}
       scaleY={scale}
       onClick={handleStageClick}
+      className={styles.stage}
       style={{
-        borderRadius: "4px",
-        overflow: "hidden",
         filter: stageFilter || undefined,
-        opacity: stageOpacity,
+        opacity: stageOpacity
       }}
     >
       <Layer ref={layerRef}>
@@ -2177,13 +1969,15 @@ export default function StageView() {
         )}
         {showROT && <StageROT width={virtualWidth} height={virtualHeight} />}
         <Group ref={worldGroupRef}>
-          {sorted.map((sprite) => (
+          {sorted.map(sprite => (
             <SpriteRenderer
               key={sprite.id}
               sprite={sprite}
               isSelected={state.selectedSpriteId === sprite.id}
               showTransformer={showTransformers}
-              onSelect={() => dispatch({ type: "SELECT_SPRITE", id: sprite.id })}
+              onSelect={() =>
+                dispatch({ type: "SELECT_SPRITE", id: sprite.id })
+              }
               onNodeReady={handleSpriteNodeReady}
               stageCoords={stageCoords}
               snapToGrid={settings.snapToGrid}
@@ -2202,27 +1996,14 @@ export default function StageView() {
   return (
     <div className="stage-area panel">
       <div className="panel-header stage-panel-header">
-        <div
-          className="transport-controls"
-          style={{
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            display: "flex",
-            width: "fit-content"
-          }}
-        >
+        <div className={`transport-controls ${styles.transportControls}`}>
           <button
             className={`transport-btn ${isPlaying && !isPaused ? "active" : ""}`}
             title={isLoading ? "Loading" : isPaused ? "Resume" : "Play"}
             onClick={() => handlePlay()}
             disabled={isRecording || isLoading}
           >
-            {isLoading ? (
-              <Loader2 size={18} className="spin" />
-            ) : (
-              <Play size={18} />
-            )}
+            {isLoading ? <Loader2 size={18} className="spin" /> : <Play size={18} />}
           </button>
           <button
             className={`transport-btn ${isPaused ? "active" : ""}`}
@@ -2249,7 +2030,7 @@ export default function StageView() {
             <Video size={20} />
           </button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
+        <div className={styles.transportControlsWrapper}>
           <button
             className="transport-btn"
             title="Full Screen"
@@ -2260,7 +2041,7 @@ export default function StageView() {
           </button>
           <div
             ref={fpsRef}
-            className="stage-fps-counter"
+            className={styles.fpsCounter}
             style={{ color: getFpsColor(0, settings.fps) }}
             title={`Target: ${settings.fps} FPS`}
           >
@@ -2274,36 +2055,17 @@ export default function StageView() {
 
       {isFullScreen && (
         <div className="modal-overlay" onClick={() => setIsFullScreen(false)}>
-          <div
-            className="modal-content stage-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="modal-header"
-              style={{ position: "relative", justifyContent: "center" }}
-            >
+          <div className="modal-content stage-modal" onClick={e => e.stopPropagation()}>
+            <div className={`modal-header ${styles.modalHeaderCentered}`}>
               <div
                 ref={fullScreenFpsRef}
-                className="stage-fps-counter"
-                style={{
-                  position: "absolute",
-                  left: "var(--space-lg)",
-                  color: getFpsColor(0, settings.fps),
-                }}
+                className={`${styles.fpsCounter} ${styles.fpsAbsolute}`}
+                style={{ color: getFpsColor(0, settings.fps) }}
                 title={`Target: ${settings.fps} FPS`}
               >
                 0 FPS
               </div>
-              <div
-                className="transport-controls"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  padding: 0,
-                  display: "flex",
-                  width: "fit-content"
-                }}
-              >
+              <div className={`transport-controls ${styles.transportControls}`}>
                 <button
                   className={`transport-btn ${isPlaying && !isPaused ? "active" : ""}`}
                   title={isLoading ? "Loading" : isPaused ? "Resume" : "Play"}
@@ -2334,17 +2096,13 @@ export default function StageView() {
                 </button>
               </div>
               <button
-                className="close-modal-btn"
+                className={`close-modal-btn ${styles.closeAbsolute}`}
                 onClick={() => setIsFullScreen(false)}
-                style={{ position: "absolute", right: "var(--space-lg)" }}
               >
                 <X size={18} />
               </button>
             </div>
-            <div
-              className="modal-body stage-modal-body"
-              ref={fullScreenParentRef}
-            >
+            <div className="modal-body stage-modal-body" ref={fullScreenParentRef}>
               {stageElement}
             </div>
           </div>
@@ -2376,25 +2134,11 @@ export default function StageView() {
 
       {exportedVideo && (
         <div className="modal-overlay" onClick={() => setExportedVideo(null)}>
-          <div
-            className="modal-content stage-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              className="modal-header"
-              style={{ position: "relative", justifyContent: "center" }}
-            >
-              <h2 style={{ position: "absolute", left: "var(--space-lg)" }}>
-                Export Complete
-              </h2>
+          <div className="modal-content stage-modal" onClick={e => e.stopPropagation()}>
+            <div className={`modal-header ${styles.modalHeaderCentered}`}>
+              <h2 className={styles.headingAbsolute}>Export Complete</h2>
               <button
-                className="primary-btn"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  padding: "0 1rem",
-                }}
+                className={`primary-btn ${styles.downloadButton}`}
                 onClick={() => {
                   const a = document.createElement("a");
                   a.href = exportedVideo.url;
@@ -2406,61 +2150,28 @@ export default function StageView() {
                 Download
               </button>
               <button
-                className="close-modal-btn"
+                className={`close-modal-btn ${styles.closeAbsolute}`}
                 onClick={() => setExportedVideo(null)}
-                style={{ position: "absolute", right: "var(--space-lg)" }}
               >
                 <X size={18} />
               </button>
             </div>
-            <div
-              className="modal-body stage-modal-body"
-              style={{
-                background: "#000",
-                minHeight: "400px",
-                display: "block",
-              }}
-            >
+            <div className={`modal-body stage-modal-body ${styles.exportModalBody}`}>
               {exportedVideo.name.endsWith(".gif") ? (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
+                <div className={styles.flexCenter}>
                   <img
                     src={exportedVideo.url}
                     alt="Exported GIF"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                    }}
+                    className={styles.exportImage}
                   />
                 </div>
               ) : (
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: "80%",
-                      height: "80%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <div style={{ width: "100%", maxWidth: virtualWidth }}>
+                <div className={styles.flexCenter}>
+                  <div className={styles.videoContainerInner}>
+                    <div
+                      className={styles.plyrContainer}
+                      style={{ maxWidth: virtualWidth }}
+                    >
                       <Plyr source={plyrSource!} options={plyrOptions} />
                     </div>
                   </div>
@@ -2473,3 +2184,4 @@ export default function StageView() {
     </div>
   );
 }
+

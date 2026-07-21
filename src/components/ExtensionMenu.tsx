@@ -1,19 +1,12 @@
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import {
-  ChevronLeft,
-  Upload,
-  Globe
-} from "lucide-react";
+import { ChevronLeft, Upload, Globe } from "lucide-react";
 
-import {
-  ExtensionItem,
-  extensions
-} from "../lib/extensions/builtinExtensions";
+import { ExtensionItem, extensions } from "../lib/extensions/builtinExtensions";
 
 import { registerExtension } from "../lib/extensions/manager";
 
 export default function ExtensionMenu({
-  showMenu
+  showMenu,
 }: {
   showMenu: Dispatch<SetStateAction<boolean>>;
 }) {
@@ -31,9 +24,7 @@ export default function ExtensionMenu({
     }
   }
 
-  async function loadLocalExtension(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
+  async function loadLocalExtension(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -51,9 +42,7 @@ export default function ExtensionMenu({
       const res = await fetch(url);
 
       if (!res.ok) {
-        throw new Error(
-          `Failed to fetch (${res.status})`
-        );
+        throw new Error(`Failed to fetch (${res.status})`);
       }
 
       const js = await res.text();
@@ -74,25 +63,20 @@ export default function ExtensionMenu({
         width: "100%",
         height: "100%",
         background: "var(--bg-primary)",
-        zIndex: 10000
+        zIndex: 10000,
       }}
     >
-      <div
-        className="header-bar"
-        style={{ padding: "10px" }}
-      >
+      <div className="header-bar" style={{ padding: "10px" }}>
         <ChevronLeft
           style={{
             cursor: "pointer",
             position: "absolute",
-            left: "10px"
+            left: "10px",
           }}
           onClick={() => showMenu(false)}
         />
 
-        <div className="header-project-name">
-          Extensions
-        </div>
+        <div className="header-project-name">Extensions</div>
       </div>
 
       <input
@@ -109,28 +93,22 @@ export default function ExtensionMenu({
           gap: "10px",
           display: "flex",
           flexWrap: "wrap",
-          alignItems: "flex-start"
+          alignItems: "flex-start",
         }}
       >
-
         <div
           className="extension-item"
           onClick={() => fileInput.current?.click()}
         >
-          <Upload
-            size={64}
-            style={{ marginBottom: 10 }}
-          />
+          <Upload size={64} style={{ marginBottom: 10 }} />
 
           <h2>Load Local Extension</h2>
 
-          <div>
-            Install a .js extension from your computer.
-          </div>
+          <div>Install a .js extension from your computer.</div>
 
           <div
             style={{
-              color: "var(--text-secondary)"
+              color: "var(--text-secondary)",
             }}
           >
             Trusted Extension
@@ -141,42 +119,34 @@ export default function ExtensionMenu({
           className="extension-item"
           style={{
             minWidth: 250,
-            cursor: "default"
+            cursor: "default",
           }}
         >
-          <Globe
-            size={64}
-            style={{ marginBottom: 10 }}
-          />
+          <Globe size={64} style={{ marginBottom: 10 }} />
 
           <h2>Load From URL</h2>
 
           <input
             value={url}
-            onChange={(e) =>
-              setUrl(e.target.value)
-            }
+            onChange={(e) => setUrl(e.target.value)}
             placeholder="https://..."
             style={{
               width: "100%",
               marginTop: 8,
-              marginBottom: 8
+              marginBottom: 8,
             }}
           />
 
-          <button
-            className="file-menu-item"
-            onClick={loadURL}
-          >
+          <button className="file-menu-item" onClick={loadURL}>
             Install
           </button>
         </div>
 
+        <hr style={{ width: "100%", borderColor: "var(--bg-app)", opacity: 0.5 }}></hr>
+
         {/* can someone else make the ui less ugly*/}
 
-        {extensions.map((ext) =>
-          renderExtension(ext, installJS)
-        )}
+        {extensions.map((ext) => renderExtension(ext, installJS))}
       </div>
     </div>
   );
@@ -184,7 +154,7 @@ export default function ExtensionMenu({
 
 function renderExtension(
   ext: ExtensionItem,
-  installJS: (js: string) => Promise<void>
+  installJS: (js: string) => Promise<void>,
 ) {
   const thumb = ext.img ?? "ext-nothumb.png";
 
@@ -194,22 +164,15 @@ function renderExtension(
       key={ext.name}
       onClick={async () => {
         try {
-          const res = await fetch(
-            "extensions/js/" + ext.jsFile
-          );
+          const res = await fetch("extensions/js/" + ext.jsFile);
 
           if (!res.ok) {
-            throw new Error(
-              `Failed to fetch ${ext.jsFile}`
-            );
+            throw new Error(`Failed to fetch ${ext.jsFile}`);
           }
 
           await installJS(await res.text());
         } catch (e) {
-          console.error(
-            "Failed to load extension:",
-            e
-          );
+          console.error("Failed to load extension:", e);
         }
       }}
     >
@@ -218,7 +181,7 @@ function renderExtension(
         alt={ext.name}
         style={{
           maxWidth: "100%",
-          maxHeight: "100%"
+          maxHeight: "100%",
         }}
       />
 
@@ -228,7 +191,7 @@ function renderExtension(
 
       <div
         style={{
-          color: "var(--text-secondary)"
+          color: "var(--text-secondary)",
         }}
       >
         Created by {ext.creator}

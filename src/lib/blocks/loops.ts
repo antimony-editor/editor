@@ -8,7 +8,7 @@ Blockly.Blocks["controls_forLoop_var"] = {
     this.setStyle("loop_blocks");
     this.setTooltip("The current value of i in the for loop.");
     this.duplicateOnDrag = true;
-  }
+  },
 };
 
 javascriptGenerator.forBlock["controls_forLoop_var"] = function () {
@@ -25,8 +25,10 @@ Blockly.Blocks["controls_forLoop"] = {
     this.setPreviousStatement(true, "default");
     this.setNextStatement(true, "default");
     this.setStyle("loop_blocks");
-    this.setTooltip("Runs the code for each value of i from start to end (inclusive).");
-  }
+    this.setTooltip(
+      "Runs the code for each value of i from start to end (inclusive).",
+    );
+  },
 };
 
 Blockly.Blocks["controls_forever"] = {
@@ -37,27 +39,25 @@ Blockly.Blocks["controls_forever"] = {
     this.setNextStatement(false);
     this.setStyle("loop_blocks");
     this.setTooltip("Loops forever.");
-  }
+  },
 };
 
-javascriptGenerator.forBlock["controls_forever"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["controls_forever"] = function (block, generator) {
   const body = javascriptGenerator.statementToCode(block, "DO");
-  return `
-        await (async () => { while (true) {
-            if (window.RUNTIME.isStopped()) break;
-            ${body}
-            await window.RUNTIME.delay(1);
-        }})();
-    `; // it blows up without the delay haha
+  return `while (true) {
+  ${generator.addLoopTrap(body, block)}
+};\n`;
 };
 
-javascriptGenerator.forBlock["controls_forLoop"] = function (block: Blockly.Block) {
-  const variableName = javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
-  const start = javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
+javascriptGenerator.forBlock["controls_forLoop"] = function (block, generator) {
+  const variableName =
+    javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "i";
+  const start =
+    javascriptGenerator.valueToCode(block, "START", Order.NONE) || "0";
   const end = javascriptGenerator.valueToCode(block, "END", Order.NONE) || "0";
   const body = javascriptGenerator.statementToCode(block, "DO");
 
   return `for (let ${variableName} = ${start}; ${variableName} <= ${end}; ${variableName}++) {
-${body}}
-`;
+${generator.addLoopTrap(body, block)}
+};\n`;
 };

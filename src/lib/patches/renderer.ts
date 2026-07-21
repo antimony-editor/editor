@@ -29,46 +29,46 @@ class TuffosConstantProvider extends Blockly.zelos.ConstantProvider {
     const makeMainPath = (blockHeight: number, up: boolean, right: boolean) => {
       return (
         svgPaths.arc(
-          'a',
-          '0 0,1',
+          "a",
+          "0 0,1",
           radius,
-          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius),
         ) +
         svgPaths.arc(
-          'a',
-          '0 0,0',
+          "a",
+          "0 0,0",
           radius,
-          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius),
         ) +
-        svgPaths.lineOnAxis('h', ((right ? 1 : -1) * radius) / 2) +
+        svgPaths.lineOnAxis("h", ((right ? 1 : -1) * radius) / 2) +
         svgPaths.arc(
-          'a',
-          '0 0,1',
+          "a",
+          "0 0,1",
           radius,
-          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? -1 : 1) * radius, (up ? -1 : 1) * radius),
         ) +
         svgPaths.lineOnAxis(
-          'v',
-          (right ? 1 : -1) * (blockHeight - radius * 6)
+          "v",
+          (right ? 1 : -1) * (blockHeight - radius * 6),
         ) +
         svgPaths.arc(
-          'a',
-          '0 0,1',
+          "a",
+          "0 0,1",
           radius,
-          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius),
         ) +
-        svgPaths.lineOnAxis('h', ((right ? -1 : 1) * radius) / 2) +
+        svgPaths.lineOnAxis("h", ((right ? -1 : 1) * radius) / 2) +
         svgPaths.arc(
-          'a',
-          '0 0,0',
+          "a",
+          "0 0,0",
           radius,
-          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius),
         ) +
         svgPaths.arc(
-          'a',
-          '0 0,1',
+          "a",
+          "0 0,1",
           radius,
-          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius)
+          svgPaths.point((up ? 1 : -1) * radius, (up ? -1 : 1) * radius),
         )
       );
     };
@@ -116,9 +116,12 @@ class TuffosConstantProvider extends Blockly.zelos.ConstantProvider {
     ) {
       if (checks && checks.length > 1) {
         return this.ROUNDED;
-      } else if (checks && (checks.includes('List') || checks.includes('Array'))) {
+      } else if (
+        checks &&
+        (checks.includes("List") || checks.includes("Array"))
+      ) {
         return this.SQUARED;
-      } else if (checks && checks.includes('Object')) {
+      } else if (checks && checks.includes("Object")) {
         return this.PLUS;
       }
     }
@@ -127,8 +130,7 @@ class TuffosConstantProvider extends Blockly.zelos.ConstantProvider {
 }
 
 class PathObject extends Blockly.zelos.PathObject {
-  override updateShadow_() {
-  }
+  override updateShadow_() {}
 }
 
 export default class TuffosRenderer extends Blockly.zelos.Renderer {
@@ -140,13 +142,19 @@ export default class TuffosRenderer extends Blockly.zelos.Renderer {
     return new TuffosConstantProvider();
   }
 
-  override makePathObject(root: SVGElement, style: Blockly.Theme.BlockStyle): Blockly.zelos.PathObject {
-    return new PathObject(root, style, this.getConstants() as Blockly.zelos.ConstantProvider);
+  override makePathObject(
+    root: SVGElement,
+    style: Blockly.Theme.BlockStyle,
+  ): Blockly.zelos.PathObject {
+    return new PathObject(
+      root,
+      style,
+      this.getConstants() as Blockly.zelos.ConstantProvider,
+    );
   }
 }
 
 try {
   Blockly.blockRendering.unregister("tuffos");
-} catch (e) {
-}
+} catch (e) {}
 Blockly.blockRendering.register("tuffos", TuffosRenderer);

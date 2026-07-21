@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { File, Code, BookOpen, Settings } from "lucide-react";
+import { File, Code, BookOpen, Settings, CatIcon } from "lucide-react";
 
 interface HeaderBarProps {
   projectName: string;
@@ -9,7 +9,10 @@ interface HeaderBarProps {
   onLoad: () => void;
   onOpenCredits: () => void;
   onOpenSettings: () => void;
+  onOpenDevTools: () => void;
 }
+
+const localHost = window.location.hostname === "localhost";
 
 export default function HeaderBar({
   projectName,
@@ -19,6 +22,7 @@ export default function HeaderBar({
   onLoad,
   onOpenCredits,
   onOpenSettings,
+  onOpenDevTools,
 }: HeaderBarProps) {
   const [isFileMenuOpen, setIsFileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -91,6 +95,16 @@ export default function HeaderBar({
         >
           <Settings size={20} />
         </button>
+
+        {localHost && (
+          <button
+            className="file-tab-btn"
+            title="Developer Tools"
+            onClick={onOpenDevTools}
+          >
+            <CatIcon size={20} />
+          </button>
+        )}
       </div>
 
       <div className="header-project-name">

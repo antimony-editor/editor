@@ -17,20 +17,24 @@ defineExpandableBlock({
   slots: [
     {
       prefix: "ADD",
-      shadow: index => ({
+      shadow: (index) => ({
         type: "text",
-        fields: { TEXT: listDefaultValues[index] ?? "" }
-      })
-    }
-  ]
+        fields: { TEXT: listDefaultValues[index] ?? "" },
+      }),
+    },
+  ],
 });
 
-javascriptGenerator.forBlock["lists_create_with"] = function (block: Blockly.Block) {
+javascriptGenerator.forBlock["lists_create_with"] = function (
+  block: Blockly.Block,
+) {
   const expandableBlock = block as ExpandableBlock;
   const items: string[] = [];
 
   for (let i = 0; i < expandableBlock.itemCount_; i++) {
-    items.push(javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "''");
+    items.push(
+      javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "''",
+    );
   }
 
   return [`[${items.join(", ")}]`, Order.ATOMIC];

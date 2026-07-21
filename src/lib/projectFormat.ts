@@ -588,6 +588,13 @@ function normalizeSpriteData(
   const { videos, currentVideoId } = normalizeVideos([], null);
   return {
     type: "media",
-    data: { images: [image], currentImageId: image.id, videos, currentVideoId, sounds, currentSoundId },
+    data: {
+      images: [image],
+      currentImageId: image.id,
+      videos,
+      currentVideoId,
+      sounds,
+      currentSoundId,
+    },
   };
 }

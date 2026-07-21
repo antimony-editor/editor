@@ -288,7 +288,9 @@ javascriptGenerator.forBlock["motion_glideSecsTo"] = function (
 Blockly.Blocks["motion_setCharPosition"] = {
   init: function () {
     this.setMediaTypes("text");
-    this.appendValueInput("INDEX").setCheck("Number").appendField("set position of char at position");
+    this.appendValueInput("INDEX")
+      .setCheck("Number")
+      .appendField("set position of char at position");
     this.appendValueInput("X").setCheck("Number").appendField("to X");
     this.appendValueInput("Y").setCheck("Number").appendField("Y");
     this.setPreviousStatement(true, null);
@@ -301,7 +303,8 @@ Blockly.Blocks["motion_setCharPosition"] = {
 javascriptGenerator.forBlock["motion_setCharPosition"] = function (
   block: Blockly.Block,
 ) {
-  const index = javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
+  const index =
+    javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
   const x = javascriptGenerator.valueToCode(block, "X", Order.ATOMIC) || "0";
   const y = javascriptGenerator.valueToCode(block, "Y", Order.ATOMIC) || "0";
   return `context.sprite.setCharPosition(${index}, ${x}, ${y});\n`;
@@ -310,7 +313,9 @@ javascriptGenerator.forBlock["motion_setCharPosition"] = function (
 Blockly.Blocks["motion_tweenCharPosition"] = {
   init: function () {
     this.setMediaTypes("text");
-    this.appendValueInput("INDEX").setCheck("Number").appendField("tween char at position");
+    this.appendValueInput("INDEX")
+      .setCheck("Number")
+      .appendField("tween char at position");
     this.appendValueInput("X").setCheck("Number").appendField("to X");
     this.appendValueInput("Y").setCheck("Number").appendField("Y");
     this.appendValueInput("DURATION").setCheck("Number").appendField("over");
@@ -325,10 +330,12 @@ Blockly.Blocks["motion_tweenCharPosition"] = {
 javascriptGenerator.forBlock["motion_tweenCharPosition"] = function (
   block: Blockly.Block,
 ) {
-  const index = javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
+  const index =
+    javascriptGenerator.valueToCode(block, "INDEX", Order.ATOMIC) || "1";
   const x = javascriptGenerator.valueToCode(block, "X", Order.ATOMIC) || "0";
   const y = javascriptGenerator.valueToCode(block, "Y", Order.ATOMIC) || "0";
-  const duration = javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
+  const duration =
+    javascriptGenerator.valueToCode(block, "DURATION", Order.ATOMIC) || "1";
   return `await window.RUNTIME.tweenCharPosition(context, ${index}, ${x}, ${y}, ${duration});\n`;
 };
 
@@ -359,7 +366,8 @@ Blockly.Blocks["motion_forEachCharacter"] = {
 javascriptGenerator.forBlock["motion_forEachCharacter"] = function (
   block: Blockly.Block,
 ) {
-  const variableName = javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "char_num";
+  const variableName =
+    javascriptGenerator.valueToCode(block, "VAR", Order.NONE) || "char_num";
   const statements = javascriptGenerator.statementToCode(block, "DO");
   return `(window.RUNTIME || {}).onStart(async function(context){\n  const _text = typeof context.sprite.text === "string" ? context.sprite.text : "";\n  const _len = _text.length;\n  for (let ${variableName} = 1; ${variableName} <= _len; ${variableName}++) {\n    (async () => {\n${statements}\n    })();\n  }\n});\n`;
 };

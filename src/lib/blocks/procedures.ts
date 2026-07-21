@@ -12,7 +12,7 @@ Blockly.Blocks[RETURN_TYPE] = {
     this.setPreviousStatement(true, null);
     this.setStyle("procedure_blocks");
     this.setTooltip(
-      "Return a value  (if used with a function it'll turn the block into a reporter)",
+      "Return a value (if used with a function it'll turn the block into a reporter)",
     );
   },
 };

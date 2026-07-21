@@ -63,7 +63,10 @@ function VideoThumbnail({ src }: { src: string }) {
       }}
     >
       {thumbnail ? (
-        <img src={thumbnail} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img
+          src={thumbnail}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       ) : (
         <span style={{ fontSize: "10px", color: "#fff" }}>VID</span>
       )}
@@ -147,12 +150,18 @@ export default function VideoTab() {
       if (!replaceId) {
         const newVideo = {
           id: videoId,
-          name: file.name.replace(/\.[^.]+$/, "") || "Video " + (currentData.videos.length + 1),
+          name:
+            file.name.replace(/\.[^.]+$/, "") ||
+            "Video " + (currentData.videos.length + 1),
           src,
         };
         newVideos = [...currentData.videos, newVideo];
       } else {
-        newVideos = currentData.videos.map((v: MediaVideo) => v.id === videoId ? { ...v, src, name: file.name.replace(/\.[^.]+$/, "") } : v);
+        newVideos = currentData.videos.map((v: MediaVideo) =>
+          v.id === videoId
+            ? { ...v, src, name: file.name.replace(/\.[^.]+$/, "") }
+            : v,
+        );
       }
 
       const videoElement = document.createElement("video");
@@ -206,8 +215,11 @@ export default function VideoTab() {
   };
 
   const handleDeleteVideo = (id: string) => {
-    if (!sprite || !isVideoData(sprite.data) || sprite.data.videos.length <= 1) return;
-    const nextVideos = sprite.data.videos.filter((v: MediaVideo) => v.id !== id);
+    if (!sprite || !isVideoData(sprite.data) || sprite.data.videos.length <= 1)
+      return;
+    const nextVideos = sprite.data.videos.filter(
+      (v: MediaVideo) => v.id !== id,
+    );
     dispatch({
       type: "UPDATE_SPRITE",
       id: sprite.id,
@@ -215,7 +227,10 @@ export default function VideoTab() {
         data: {
           ...sprite.data,
           videos: nextVideos,
-          currentVideoId: sprite.data.currentVideoId === id ? nextVideos[0].id : sprite.data.currentVideoId,
+          currentVideoId:
+            sprite.data.currentVideoId === id
+              ? nextVideos[0].id
+              : sprite.data.currentVideoId,
         },
       },
     });
@@ -260,10 +275,15 @@ export default function VideoTab() {
                 className="asset-editor-name-input"
                 type="text"
                 value={activeItem.name}
-                onChange={(e) => updateVideo(activeItem.id, { name: e.target.value })}
+                onChange={(e) =>
+                  updateVideo(activeItem.id, { name: e.target.value })
+                }
               />
               <div className="media-actions">
-                <button className="properties-btn" onClick={() => replaceVideo(activeItem.id)}>
+                <button
+                  className="properties-btn"
+                  onClick={() => replaceVideo(activeItem.id)}
+                >
                   <Replace size={14} /> Replace
                 </button>
                 <button
@@ -277,7 +297,12 @@ export default function VideoTab() {
             </div>
             <div className="asset-editor-body">
               <div className="asset-main-preview">
-                {plyrSource && <Plyr source={plyrSource} options={{ autoplay: false, pip: false } as any} />}
+                {plyrSource && (
+                  <Plyr
+                    source={plyrSource}
+                    options={{ autoplay: false, pip: false } as any}
+                  />
+                )}
               </div>
             </div>
           </>
@@ -289,12 +314,21 @@ export default function VideoTab() {
       </div>
 
       <Menu id={MENU_ID}>
-        <Item onClick={(e) => {
-          const newName = prompt("New name?", e.props.video.name);
-          if (newName) updateVideo(e.props.video.id, { name: newName });
-        }}>Rename</Item>
+        <Item
+          onClick={(e) => {
+            const newName = prompt("New name?", e.props.video.name);
+            if (newName) updateVideo(e.props.video.id, { name: newName });
+          }}
+        >
+          Rename
+        </Item>
         <Item onClick={(e) => replaceVideo(e.props.video.id)}>Replace</Item>
-        <Item onClick={(e) => handleDeleteVideo(e.props.video.id)} style={{ color: "var(--danger)" }}>Delete</Item>
+        <Item
+          onClick={(e) => handleDeleteVideo(e.props.video.id)}
+          style={{ color: "var(--danger)" }}
+        >
+          Delete
+        </Item>
       </Menu>
     </div>
   );

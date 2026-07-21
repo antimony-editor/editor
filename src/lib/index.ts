@@ -3,10 +3,7 @@ export {
   workspaceConfig,
   buildToolboxForSource,
 } from "./config";
-export {
-  isBlockVisibleFor,
-  getSourceTypeForSprite,
-} from "./blockVisibility";
+export { isBlockVisibleFor, getSourceTypeForSprite } from "./blockVisibility";
 export type { BlockSourceType } from "./blockVisibility";
 export {
   registerExtension,

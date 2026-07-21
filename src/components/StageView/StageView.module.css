@@ -1,0 +1,86 @@
+.stage {
+  overflow: hidden;
+}
+
+.transportControls {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  width: fit-content;
+}
+
+.transportControlsWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.modalHeaderCentered {
+  position: relative;
+  justify-content: center;
+}
+
+.fpsAbsolute {
+  position: absolute;
+  left: var(--space-lg);
+}
+
+.fpsCounter {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  padding-right: var(--space-xs);
+  transition: color 0.3s;
+}
+
+.closeAbsolute {
+  position: absolute;
+  right: var(--space-lg);
+}
+
+.headingAbsolute {
+  position: absolute;
+  left: var(--space-lg);
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.exportModalBody {
+  background: #000;
+  min-height: 400px;
+  display: block;
+}
+
+.flexCenter {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exportImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.videoContainerInner {
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plyrContainer {
+  width: 100%;
+}

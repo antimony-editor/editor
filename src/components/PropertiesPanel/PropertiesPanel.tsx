@@ -7,7 +7,7 @@ import {
   generateMediaSoundId,
   type TextSpriteData,
   type MediaSpriteData,
-} from "../lib/sprites";
+} from "../../lib/sprites";
 import { useEffect, useRef, useState } from "react";
 import {
   getAvailableFonts,
@@ -19,7 +19,8 @@ import {
   detectAvailableFonts,
   requestFontAccess,
   getFontPermissionState,
-} from "../lib/fonts";
+} from "../../lib/fonts";
+import CollapsableSection from "./CollapsableSection";
 
 export default function PropertiesPanel() {
   const { state, dispatch } = useSprites();
@@ -62,15 +63,30 @@ export default function PropertiesPanel() {
         if (state === "granted") {
           const found = await detectAvailableFonts(COMMON_FONTS);
           if (!mounted) return;
-          setFonts(Array.from(new Set([...safe, ...found, ...google, ...system])));
+          setFonts(
+            Array.from(new Set([...safe, ...found, ...google, ...system])),
+          );
           return;
         }
         const fallback = getAvailableFonts(COMMON_FONTS);
         if (!mounted) return;
-        setFonts(Array.from(new Set([...safe, ...fallback, ...google, ...system])));
+        setFonts(
+          Array.from(new Set([...safe, ...fallback, ...google, ...system])),
+        );
       } catch {
         if (!mounted) return;
-        setFonts(Array.from(new Set([...WEB_SAFE_FONTS, "Inter", "Arial", "Georgia", "monospace", ...GOOGLE_FONTS])));
+        setFonts(
+          Array.from(
+            new Set([
+              ...WEB_SAFE_FONTS,
+              "Inter",
+              "Arial",
+              "Georgia",
+              "monospace",
+              ...GOOGLE_FONTS,
+            ]),
+          ),
+        );
       }
     })();
     return () => {
@@ -85,15 +101,19 @@ export default function PropertiesPanel() {
     try {
       const list = await requestFontAccess();
       if (list && list.length) {
-        setFonts(Array.from(new Set([
-          ...WEB_SAFE_FONTS,
-          ...list,
-          ...GOOGLE_FONTS,
-          "system-ui",
-          "sans-serif",
-          "serif",
-          "monospace",
-        ])));
+        setFonts(
+          Array.from(
+            new Set([
+              ...WEB_SAFE_FONTS,
+              ...list,
+              ...GOOGLE_FONTS,
+              "system-ui",
+              "sans-serif",
+              "serif",
+              "monospace",
+            ]),
+          ),
+        );
         setFontPermission("granted");
       } else {
         setFontPermission("denied");
@@ -143,20 +163,9 @@ export default function PropertiesPanel() {
   );
 
   return (
-    <div
-      className="properties-panel"
-      style={{ flexShrink: 0, borderBottom: "1px solid var(--border-subtle)" }}
-    >
-      <div
-        className="panel-body"
-        style={{
-          overflowY: "auto",
-          flex: "none",
-          background: "transparent",
-        }}
-      >
-        <div className="properties-section">
-          <div className="properties-section-title">Source</div>
+    <div className="properties-panel">
+      <div className="panel-body">
+        <CollapsableSection title="Source">
           <div className="properties-row">
             <span className="properties-label">Name</span>
             <input
@@ -171,19 +180,17 @@ export default function PropertiesPanel() {
               }}
             />
           </div>
-        </div>
+        </CollapsableSection>
 
-        <div className="properties-section">
-          <div className="properties-section-title">Transform</div>
+        <CollapsableSection title="Transform">
           {numField("X", sprite.x, "x")}
           {numField("Y", sprite.y, "y")}
           {numField("Width", sprite.width, "width")}
           {numField("Height", sprite.height, "height")}
           {numField("Rotation", sprite.rotation, "rotation")}
-        </div>
+        </CollapsableSection>
 
-        <div className="properties-section">
-          <div className="properties-section-title">Appearance</div>
+        <CollapsableSection title="Appearance">
           <div className="properties-row">
             <span className="properties-label">Opacity</span>
             <input
@@ -220,14 +227,13 @@ export default function PropertiesPanel() {
               onClick={() => update({ locked: !sprite.locked })}
             />
           </div>
-        </div>
+        </CollapsableSection>
 
         {isTextData(sprite.data) &&
           (() => {
             const d = sprite.data as TextSpriteData;
             return (
-              <div className="properties-section">
-                <div className="properties-section-title">Text</div>
+              <CollapsableSection title="Text">
                 <div className="properties-row">
                   <textarea
                     className="properties-textarea"
@@ -240,55 +246,47 @@ export default function PropertiesPanel() {
                   style={{ alignItems: "center" }}
                 >
                   <span className="properties-label">Font</span>
-                  <div
+                  <select
+                    className="properties-select"
+                    value={d.fontFamily}
+                    onChange={(e) => {
+                      const f = e.target.value;
+                      loadGoogleFont(f);
+                      updateData({ fontFamily: f });
+                    }}
                     style={{
-                      display: "flex",
-                      gap: "8px",
-                      alignItems: "center",
+                      minWidth: 160,
+                      fontFamily: buildFontStack(d.fontFamily),
                     }}
                   >
-                    <select
-                      className="properties-select"
-                      value={d.fontFamily}
-                      onChange={(e) => {
-                        const f = e.target.value;
-                        loadGoogleFont(f);
-                        updateData({ fontFamily: f });
-                      }}
-                      style={{
-                        minWidth: 160,
-                        fontFamily: buildFontStack(d.fontFamily),
-                      }}
-                    >
-                      {!fonts.includes(d.fontFamily) && d.fontFamily ? (
-                        <option
-                          value={d.fontFamily}
-                          style={{ fontFamily: buildFontStack(d.fontFamily) }}
-                        >
-                          {d.fontFamily}
-                        </option>
-                      ) : null}
-                      {fonts.map((f) => (
-                        <option
-                          key={f}
-                          value={f}
-                          style={{ fontFamily: buildFontStack(f) }}
-                        >
-                          {f}
-                        </option>
-                      ))}
-                    </select>
-                    {fontPermission !== "granted" && (
-                      <button
-                        className="properties-btn"
-                        onClick={handleUnlockFonts}
-                        disabled={requestingFonts}
-                        title="Request permission to access local fonts"
+                    {!fonts.includes(d.fontFamily) && d.fontFamily ? (
+                      <option
+                        value={d.fontFamily}
+                        style={{ fontFamily: buildFontStack(d.fontFamily) }}
                       >
-                        {requestingFonts ? "Unlocking..." : "Use Device Fonts"}
-                      </button>
-                    )}
-                  </div>
+                        {d.fontFamily}
+                      </option>
+                    ) : null}
+                    {fonts.map((f) => (
+                      <option
+                        key={f}
+                        value={f}
+                        style={{ fontFamily: buildFontStack(f) }}
+                      >
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                  {fontPermission !== "granted" && (
+                    <button
+                      className="properties-btn"
+                      onClick={handleUnlockFonts}
+                      disabled={requestingFonts}
+                      title="Request permission to access local fonts"
+                    >
+                      {requestingFonts ? "Unlocking..." : "Use Device Fonts"}
+                    </button>
+                  )}
                 </div>
                 {numField("Size", d.fontSize, "fontSize", true)}
                 <div className="properties-row">
@@ -335,7 +333,7 @@ export default function PropertiesPanel() {
                     <option value="right">Right</option>
                   </select>
                 </div>
-              </div>
+              </CollapsableSection>
             );
           })()}
       </div>

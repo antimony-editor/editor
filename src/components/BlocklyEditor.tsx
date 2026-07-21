@@ -3,6 +3,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 
 import "blockly/blocks";
+import "@blockly/toolbox-search";
 
 // todo: this is evil
 import initReporterBubble from "../lib/patches/reporter-bubble";
@@ -12,7 +13,7 @@ import initReporterBubble from "../lib/patches/reporter-bubble";
       "procedures_defnoreturn",
       "procedures_defreturn",
       "procedures_callnoreturn",
-      "procedures_callreturn",
+      "procedures_callreturn"
     ];
     const blk = Blockly as unknown as { Blocks?: Record<string, unknown> };
     const gen = javascriptGenerator as unknown as {
@@ -22,21 +23,20 @@ import initReporterBubble from "../lib/patches/reporter-bubble";
       if (blk.Blocks && blk.Blocks[t]) delete blk.Blocks[t];
       if (gen.forBlock && gen.forBlock[t]) delete gen.forBlock[t];
     }
-  } catch {
-  }
+  } catch {}
 })();
 import * as En from "blockly/msg/en";
 import {
   initAllBlocks,
   workspaceConfig,
   buildToolboxForSource,
-  buildBlocklyTheme,
+  buildBlocklyTheme
 } from "../lib/config";
 import { getThemeColors, useTheme } from "../lib/themes";
 import { getSourceTypeForSprite } from "../lib/blockVisibility";
 import {
   MOTION_CATEGORY_NAME,
-  updateMotionGoToFlyoutDefaults,
+  updateMotionGoToFlyoutDefaults
 } from "../lib/flyoutDefaults";
 import "../lib/blocks/duplicateOnDrag";
 import { subscribeExtensionChanges } from "../lib/extensions/manager";
@@ -45,7 +45,9 @@ import { Plus } from "lucide-react";
 
 function darkenColor(hex: string, percent: number): string {
   const cleanHex = hex.replace(/^\s*#|\s*$/g, "");
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   if (cleanHex.length === 3) {
     r = parseInt(cleanHex[0] + cleanHex[0], 16);
     g = parseInt(cleanHex[1] + cleanHex[1], 16);
@@ -69,9 +71,7 @@ function darkenColor(hex: string, percent: number): string {
   return `#${rHex}${gHex}${bHex}`;
 }
 
-function syncShadowColours(
-  workspace: Blockly.WorkspaceSvg | Blockly.Workspace,
-) {
+function syncShadowColours(workspace: Blockly.WorkspaceSvg | Blockly.Workspace) {
   for (const block of workspace.getAllBlocks(false)) {
     if (!block.isShadow()) continue;
     const parent = block.getParent();
@@ -86,7 +86,7 @@ function getFlyoutWorkspace(workspace: Blockly.WorkspaceSvg) {
 
 function applyMotionGoToFlyoutDefaults(
   workspace: Blockly.WorkspaceSvg,
-  sprite: { x: number; y: number } | undefined,
+  sprite: { x: number; y: number } | undefined
 ) {
   if (!sprite) return;
   requestAnimationFrame(() => {
@@ -97,14 +97,18 @@ function applyMotionGoToFlyoutDefaults(
   });
 }
 
-export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStateAction<boolean>> }) {
+export default function BlocklyEditor({
+  showMenu
+}: {
+  showMenu: Dispatch<SetStateAction<boolean>>;
+}) {
   const blocklyDivRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const { state, dispatch } = useSprites();
   const stateRef = useRef(state);
   stateRef.current = state;
   const selectedSpriteId = state.selectedSpriteId;
-  const selectedSprite = state.sprites.find((s) => s.id === selectedSpriteId);
+  const selectedSprite = state.sprites.find(s => s.id === selectedSpriteId);
   const currentXml = selectedSprite?.blocklyXml;
 
   const loadedSpriteIdRef = useRef<string | null>(null);
@@ -135,17 +139,12 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
                 const options = (field as any).getOptions(false);
                 const value = field.getValue();
 
-                if (
-                  value === "" &&
-                  options.length > 0 &&
-                  options[0][1] !== ""
-                ) {
+                if (value === "" && options.length > 0 && options[0][1] !== "") {
                   field.setValue(options[0][1]);
                 } else if (value !== null && value !== undefined) {
                   field.setValue(value);
                 }
-              } catch (e) {
-              }
+              } catch (e) {}
             }
           }
         }
@@ -173,7 +172,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
     (workspace as any).sprites = state.sprites;
     if (selectedSprite) {
       workspace.updateToolbox(
-        buildToolboxForSource(getSourceTypeForSprite(selectedSprite.type)),
+        buildToolboxForSource(getSourceTypeForSprite(selectedSprite.type))
       );
     }
     const refreshToolbox = () => {
@@ -193,7 +192,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
     let mutationObserver: MutationObserver | null = null;
 
     const attachToolboxObserver = (el: Element) => {
-      toolboxObserver = new ResizeObserver((entries) => {
+      toolboxObserver = new ResizeObserver(entries => {
         for (const entry of entries) {
           setToolboxWidth(entry.contentRect.width);
         }
@@ -220,8 +219,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       try {
         const dom = Blockly.utils.xml.textToDom(selectedSprite.blocklyXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
-      } catch (e) {
-      }
+      } catch (e) {}
       isSwappingRef.current = false;
     }
     loadedSpriteIdRef.current = selectedSpriteId;
@@ -252,7 +250,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       dispatch({
         type: "UPDATE_SPRITE",
         id: currentSpriteId,
-        changes: { blocklyXml: xmlText },
+        changes: { blocklyXml: xmlText }
       });
     };
 
@@ -263,7 +261,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
     let lastWidth = blocklyDiv.offsetWidth;
     let lastHeight = blocklyDiv.offsetHeight;
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       const entry = entries[0];
       if (!entry) return;
 
@@ -316,8 +314,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       try {
         const dom = Blockly.utils.xml.textToDom(currentXml);
         Blockly.Xml.domToWorkspace(dom, workspace);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     workspace.render?.();
@@ -378,7 +375,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
             textAlign: "center",
             userSelect: "none",
             paddingLeft: `${toolboxWidth}px`,
-            boxSizing: "border-box",
+            boxSizing: "border-box"
           }}
         >
           Select a source to view and edit its blocks
@@ -386,25 +383,9 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       )}
 
       {selectedSpriteId && (
-        <div
-          style={{
-            bottom: "0%",
-            left: "0%",
-            position: "absolute",
-            width: "124px",
-            padding: "10px",
-            zIndex: 100,
-            background: "var(--accent)",
-            cursor: "pointer",
-            alignContent: "center",
-            alignItems: "center",
-            justifyContent: "center",
-            display: "flex",
-            flexDirection: "column",
-          }}
-          onClick={() => showMenu(true)}>
-          <Plus style={{ width: "35px", height: "35px" }} />
-          <div>Add an extension</div>
+        <div className="add-extension-button" onClick={() => showMenu(true)}>
+          <Plus className="icon"/>
+          <p className="button-text">Add an extension</p>
         </div>
       )}
     </div>
