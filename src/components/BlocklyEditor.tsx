@@ -5,6 +5,7 @@ import { javascriptGenerator } from "blockly/javascript";
 import "blockly/blocks";
 
 // todo: this is evil
+import initReporterBubble from "../lib/patches/reporter-bubble";
 (() => {
   try {
     const proc = [
@@ -100,6 +101,8 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
   const blocklyDivRef = useRef<HTMLDivElement | null>(null);
   const workspaceRef = useRef<Blockly.WorkspaceSvg | null>(null);
   const { state, dispatch } = useSprites();
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const selectedSpriteId = state.selectedSpriteId;
   const selectedSprite = state.sprites.find((s) => s.id === selectedSpriteId);
   const currentXml = selectedSprite?.blocklyXml;
@@ -160,6 +163,12 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
 
     const workspace = Blockly.inject(blocklyDiv, workspaceConfig);
     workspaceRef.current = workspace;
+    (window as any).debugWorkspace = workspace;
+    const reporter = initReporterBubble(workspace, blocklyDiv, {
+      getSprites: () => stateRef.current.sprites,
+      getSelectedSpriteId: () => stateRef.current.selectedSpriteId,
+      dispatch,
+    });
     (workspace as any).spriteId = selectedSpriteId;
     (workspace as any).sprites = state.sprites;
     if (selectedSprite) {
@@ -281,6 +290,7 @@ export default function BlocklyEditor({ showMenu }: { showMenu: Dispatch<SetStat
       unsubscribeExtensions();
       workspace.removeChangeListener(handleWorkspaceChange);
       flyoutWorkspace?.removeChangeListener(handleWorkspaceChange);
+      try { reporter?.destroy?.(); } catch (e) { }
       workspace.dispose();
     };
   }, []);
