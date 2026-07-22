@@ -32,6 +32,11 @@ const credits = [
     roles: "Developer, Programmer, Default Sound",
   },
   {
+    name: "Aster",
+    url: "https://tutel.page/",
+    roles: "Developer, Initial Homepage",
+  },
+  {
     name: "rlockzo",
     url: "https://github.com/rlockzo",
     roles: "Developer, Programmer, Default Image",
