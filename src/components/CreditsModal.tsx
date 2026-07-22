@@ -12,8 +12,8 @@ const credits = [
     roles: "Co-Owner, Lead Developer, Designer, Domain Host",
   },
   {
-    name: "Ash",
-    url: "https://ash0.dev",
+    name: "UnbraveChimp",
+    url: "https://github.com/unbravechimp",
     roles: "Developer, Designer, Logo",
   },
   {
