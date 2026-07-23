@@ -173,6 +173,9 @@ class Runtime {
   private liveVoices: Map<string, Set<LiveVoice>> = new Map();
   private activePlayingSounds: Set<OfflineVoice> = new Set();
   private spritesProvider: (() => Sprite[]) | null = null;
+  private stageSizeProvider:
+    | (() => { width: number; height: number })
+    | null = null;
   private nextMonitoringTime = 0;
 
   private cameras: Map<
@@ -322,7 +325,16 @@ class Runtime {
     return Math.max(0, now - this.timerStart) / 1000;
   }
 
+  setStageSizeProvider(
+    provider: (() => { width: number; height: number }) | null,
+  ) {
+    this.stageSizeProvider = provider;
+  }
+
   getStageSize(): { width: number; height: number } {
+    if (this.stageSizeProvider) {
+      return this.stageSizeProvider();
+    }
     for (const context of this.sprites.values()) {
       if (context.getStageSize) {
         return context.getStageSize();
@@ -854,6 +866,9 @@ class Runtime {
     this.sprites.set(spriteId, context);
     if (context.getSprites) {
       this.spritesProvider = context.getSprites;
+    }
+    if (context.getStageSize) {
+      this.stageSizeProvider = context.getStageSize;
     }
     if (!this.spriteHandlers.has(spriteId)) {
       this.spriteHandlers.set(spriteId, new Map());

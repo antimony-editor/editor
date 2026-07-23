@@ -1,7 +1,11 @@
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { ChevronLeft, Upload, Globe } from "lucide-react";
 
-import { ExtensionItem, extensions } from "../lib/extensions/builtinExtensions";
+import {
+  ExtensionItem,
+  extensions,
+  fetchBuiltinExtensionCode,
+} from "../lib/extensions/builtinExtensions";
 
 import { registerExtension } from "../lib/extensions/manager";
 
@@ -14,7 +18,7 @@ export default function ExtensionMenu({
 
   const [url, setUrl] = useState("");
 
-  async function installJS(js: string, trusted = true) {
+  async function installJS(js: string, trusted = false) {
     try {
       await registerExtension(js, trusted);
       showMenu(false);
@@ -154,7 +158,7 @@ export default function ExtensionMenu({
 
 function renderExtension(
   ext: ExtensionItem,
-  installJS: (js: string) => Promise<void>,
+  installJS: (js: string, trusted?: boolean) => Promise<void>,
 ) {
   const thumb = ext.img ?? "ext-nothumb.png";
 
@@ -164,13 +168,7 @@ function renderExtension(
       key={ext.name}
       onClick={async () => {
         try {
-          const res = await fetch("extensions/js/" + ext.jsFile);
-
-          if (!res.ok) {
-            throw new Error(`Failed to fetch ${ext.jsFile}`);
-          }
-
-          await installJS(await res.text());
+          await installJS(await fetchBuiltinExtensionCode(ext), true);
         } catch (e) {
           console.error("Failed to load extension:", e);
         }

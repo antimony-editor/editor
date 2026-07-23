@@ -29,6 +29,10 @@ import runtime from "./lib/runtime";
 import { serializeProject, deserializeProject } from "./lib/projectFormat";
 import { registerExtension, clearExtensions } from "./lib/extensions/manager";
 import {
+  fetchBuiltinExtensionCode,
+  getBuiltinExtension,
+} from "./lib/extensions/builtinExtensions";
+import {
   DEFAULT_PROJECT_SETTINGS,
   ProjectSettingsContext,
   type ProjectSettings,
@@ -238,7 +242,16 @@ export default function App() {
           if (project.extensions && project.extensions.length > 0) {
             for (const ext of project.extensions) {
               try {
-                await registerExtension(ext.code, ext.trusted);
+                // zach
+                const builtin = getBuiltinExtension(ext.id);
+                if (builtin) {
+                  await registerExtension(
+                    await fetchBuiltinExtensionCode(builtin),
+                    true,
+                  );
+                } else {
+                  await registerExtension(ext.code, false);
+                }
               } catch (e) {
                 console.warn("failed to restore this extension:", ext.id, e);
               }

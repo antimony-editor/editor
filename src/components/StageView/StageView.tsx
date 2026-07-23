@@ -551,6 +551,9 @@ export default function StageView() {
   const virtualWidth = settings.width;
   const virtualHeight = settings.height;
 
+  const stageSizeRef = useRef({ width: virtualWidth, height: virtualHeight });
+  stageSizeRef.current = { width: virtualWidth, height: virtualHeight };
+
   useEffect(() => {
     if (!isPlaying || isPaused) {
       if (!isPlaying && worldGroupRef.current) {
@@ -1114,6 +1117,11 @@ export default function StageView() {
   useEffect(() => {
     runtime.setFps(settings.fps);
   }, [settings.fps]);
+
+  useEffect(() => {
+    runtime.setStageSizeProvider(() => stageSizeRef.current);
+    return () => runtime.setStageSizeProvider(null);
+  }, []);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -1856,7 +1864,8 @@ export default function StageView() {
         sprite: spriteProxy as SpriteContext["sprite"],
         spriteId: sprite.id,
         dispatch,
-        getSprites: () => spritesRef.current
+        getSprites: () => spritesRef.current,
+        getStageSize: () => stageSizeRef.current
       });
       applyLiveSprite();
     });

@@ -470,32 +470,41 @@ export async function registerExtension(codeString: string, trusted = false) {
   }
 
   await new Promise<void>((resolve, reject) => {
-    const bridge = new ExtensionBridge("temp_id", codeString, (extInfo) => {
-      const id = extInfo.id;
-      if (activeExtensions.some((entry) => entry.id === id)) {
-        bridge.terminate();
-        resolve();
-        return;
-      }
+    const fail = (error: Error) => {
+      bridge.terminate();
+      reject(error);
+    };
 
-      bridge.extId = id;
-      extensionBridges.set(id, bridge);
-      finishRegistration(
-        id,
-        codeString,
-        false,
-        extInfo.category,
-        extInfo.blocks,
-        Object.fromEntries(
-          (extInfo.codeGen as string[]).map((blockId) => [blockId, true]),
-        ) as Record<string, true>,
-      );
-      resolve();
-    });
+    const bridge = new ExtensionBridge(
+      "temp_id",
+      codeString,
+      (extInfo) => {
+        const id = extInfo.id;
+        if (activeExtensions.some((entry) => entry.id === id)) {
+          bridge.terminate();
+          resolve();
+          return;
+        }
+
+        bridge.extId = id;
+        extensionBridges.set(id, bridge);
+        finishRegistration(
+          id,
+          codeString,
+          false,
+          extInfo.category,
+          extInfo.blocks,
+          Object.fromEntries(
+            (extInfo.codeGen as string[]).map((blockId) => [blockId, true]),
+          ) as Record<string, true>,
+        );
+        resolve();
+      },
+      fail,
+    );
 
     bridge.worker.addEventListener("error", (event) => {
-      bridge.terminate();
-      reject(event.error ?? new Error(event.message));
+      fail(event.error ?? new Error(event.message));
     });
   });
 }
