@@ -1,5 +1,9 @@
 import * as Blockly from "blockly/core";
 import { javascriptGenerator, Order } from "blockly/javascript";
+import {
+  createPolymorphicDualMixin,
+  type DualBlock,
+} from "../patches/dual-blocks";
 
 Blockly.Blocks["functions_argument"] = {
   init: function () {
@@ -35,15 +39,18 @@ javascriptGenerator.forBlock["functions_lambda"] = function (
 };
 
 Blockly.Blocks["functions_execute"] = {
-  init: function () {
+  // A dual block: reports the call's result when plugged into a value slot, runs
+  // it as a statement when stacked. The mixin morphs its connections to whatever
+  // context it lands in, so it never carries an unused reporter cap in a stack.
+  ...createPolymorphicDualMixin("default"),
+  init: function (this: DualBlock) {
     this.appendValueInput("FUNC").setCheck(null).appendField("execute");
     this.appendValueInput("ARG").setCheck(null).appendField("with");
     this.setInputsInline(true);
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setOutput(true, null);
     this.setStyle("procedure_blocks");
     this.setTooltip("Execute a function value with the given argument");
+    this.mode_ = "inert";
+    this.updateShape_();
   },
 };
 
@@ -56,7 +63,10 @@ javascriptGenerator.forBlock["functions_execute"] = function (
   const arg =
     javascriptGenerator.valueToCode(block, "ARG", Order.NONE) || "undefined";
   const code = `(${fn})(${arg})`;
-  return block.outputConnection?.getSourceBlock() ? [code, Order.ATOMIC] : code;
+  // In input mode the block has an output plug; otherwise it runs as a statement.
+  return block.outputConnection
+    ? [code, Order.ATOMIC]
+    : `${code};\n`;
 };
 
 Blockly.Blocks["functions_return"] = {
