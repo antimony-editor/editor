@@ -137,6 +137,7 @@ class Runtime {
   private stopped = false;
   private epoch = 0;
   private runEpoch = 0;
+  private editorRunCount = 0;
   private activeTimeouts = new Set<ReturnType<typeof setTimeout>>();
   private pendingDelays = new Set<(error: StopError) => void>();
   private canvasEffects: Map<string, number> = new Map();
@@ -930,6 +931,22 @@ class Runtime {
     return this.stopped || this.runEpoch !== this.epoch;
   }
 
+  beginEditorRun() {
+    if (this.stopped || this.runEpoch !== this.epoch) {
+      this.stopped = false;
+      this.runEpoch = this.epoch;
+    }
+    this.editorRunCount++;
+  }
+
+  endEditorRun() {
+    if (this.editorRunCount > 0) this.editorRunCount--;
+  }
+
+  hasEditorRuns() {
+    return this.editorRunCount > 0;
+  }
+
   delay(ms: number): Promise<void> {
     if (this.stopped) {
       return Promise.reject(new StopError());
@@ -1042,6 +1059,7 @@ class Runtime {
     this.pauseResolvers.clear();
     this.clearHandlers();
     this.liveWaitCount = 0;
+    this.editorRunCount = 0;
   }
 
   private resetAudioState() {

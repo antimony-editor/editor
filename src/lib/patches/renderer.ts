@@ -104,6 +104,18 @@ class TuffosConstantProvider extends Blockly.zelos.ConstantProvider {
       },
     };
   }
+ // ZERO documentation btw i had to figure this out
+  override getCSS_(selector: string): string[] {
+    return [
+      ...super.getCSS_(selector),
+      `${selector} .blocklySelected>.blocklyPath {`,
+      "stroke: none;",
+      "}",
+      `${selector} .blocklySelected>.blocklyPath.blocklyPathSelected {`,
+      "display: none;",
+      "}",
+    ];
+  }
 
   override shapeFor(connection: Blockly.RenderedConnection): any {
     let checks = connection.getCheck();

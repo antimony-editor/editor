@@ -20,17 +20,52 @@ let gifCtx: OffscreenCanvasRenderingContext2D | null = null;
 let frameCounter = 0;
 let audioTimestampSec = 0;
 
-let pendingFrames: Array<() => Promise<void>> = [];
-let draining = false;
+let wroteAudio = false;
 
-async function drainFrames() {
-  if (draining) return;
-  draining = true;
-  while (pendingFrames.length > 0) {
-    const task = pendingFrames.shift()!;
-    await task();
+type PendingFrame = { bitmap: ImageBitmap; run: () => Promise<void> };
+
+let pendingFrames: PendingFrame[] = [];
+let drainPromise: Promise<void> | null = null;
+let fatalError: Error | null = null;
+
+function closeBitmap(bitmap: ImageBitmap) {
+  try {
+    bitmap.close();
+  } catch {
+    // already closed
   }
-  draining = false;
+}
+
+function discardPendingFrames() {
+  for (const pending of pendingFrames) closeBitmap(pending.bitmap);
+  pendingFrames = [];
+}
+
+function postError(error: Error) {
+  (self as any).postMessage({ type: "error", error: error.message });
+}
+
+function fail(error: unknown) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  if (!fatalError) fatalError = err;
+  discardPendingFrames();
+  postError(err);
+}
+
+async function runDrain() {
+  while (pendingFrames.length > 0) {
+    const pending = pendingFrames.shift()!;
+    await pending.run();
+  }
+}
+
+function drainFrames(): Promise<void> {
+  if (!drainPromise) {
+    drainPromise = runDrain().finally(() => {
+      drainPromise = null;
+    });
+  }
+  return drainPromise;
 }
 
 self.onmessage = async (e: MessageEvent) => {
@@ -41,8 +76,10 @@ self.onmessage = async (e: MessageEvent) => {
       config = payload;
       frameCounter = 0;
       audioTimestampSec = 0;
+      wroteAudio = false;
       pendingFrames = [];
-      draining = false;
+      drainPromise = null;
+      fatalError = null;
 
       if (config.options.format === "gif") {
         gifEncoder = GIFEncoder();
@@ -100,6 +137,12 @@ self.onmessage = async (e: MessageEvent) => {
         bitmap: ImageBitmap;
         audio: Float32Array | null;
       };
+
+      if (fatalError) {
+        closeBitmap(bitmap);
+        return;
+      }
+
       const timestampSec = frameCounter / config.fps;
       const durationSec = 1 / config.fps;
       frameCounter++;
@@ -127,39 +170,53 @@ self.onmessage = async (e: MessageEvent) => {
       const capturedAudioTimestamp = audioTimestampSec;
       if (capturedAudio) {
         audioTimestampSec += capturedAudio.length / 2 / config.sampleRate;
+      } else {
+        audioTimestampSec += durationSec;
       }
 
-      pendingFrames.push(async () => {
-        const videoSample = new VideoSample(bitmap, {
-          timestamp: timestampSec,
-          duration: durationSec,
-        });
-        await videoSource!.add(videoSample);
-        videoSample.close();
-        bitmap.close();
+      pendingFrames.push({
+        bitmap,
+        run: async () => {
+          try {
+            const videoSample = new VideoSample(bitmap, {
+              timestamp: timestampSec,
+              duration: durationSec,
+            });
+            try {
+              await videoSource!.add(videoSample);
+            } finally {
+              videoSample.close();
+            }
 
-        if (
-          capturedAudio &&
-          capturedAudio.length >= 2 &&
-          capturedAudio.length % 2 === 0
-        ) {
-          const audioSample = new AudioSample({
-            format: "f32-planar",
-            sampleRate: config.sampleRate,
-            numberOfChannels: 2,
-            timestamp: capturedAudioTimestamp,
-            data: capturedAudio.buffer,
-          });
-          await audioSource!.add(audioSample);
-          audioSample.close();
-        }
+            if (
+              capturedAudio &&
+              capturedAudio.length >= 2 &&
+              capturedAudio.length % 2 === 0
+            ) {
+              const audioSample = new AudioSample({
+                format: "f32-planar",
+                sampleRate: config.sampleRate,
+                numberOfChannels: 2,
+                timestamp: capturedAudioTimestamp,
+                data: capturedAudio.buffer,
+              });
+              try {
+                await audioSource!.add(audioSample);
+                wroteAudio = true;
+              } finally {
+                audioSample.close();
+              }
+            }
+          } finally {
+            closeBitmap(bitmap);
+          }
+        },
       });
 
-      drainFrames();
+      void drainFrames().catch(fail);
     } else if (type === "finalize") {
-      while (draining || pendingFrames.length > 0) {
-        await new Promise<void>((r) => setTimeout(r, 10));
-      }
+      await drainFrames();
+      if (fatalError) throw fatalError;
 
       if (config.options.format === "gif") {
         gifEncoder.finish();
@@ -168,7 +225,7 @@ self.onmessage = async (e: MessageEvent) => {
         return;
       }
 
-      if (audioTimestampSec === 0) {
+      if (!wroteAudio) {
         const silentFrames = Math.ceil(
           (frameCounter / config.fps) * config.sampleRate,
         );
@@ -190,10 +247,7 @@ self.onmessage = async (e: MessageEvent) => {
       const buffer = target!.buffer as ArrayBuffer;
       (self as any).postMessage({ type: "done", buffer }, [buffer]);
     }
-  } catch (err: any) {
-    (self as any).postMessage({
-      type: "error",
-      error: err?.message ?? String(err),
-    });
+  } catch (err: unknown) {
+    fail(err);
   }
 };

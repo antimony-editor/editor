@@ -2962,7 +2962,13 @@ dialog::backdrop {
   gap: var(--space-xs);
 }
 
-
+.block-run .blocklyPath {
+  stroke: #3bff6b !important;
+  stroke-width: 5px !important;
+  stroke-linejoin: round;
+  /* stroke under the fill, so it reads as an outer border */
+  paint-order: stroke fill;
+}
 
 .reporter-bubble-layer {
   pointer-events: none;

@@ -20,6 +20,9 @@ type RuntimeLike = {
     setCurrentSprite?: (id: string | null) => void;
     getStageSize?: () => { width: number; height: number };
     sprites?: Map<string, SpriteContext>;
+    beginEditorRun?: () => void;
+    endEditorRun?: () => void;
+    stop?: () => void;
 };
 
 export interface ReporterBubbleOptions {
@@ -32,6 +35,8 @@ const MAX_ARRAY_ITEMS = 7;
 const BUBBLE_GAP = 8;
 const HIDE_ANIMATION_MS = 140;
 const EXECUTION_TIMEOUT_MS = 2000;
+const RUNNING_BLOCK_CLASS = "block-run";
+const OUTLINE_MS = 50;
 
 const TIMED_OUT = Symbol("timed-out");
 
@@ -60,6 +65,10 @@ const TOP_LEVEL_SPRITE_KEYS = new Set([
 const DATA_ALIASES: Record<string, string> = {
     text: "content",
 };
+
+function isStopError(value: unknown): boolean {
+    return value instanceof Error && value.name === "StopError";
+}
 
 function formatBubbleValue(value: unknown): string {
     try {
@@ -223,6 +232,10 @@ function makeEditorSpriteContext(
 async function extractBlockValue(
     block: ReporterBlock,
     options: ReporterBubbleOptions,
+    onExecutionStart?: (
+        execution: Promise<unknown>,
+        isExpression: boolean,
+    ) => void,
 ): Promise<{ value: unknown; error: boolean; skip?: boolean }> {
     try {
         const { code, definitions } = generateBlockCode(block);
@@ -286,8 +299,13 @@ async function extractBlockValue(
             );
         }
 
-        const execution = Promise.resolve(fn(sprites, spriteContextMap, context));
+        runtime.beginEditorRun?.();
+
+        const execution = Promise.resolve(
+            fn(sprites, spriteContextMap, context),
+        ).finally(() => runtime.endEditorRun?.());
         execution.catch(() => undefined);
+        onExecutionStart?.(execution, isExpression);
 
         const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
             window.setTimeout(() => resolve(TIMED_OUT), EXECUTION_TIMEOUT_MS);
@@ -296,7 +314,7 @@ async function extractBlockValue(
         const result = await Promise.race([execution, timeout]);
 
         if (result === TIMED_OUT) {
-            return { value: "(still running\u2026)", error: false };
+            return { value: "(still running\u2026)", error: false, skip: !isExpression };
         }
 
         if (!isExpression) {
@@ -305,6 +323,9 @@ async function extractBlockValue(
 
         return { value: result, error: false };
     } catch (error) {
+        if (isStopError(error)) {
+            return { value: undefined, error: false, skip: true };
+        }
         return { value: error, error: true };
     }
 }
@@ -321,6 +342,44 @@ export default function initReporterBubble(
     let bubbleElement: HTMLDivElement | null = null;
     let bubbleBlock: ReporterBlock | null = null;
     let openToken = 0;
+    const runningStacks = new Set<string>();
+    const glowingBlocks = new Set<string>();
+    const runTokens = new Map<string, number>();
+    let nextRunToken = 0;
+
+    function setBlockRunning(blockId: string, running: boolean): void {
+        const svgRoot = blocklyWorkspace.getBlockById(blockId)?.getSvgRoot();
+        if (running) glowingBlocks.add(blockId);
+        else glowingBlocks.delete(blockId);
+        svgRoot?.classList.toggle(RUNNING_BLOCK_CLASS, running);
+    }
+
+    function markRunStarted(blockId: string): number {
+        const token = ++nextRunToken;
+        runTokens.set(blockId, token);
+        setBlockRunning(blockId, true);
+        return token;
+    }
+
+    function markRunFinished(blockId: string, token: number, startedAt: number) {
+        const clear = () => {
+            if (runTokens.get(blockId) !== token) return;
+            runTokens.delete(blockId);
+            setBlockRunning(blockId, false);
+        };
+
+        const remaining = OUTLINE_MS - (performance.now() - startedAt);
+        if (remaining <= 0) clear();
+        else window.setTimeout(clear, remaining);
+    }
+
+    function clearAllRunning(): void {
+        for (const blockId of Array.from(glowingBlocks)) {
+            setBlockRunning(blockId, false);
+        }
+        runTokens.clear();
+        runningStacks.clear();
+    }
 
     const getSelected = () => {
         return (blocklyWorkspace as ReporterWorkspace).getSelected?.() || null;
@@ -409,9 +468,29 @@ export default function initReporterBubble(
 
     async function openForBlock(block: ReporterBlock | null): Promise<void> {
         if (!block || block.isShadow() || block.isInsertionMarker?.()) return;
+        if (runningStacks.has(block.id)) {
+            runningStacks.delete(block.id);
+            runTokens.delete(block.id);
+            setBlockRunning(block.id, false);
+            (window.RUNTIME as unknown as RuntimeLike | undefined)?.stop?.();
+            return;
+        }
 
         const token = ++openToken;
-        const result = await extractBlockValue(block, options);
+        const blockId = block.id;
+        const result = await extractBlockValue(
+            block,
+            options,
+            (execution, isExpression) => {
+                const runToken = markRunStarted(blockId);
+                const startedAt = performance.now();
+                if (!isExpression) runningStacks.add(blockId);
+                execution.finally(() => {
+                    runningStacks.delete(blockId);
+                    markRunFinished(blockId, runToken, startedAt);
+                });
+            },
+        );
 
         if (token !== openToken) return;
         if (result.skip) return;
@@ -461,6 +540,7 @@ export default function initReporterBubble(
             document.removeEventListener("pointerdown", onPointerDown, true);
             window.removeEventListener("resize", onWindowResize);
             openToken++;
+            clearAllRunning();
             removeBubbleNow();
             layerElement.remove();
         },
