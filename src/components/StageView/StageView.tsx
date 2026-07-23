@@ -774,8 +774,6 @@ export default function StageView() {
         const loop = liveSprite?.videoLoop ?? false;
         if (duration > 0 && loop)
           targetTime = ((targetTime % duration) + duration) % duration;
-        if (duration > 0 && loop)
-          targetTime = ((targetTime % duration) + duration) % duration;
         targetTime = Math.max(0, Math.min(targetTime, duration));
 
         if (frameCache.size === 0) continue;
@@ -784,10 +782,6 @@ export default function StageView() {
         let bestDelta = Infinity;
         for (const [t, bmp] of frameCache) {
           const delta = Math.abs(t - targetTime);
-          if (delta < bestDelta) {
-            bestDelta = delta;
-            best = bmp;
-          }
           if (delta < bestDelta) {
             bestDelta = delta;
             best = bmp;
@@ -852,21 +846,11 @@ export default function StageView() {
       await runtime.preloadSounds();
 
       let kickoffSettled = false;
-      const playPromise = handlePlay({ stepping: true });
-      playPromise
-        .then(() => {
+      handlePlay({ stepping: true })
+        .finally(() => {
           kickoffSettled = true;
         })
-        .catch(() => {
-          kickoffSettled = true;
-        });
-      playPromise
-        .then(() => {
-          kickoffSettled = true;
-        })
-        .catch(() => {
-          kickoffSettled = true;
-        });
+        .catch(() => {});
 
       await new Promise<void>(r =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
@@ -899,10 +883,6 @@ export default function StageView() {
           bitmap.close();
           break;
         }
-        if (abortRecordingRef.current) {
-          bitmap.close();
-          break;
-        }
 
         const transfers: Transferable[] = [bitmap];
         if (samples?.buffer) transfers.push(samples.buffer);
@@ -928,29 +908,18 @@ export default function StageView() {
             liveSprite.videoCurrentTime = liveSprite.videoLoop
               ? nextTime % duration
               : duration;
-            liveSprite.videoCurrentTime = liveSprite.videoLoop
-              ? nextTime % duration
-              : duration;
             if (!liveSprite.videoLoop) liveSprite.videoPlaying = false;
           } else {
             liveSprite.videoCurrentTime = nextTime;
           }
         }
 
-        if (
+        // nothing left is driving the scene forward, so the export is complete
+        const sceneIdle =
           kickoffSettled &&
           !runtime.hasLiveWaiters() &&
-          !hasActiveVideoPlayback() &&
-          frameCounter >= minimumFrames
-        )
-          break;
-        if (
-          kickoffSettled &&
-          !runtime.hasLiveWaiters() &&
-          !hasActiveVideoPlayback() &&
-          frameCounter >= minimumFrames
-        )
-          break;
+          !hasActiveVideoPlayback();
+        if (sceneIdle && frameCounter >= minimumFrames) break;
       }
 
       runtime.disableStepping();
