@@ -56,6 +56,7 @@ async function runDrain() {
   while (pendingFrames.length > 0) {
     const pending = pendingFrames.shift()!;
     await pending.run();
+    (self as any).postMessage({ type: "frameDone" });
   }
 }
 
@@ -163,6 +164,8 @@ self.onmessage = async (e: MessageEvent) => {
           palette,
           delay: 1000 / config.fps,
         });
+        // GIF frames never enter pendingFrames, so acknowledge here instead.
+        (self as any).postMessage({ type: "frameDone" });
         return;
       }
 

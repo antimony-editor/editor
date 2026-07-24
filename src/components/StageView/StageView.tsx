@@ -799,6 +799,12 @@ export default function StageView() {
     const scaleX = physicalWidth / canvas.width;
     const scaleY = physicalHeight / canvas.height;
 
+    if (!Number.isFinite(scaleX) || !Number.isFinite(scaleY)) {
+      resetRecordingState();
+      alert("The stage has no size to record. Make the preview visible first.");
+      return;
+    }
+
     const captureFrame = (): ImageBitmap => {
       offCtx.clearRect(0, 0, physicalWidth, physicalHeight);
       offCtx.save();
@@ -815,6 +821,35 @@ export default function StageView() {
       const worker = new Worker(new URL("../../workers/export.worker.ts", import.meta.url), {
         type: "module"
       });
+
+      // Backpressure. Capture is far cheaper than encoding, so without a cap the
+      // queue grows unboundedly and each undrained 1080p ImageBitmap holds ~8MB
+      // until memory runs out and transferToImageBitmap starts failing.
+      const MAX_FRAMES_IN_FLIGHT = 8;
+      let framesInFlight = 0;
+      const frameSlotWaiters: Array<() => void> = [];
+
+      const onFrameDone = (e: MessageEvent) => {
+        if (e.data?.type !== "frameDone") return;
+        framesInFlight = Math.max(0, framesInFlight - 1);
+        frameSlotWaiters.shift()?.();
+      };
+      worker.addEventListener("message", onFrameDone);
+
+      const waitForFrameSlot = async () => {
+        while (
+          framesInFlight >= MAX_FRAMES_IN_FLIGHT &&
+          !abortRecordingRef.current &&
+          !stopAndExportRef.current
+        ) {
+          // Race a timeout so aborting mid-wait re-checks the flags instead of
+          // parking forever on a frameDone that is never coming.
+          await Promise.race([
+            new Promise<void>(resolve => frameSlotWaiters.push(resolve)),
+            new Promise<void>(resolve => setTimeout(resolve, 100))
+          ]);
+        }
+      };
 
       const workerMessage = (): Promise<void> =>
         new Promise<void>((resolve, reject) => {
@@ -873,6 +908,11 @@ export default function StageView() {
       while (frameCounter < maxFrames) {
         if (abortRecordingRef.current || stopAndExportRef.current) break;
 
+        // Safe to stall here: export runs on the runtime's virtual clock, so
+        // throttling capture cannot change the frames that get produced.
+        await waitForFrameSlot();
+        if (abortRecordingRef.current || stopAndExportRef.current) break;
+
         paintVideoProxies(videoProxies);
         layer.draw();
 
@@ -886,6 +926,7 @@ export default function StageView() {
 
         const transfers: Transferable[] = [bitmap];
         if (samples?.buffer) transfers.push(samples.buffer);
+        framesInFlight++;
         worker.postMessage(
           { type: "frame", payload: { bitmap, audio: samples ?? null } },
           transfers
