@@ -39,6 +39,7 @@ javascriptGenerator.forBlock["functions_lambda"] = function (
 };
 
 Blockly.Blocks["functions_execute"] = {
+  // Okay i should probably clarfy i did use ai for this bit But every other file ive ever edited doesnt use ai
   // A dual block: reports the call's result when plugged into a value slot, runs
   // it as a statement when stacked. The mixin morphs its connections to whatever
   // context it lands in, so it never carries an unused reporter cap in a stack.
