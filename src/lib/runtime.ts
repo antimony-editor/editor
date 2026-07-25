@@ -135,6 +135,8 @@ class Runtime {
   private sprites: Map<string, SpriteContext> = new Map();
   private currentSpriteId: string | null = null;
   private stopped = false;
+  private videoEnded = false;
+  private videoEndListeners = new Set<() => void>();
   private epoch = 0;
   private runEpoch = 0;
   private editorRunCount = 0;
@@ -930,6 +932,33 @@ class Runtime {
   isStopped() {
     return this.stopped || this.runEpoch !== this.epoch;
   }
+ // wahey!
+  endVideo() {
+    if (this.videoEnded) return;
+    this.videoEnded = true;
+
+    const listeners = Array.from(this.videoEndListeners);
+    this.stop();
+
+    for (const listener of listeners) {
+      try {
+        listener();
+      } catch (e) { 
+        // todo: log error
+      }
+    }
+  }
+
+  isVideoEnded() {
+    return this.videoEnded;
+  }
+
+  onVideoEnd(listener: () => void): () => void {
+    this.videoEndListeners.add(listener);
+    return () => {
+      this.videoEndListeners.delete(listener);
+    };
+  }
 
   beginEditorRun() {
     if (this.stopped || this.runEpoch !== this.epoch) {
@@ -1700,6 +1729,7 @@ class Runtime {
     this.stop();
     this.runEpoch = this.epoch;
     this.stopped = false;
+    this.videoEnded = false;
     this.paused = false;
     this.lastFrameTime = performance.now();
     this.startTime = this.now();

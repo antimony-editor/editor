@@ -279,6 +279,8 @@ export default function (mediaType: BlockSourceType) {
     ${block("on_start")}
     ${block("timing_getCurrentTime")}
     ${block("wait_seconds", value("SECONDS", shadow("math_number", field("NUM", 1))))}
+    ${sep(50)}
+    ${block("timing_end_video")}
   </category>
   <category name="Effects" categorystyle="effects_blocks">
     ${block(

@@ -906,7 +906,12 @@ export default function StageView() {
       const maxFrames = Math.max(120, Math.ceil(fps * 300));
 
       while (frameCounter < maxFrames) {
-        if (abortRecordingRef.current || stopAndExportRef.current) break;
+        if (
+          abortRecordingRef.current ||
+          stopAndExportRef.current ||
+          runtime.isVideoEnded()
+        )
+          break;
 
         // Safe to stall here: export runs on the runtime's virtual clock, so
         // throttling capture cannot change the frames that get produced.
@@ -1945,6 +1950,16 @@ export default function StageView() {
 
     flushPlaybackStateUpdates();
   };
+
+  const handleStopRef = useRef(handleStop);
+  handleStopRef.current = handleStop;
+
+  useEffect(() => {
+    return runtime.onVideoEnd(() => {
+      if (runtime.isStepping) return;
+      handleStopRef.current();
+    });
+  }, []);
 
   const sorted = [...state.sprites].sort((a, b) => a.zIndex - b.zIndex);
   const gridColor = useMemo(

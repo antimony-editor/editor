@@ -35,6 +35,22 @@ javascriptGenerator.forBlock["wait_seconds"] = function (block: Blockly.Block) {
   return `await window.RUNTIME.delay((${seconds}) * 1000);\n`;
 };
 
+Blockly.Blocks["timing_end_video"] = {
+  init: function () {
+    this.appendDummyInput().appendField("end the video");
+    this.setPreviousStatement(true, null);
+    this.setStyle("timing_blocks");
+    this.setTooltip(
+      "Ends the video and stops all other scripts",
+    );
+    this.setHelpUrl("");
+  },
+};
+
+javascriptGenerator.forBlock["timing_end_video"] = function () {
+  return "window.RUNTIME.endVideo();\nreturn;\n";
+};
+
 Blockly.Blocks["timing_getCurrentTime"] = {
   init: function () {
     this.appendDummyInput().appendField("current video time");
