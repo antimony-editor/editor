@@ -9,7 +9,7 @@ const credits = [
   {
     name: "Dotun",
     url: "https://afkdev.me",
-    roles: "Co-Owner, Lead Developer, Designer, Domain Host",
+    roles: "Developer, Designer, Domain Host",
   },
   {
     name: "UnbraveChimp",
@@ -19,7 +19,7 @@ const credits = [
   {
     name: "ddededodediamante",
     url: "https://ddededodediamante.vercel.app/",
-    roles: "Developer, Programmer",
+    roles: "Lead Developer, Programmer",
   },
   {
     name: "Lord Cat",
