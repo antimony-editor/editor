@@ -102,6 +102,7 @@ export default function ExtensionMenu({
       >
         <div
           className="extension-item"
+          style={{ minWidth: 250 }}
           onClick={() => fileInput.current?.click()}
         >
           <Upload size={64} style={{ marginBottom: 10 }} />
@@ -115,7 +116,7 @@ export default function ExtensionMenu({
               color: "var(--text-secondary)",
             }}
           >
-            Trusted Extension
+            Sandboxed Extension
           </div>
         </div>
 
