@@ -2730,6 +2730,8 @@ dialog::backdrop {
   padding: var(--space-md);
   cursor: pointer;
   width: 22rem;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .welcome-modal-overlay {
