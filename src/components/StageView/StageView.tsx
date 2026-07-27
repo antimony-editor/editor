@@ -1382,6 +1382,15 @@ export default function StageView() {
           visible
         });
 
+        if (sprite.type === "media" || sprite.type === "video") {
+          const group = node as Konva.Group;
+          const kids = group.getChildren();
+          for (const child of kids) {
+            if (typeof child.width === "function") child.width(width);
+            if (typeof child.height === "function") child.height(height);
+          }
+        }
+
         if (sprite.type === "text") {
           const group = node as Konva.Group;
           const textVal =
@@ -1880,7 +1889,9 @@ export default function StageView() {
         spriteId: sprite.id,
         dispatch,
         getSprites: () => spritesRef.current,
-        getStageSize: () => stageSizeRef.current
+        getStageSize: () => stageSizeRef.current,
+        baseWidth: sprite.width,
+        baseHeight: sprite.height
       });
       applyLiveSprite();
     });

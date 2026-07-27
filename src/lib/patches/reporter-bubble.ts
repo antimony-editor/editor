@@ -216,6 +216,8 @@ function makeEditorSpriteContext(
         },
     });
 
+    const latest = getLatest();
+
     return {
         sprite: spriteProxy as SpriteContext["sprite"],
         spriteId,
@@ -226,6 +228,9 @@ function makeEditorSpriteContext(
                 width: 480,
                 height: 360,
             },
+        // support for set size block
+        baseWidth: latest?.width,
+        baseHeight: latest?.height,
     };
 }
 

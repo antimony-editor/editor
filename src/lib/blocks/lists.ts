@@ -40,4 +40,29 @@ javascriptGenerator.forBlock["lists_create_with"] = function (
   return [`[${items.join(", ")}]`, Order.ATOMIC];
 };
 
+Blockly.Blocks["lists_parse"] = { // could there be a better name for this?
+  init: function () {
+    this.appendValueInput("TEXT").setCheck(null).appendField("parse");
+    this.appendDummyInput().appendField("as list");
+    this.setInputsInline(true);
+    this.setOutput(true, "Array");
+    this.setStyle("list_blocks");
+    this.setTooltip(
+      "Parse raw data as a list.",
+    );
+  },
+};
+
+javascriptGenerator.forBlock["lists_parse"] = function (block: Blockly.Block) {
+  const text =
+    javascriptGenerator.valueToCode(block, "TEXT", Order.NONE) || "''";
+  const code = `(() => { try { const _p = JSON.parse(${text}); return Array.isArray(_p) ? _p : [_p]; } catch { return String(${text}).split(",").map((_s) => _s.trim()); } })()`;
+// check if the input is a valid json array then use as is
+// valid json but not an array then wrap it in a list
+// not valid json then split by commas
+
+
+  return [code, Order.FUNCTION_CALL];
+};
+
 export {};

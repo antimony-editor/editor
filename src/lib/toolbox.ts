@@ -162,6 +162,7 @@ export default function (mediaType: BlockSourceType) {
   <category name="Lists" categorystyle="list_blocks">
     ${block("lists_create_with")}
     ${block("lists_repeat", value("ITEM", textShadow()), value("NUM", numberShadow(3)))}
+    ${block("lists_parse", value("TEXT", textShadow("[1, 2, 3]")))}
     ${sep(50)}
     ${block("lists_split")}
     ${block("lists_length")}
@@ -191,6 +192,7 @@ export default function (mediaType: BlockSourceType) {
     ${block("dicts_clear")}
     ${sep(50)}
     ${block("dicts_merge")}
+    ${block("dicts_parse", value("TEXT", textShadow('{"key1": "value1"}')))}
   </category>
   <category name="Motion" categorystyle="motion_blocks">
     ${block(
