@@ -2,6 +2,7 @@ import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import type { Dispatch } from "react";
 import type { Sprite, SpriteAction } from "../sprites";
+import { getSpriteSize, resizeSpriteToPercent } from "../sprites";
 import type { SpriteContext } from "../runtime";
 import "../../styles/editor.css";
 
@@ -165,6 +166,7 @@ function makeEditorSpriteContext(
             if (typeof prop !== "string") return undefined;
             const latest = getLatest();
             if (!latest) return undefined;
+            if (prop === "size") return getSpriteSize(latest);
             if (prop in latest) {
                 return (latest as unknown as Record<string, unknown>)[prop];
             }
@@ -180,11 +182,25 @@ function makeEditorSpriteContext(
             const latest = getLatest();
             if (!dispatch || !latest) return true;
 
+            if (prop === "size") {
+                const changes = resizeSpriteToPercent(latest, Number(value));
+                if (changes) {
+                    dispatch({
+                        type: "UPDATE_SPRITE",
+                        id: spriteId,
+                        changes,
+                        keepBaseSize: true,
+                    });
+                }
+                return true;
+            }
+
             if (TOP_LEVEL_SPRITE_KEYS.has(prop)) {
                 dispatch({
                     type: "UPDATE_SPRITE",
                     id: spriteId,
                     changes: { [prop]: value } as Partial<Omit<Sprite, "id" | "type">>,
+                    keepBaseSize: true,
                 });
                 return true;
             }
@@ -199,6 +215,7 @@ function makeEditorSpriteContext(
                     changes: {
                         data: { ...data, [dataKey]: value },
                     } as unknown as Partial<Omit<Sprite, "id" | "type">>,
+                    keepBaseSize: true,
                 });
             }
             return true;
@@ -207,6 +224,7 @@ function makeEditorSpriteContext(
             if (typeof prop !== "string") return false;
             const latest = getLatest();
             if (!latest) return false;
+            if (prop === "size") return true;
             if (prop in latest) return true;
             const data = latest.data as unknown as Record<string, unknown>;
             if (!data) return false;
@@ -215,8 +233,6 @@ function makeEditorSpriteContext(
             return !!alias && alias in data;
         },
     });
-
-    const latest = getLatest();
 
     return {
         sprite: spriteProxy as SpriteContext["sprite"],
@@ -228,9 +244,6 @@ function makeEditorSpriteContext(
                 width: 480,
                 height: 360,
             },
-        // support for set size block
-        baseWidth: latest?.width,
-        baseHeight: latest?.height,
     };
 }
 

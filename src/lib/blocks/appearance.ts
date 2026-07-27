@@ -49,15 +49,9 @@ javascriptGenerator.forBlock["appearance_setSize"] = function (
 ) {
   const size =
     javascriptGenerator.valueToCode(block, "SIZE", Order.ATOMIC) || "100";
-return `{
+  return `{
   const _pct = Number(${size});
-  const _size = Number.isFinite(_pct) ? _pct : 100;
-  if (!Number.isFinite(context.baseWidth) || !Number.isFinite(context.baseHeight)) {
-    context.baseWidth = Number(context.sprite.width);
-    context.baseHeight = Number(context.sprite.height);
-  }
-  if (Number.isFinite(context.baseWidth)) context.sprite.width = context.baseWidth * (_size / 100);
-  if (Number.isFinite(context.baseHeight)) context.sprite.height = context.baseHeight * (_size / 100);
+  if (Number.isFinite(_pct)) context.sprite.size = _pct;
 }\n`;
 };
 
@@ -126,10 +120,7 @@ javascriptGenerator.forBlock["appearance_changeSize"] = function (
     javascriptGenerator.valueToCode(block, "CHANGE", Order.ATOMIC) || "10";
   return `{
   const _delta = Number(${change});
-  if (Number.isFinite(_delta)) {
-    context.sprite.width *= (1 + _delta / 100);
-    context.sprite.height *= (1 + _delta / 100);
-  }
+  if (Number.isFinite(_delta)) context.sprite.size = Number(context.sprite.size) + _delta;
 }\n`;
 };
 
@@ -144,10 +135,7 @@ Blockly.Blocks["appearance_getSize"] = {
 };
 
 javascriptGenerator.forBlock["appearance_getSize"] = function () {
-  return [
-    "(Number.isFinite(context.baseWidth) && context.baseWidth !== 0 ? (context.sprite.width / context.baseWidth) * 100 : 100)",
-    Order.ATOMIC,
-  ];
+  return ["context.sprite.size", Order.ATOMIC];
 };
 
 Blockly.Blocks["appearance_getOpacity"] = {

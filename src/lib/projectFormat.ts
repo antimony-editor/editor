@@ -15,7 +15,7 @@ import { activeExtensions } from "./extensions/manager";
 import type { RegisteredExtension } from "./extensions/types";
 
 const MAGIC = "ANTIMONY";
-const VERSION = 4;
+const VERSION = 5;
 
 interface Section {
   name: string;
@@ -151,6 +151,12 @@ function serializeState(state: SpriteState, encoder: TextEncoder): Uint8Array {
     parts.push(serializeString(sprite.blocklyXml, encoder));
     parts.push(serializeString(sprite.tweenMode, encoder));
     parts.push(serializeTweenModes(sprite.tweenModes, encoder));
+
+    const baseBuf = new Uint8Array(16);
+    const baseView = new DataView(baseBuf.buffer);
+    baseView.setFloat64(0, sprite.baseWidth ?? sprite.width);
+    baseView.setFloat64(8, sprite.baseHeight ?? sprite.height);
+    parts.push(baseBuf);
   }
 
   const totalLen = parts.reduce((sum, p) => sum + p.length, 0);
@@ -332,6 +338,14 @@ function deserializeState(data: Uint8Array, fileVersion: number): SpriteState {
       }
     }
 
+    let baseWidth = width;
+    let baseHeight = height;
+    if (fileVersion >= 5 && offset + 16 <= data.byteLength) {
+      baseWidth = view.getFloat64(offset);
+      baseHeight = view.getFloat64(offset + 8);
+      offset += 16;
+    }
+
     const normalized = normalizeSpriteData(id.str, type.str, dataRes.data);
 
     sprites.push({
@@ -342,6 +356,8 @@ function deserializeState(data: Uint8Array, fileVersion: number): SpriteState {
       y,
       width,
       height,
+      baseWidth,
+      baseHeight,
       rotation,
       rotationOriginX: 0.5,
       rotationOriginY: 0.5,

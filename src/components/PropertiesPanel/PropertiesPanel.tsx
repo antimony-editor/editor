@@ -5,6 +5,8 @@ import {
   isMediaData,
   generateMediaImageId,
   generateMediaSoundId,
+  getSpriteSize,
+  resizeSpriteToPercent,
   type TextSpriteData,
   type MediaSpriteData,
 } from "../../lib/sprites";
@@ -187,6 +189,28 @@ export default function PropertiesPanel() {
           {numField("Y", sprite.y, "y")}
           {numField("Width", sprite.width, "width")}
           {numField("Height", sprite.height, "height")}
+          <div className="properties-row">
+            <span className="properties-label">Size %</span>
+            <input
+              className="properties-input"
+              type="number"
+              step="0.01"
+              value={Number(getSpriteSize(sprite).toFixed(2))}
+              onChange={(e) => {
+                const changes = resizeSpriteToPercent(
+                  sprite,
+                  parseFloat(e.target.value) || 0,
+                );
+                if (!changes) return;
+                dispatch({
+                  type: "UPDATE_SPRITE",
+                  id: sprite.id,
+                  changes,
+                  keepBaseSize: true,
+                });
+              }}
+            />
+          </div>
           {numField("Rotation", sprite.rotation, "rotation")}
         </CollapsableSection>
 
