@@ -106,6 +106,8 @@ export interface SpriteContext {
     rotation: number;
     width: number;
     height: number;
+    // why wasnt this here earlier gng
+    size: number;
     opacity: number;
     visible: boolean;
     zIndex: number;

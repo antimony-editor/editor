@@ -1253,7 +1253,8 @@ export default function StageView() {
       dispatch({
         type: "UPDATE_SPRITE",
         id,
-        changes
+        changes,
+        keepBaseSize: true
       });
     }
   }, [dispatch]);
@@ -1381,6 +1382,15 @@ export default function StageView() {
           opacity,
           visible
         });
+
+        if (sprite.type === "media" || sprite.type === "video") {
+          const group = node as Konva.Group;
+          const kids = group.getChildren();
+          for (const child of kids) {
+            if (typeof child.width === "function") child.width(width);
+            if (typeof child.height === "function") child.height(height);
+          }
+        }
 
         if (sprite.type === "text") {
           const group = node as Konva.Group;
@@ -1513,6 +1523,11 @@ export default function StageView() {
       const spriteProxy = new Proxy(spriteData, {
         get: (target, property) => {
           const current = spritesRef.current.find(s => s.id === sprite.id);
+          if (property === "size") {
+            const base = Number(current?.baseWidth ?? sprite.baseWidth ?? sprite.width);
+            const live = Number(target.width ?? sprite.width);
+            return base > 0 && Number.isFinite(live) ? (live / base) * 100 : 100;
+          }
           if (property === "play") {
             return () => {
               (spriteProxy as any).videoPlaying = true;
@@ -1616,6 +1631,17 @@ export default function StageView() {
         },
         set: (target, property, value) => {
           const current = spritesRef.current.find(s => s.id === sprite.id);
+          if (property === "size") {
+            const pct = Number(value);
+            if (!Number.isFinite(pct)) return true;
+            const baseW = Number(current?.baseWidth ?? sprite.baseWidth ?? sprite.width);
+            const baseH = Number(current?.baseHeight ?? sprite.baseHeight ?? sprite.height);
+            // to make sure konva behaves
+            const proxy = spriteProxy as unknown as Record<string, unknown>;
+            if (baseW > 0) proxy.width = baseW * (pct / 100);
+            if (baseH > 0) proxy.height = baseH * (pct / 100);
+            return true;
+          }
           if (property === "tweenMode") {
             target.tweenMode = value;
             dispatch({

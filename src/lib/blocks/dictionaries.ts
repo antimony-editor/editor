@@ -267,6 +267,26 @@ javascriptGenerator.forBlock["dicts_clear"] = function (block, generator) {
   return [`Object.assign({}, ${dictCode}, {})`, Order.FUNCTION_CALL];
 };
 
+Blockly.Blocks["dicts_parse"] = {
+  init: function () {
+    this.appendValueInput("TEXT").setCheck(null).appendField("parse");
+    this.appendDummyInput().appendField("as dictionary");
+    this.setInputsInline(true);
+    this.setOutput(true, "Object");
+    this.setStyle("dict_blocks");
+    this.setTooltip("Parse raw data as a dictionary.");
+  },
+};
+
+javascriptGenerator.forBlock["dicts_parse"] = function (block, generator) {
+  const text = generator.valueToCode(block, "TEXT", Order.NONE) || "''";
+  const code = `(() => { try { const _p = JSON.parse(${text}); return _p && typeof _p === "object" && !Array.isArray(_p) ? _p : {}; } catch { const _o = {}; for (const _pair of String(${text}).split(",")) { const _i = _pair.indexOf(":"); if (_i === -1) continue; _o[_pair.slice(0, _i).trim()] = _pair.slice(_i + 1).trim(); } return _o; } })()`;
+  // check if the input is a valid json object then use as is
+  // valid json but not an object (array, number, etc) then give an empty dictionary
+  // not valid json then split "key: value" pairs on commas
+  return [code, Order.FUNCTION_CALL];
+};
+
 Blockly.Blocks["dicts_merge"] = {
   init: function () {
     this.appendValueInput("DICT1")

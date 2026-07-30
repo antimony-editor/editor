@@ -70,6 +70,8 @@ export interface Sprite {
   y: number;
   width: number;
   height: number;
+  baseWidth: number;
+  baseHeight: number;
   rotation: number;
   rotationOriginX: number;
   rotationOriginY: number;
@@ -90,6 +92,7 @@ export type SpriteAction =
       type: "UPDATE_SPRITE";
       id: string;
       changes: Partial<Omit<Sprite, "id" | "type">>;
+      keepBaseSize?: boolean;
     }
   | { type: "SELECT_SPRITE"; id: string | null }
   | { type: "REORDER_SPRITE"; id: string; newIndex: number }
@@ -130,6 +133,8 @@ export function createTextSprite(name: string): Sprite {
     y: 0,
     width: 533,
     height: 107,
+    baseWidth: 533,
+    baseHeight: 107,
     rotation: 0,
     rotationOriginX: 0.5,
     rotationOriginY: 0.5,
@@ -164,6 +169,8 @@ export function createMediaSprite(name: string): Sprite {
     y: 0,
     width: 195.49078 * 3,
     height: 59.46922 * 3,
+    baseWidth: 195.49078 * 3,
+    baseHeight: 59.46922 * 3,
     rotation: 0,
     rotationOriginX: 0.5,
     rotationOriginY: 0.5,
@@ -194,6 +201,8 @@ export function createVideoSprite(name: string): Sprite {
     y: 0,
     width: 480,
     height: 270,
+    baseWidth: 480,
+    baseHeight: 270,
     rotation: 0,
     rotationOriginX: 0.5,
     rotationOriginY: 0.5,
@@ -257,9 +266,16 @@ export function spriteReducer(
     case "UPDATE_SPRITE": {
       return {
         ...state,
-        sprites: state.sprites.map((s) =>
-          s.id === action.id ? { ...s, ...action.changes } : s,
-        ),
+        sprites: state.sprites.map((s) => {
+          if (s.id !== action.id) return s;
+          const next = { ...s, ...action.changes };
+          if (!action.keepBaseSize) {
+            if (action.changes.width !== undefined) next.baseWidth = next.width;
+            if (action.changes.height !== undefined)
+              next.baseHeight = next.height;
+          }
+          return next;
+        }),
       };
     }
     case "SELECT_SPRITE": {
@@ -307,6 +323,8 @@ export function spriteReducer(
           tweenModes: sprite.tweenModes ?? {},
           rotationOriginX: sprite.rotationOriginX ?? 0.5,
           rotationOriginY: sprite.rotationOriginY ?? 0.5,
+          baseWidth: sprite.baseWidth ?? sprite.width,
+          baseHeight: sprite.baseHeight ?? sprite.height,
         })),
         loadKey: state.loadKey + 1,
       };
@@ -339,6 +357,39 @@ export function isMediaData(data: SpriteData): data is MediaSpriteData {
 
 export function isVideoData(data: SpriteData): data is VideoSpriteData {
   return "videos" in data && "currentVideoId" in data;
+}
+
+export function getSpriteSize(sprite: Sprite): number {
+  const base = Number(sprite.baseWidth ?? sprite.width);
+  const live = Number(sprite.width);
+  return base > 0 && Number.isFinite(live) ? (live / base) * 100 : 100;
+}
+
+export function resizeSpriteToPercent(
+  sprite: Sprite,
+  percent: number,
+): Partial<Omit<Sprite, "id" | "type">> | null {
+  if (!Number.isFinite(percent)) return null;
+  const baseWidth = Number(sprite.baseWidth ?? sprite.width);
+  const baseHeight = Number(sprite.baseHeight ?? sprite.height);
+  if (!(baseWidth > 0) || !(baseHeight > 0)) return null;
+
+  const changes: Partial<Omit<Sprite, "id" | "type">> = {
+    width: baseWidth * (percent / 100),
+    height: baseHeight * (percent / 100),
+  };
+
+  // recover the 100% font from how far the sprite is currently scaled, then rescale that
+  const live = Number(sprite.width);
+  if (isTextData(sprite.data) && live > 0) {
+    const baseFont = sprite.data.fontSize * (baseWidth / live);
+    changes.data = {
+      ...sprite.data,
+      fontSize: Math.max(1, baseFont * (percent / 100)),
+    };
+  }
+
+  return changes;
 }
 
 export function getSpriteRotationOrigin(

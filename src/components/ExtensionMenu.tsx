@@ -103,8 +103,9 @@ export default function ExtensionMenu({
         <div
           className="extension-item"
           onClick={() => fileInput.current?.click()}
+
         >
-          <Upload size={64} style={{ marginBottom: 10 }} />
+          <Upload size={90} style={{ marginBottom: 10 }} />
 
           <h2>Load Local Extension</h2>
 

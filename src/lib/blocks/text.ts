@@ -24,7 +24,7 @@ defineExpandableBlock({
   ],
 });
 
-javascriptGenerator.forBlock["lists_create_with"] = function (
+javascriptGenerator.forBlock["text_create_with"] = function (
   block: Blockly.Block,
 ) {
   const expandableBlock = block as ExpandableBlock;
@@ -32,11 +32,13 @@ javascriptGenerator.forBlock["lists_create_with"] = function (
 
   for (let i = 0; i < expandableBlock.itemCount_; i++) {
     const value =
-      javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "null";
+      javascriptGenerator.valueToCode(block, `ADD${i}`, Order.NONE) || "''";
     items.push(value);
   }
 
-  return [`[${items.join(", ")}]`, Order.ATOMIC];
+  if (items.length === 0) return ["''", Order.ATOMIC];
+
+  return [`[${items.join(", ")}].join("")`, Order.ATOMIC];
 };
 
 Blockly.Blocks["text"] = {
