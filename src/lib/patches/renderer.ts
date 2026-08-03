@@ -1,5 +1,7 @@
 import * as Blockly from "blockly";
 
+Blockly.VerticalFlyout.prototype.getFlyoutScale = () => 0.8;
+
 const svgPaths = Blockly.utils.svgPaths;
 
 class TuffosConstantProvider extends Blockly.zelos.ConstantProvider {
