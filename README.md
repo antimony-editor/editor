@@ -23,7 +23,7 @@ Many people [contribute](https://antimony.cc/credits) to Antimony! Feel free to 
 - "all at once" block ❌
 - add essential blocks ❌
 - clones ❌
-- pen extension ❌
+- pen extension ✅
 - extensions ⚠️ (WIP)
 - exporting ✅ 
 - settings ✅
