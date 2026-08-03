@@ -3,6 +3,7 @@ import { javascriptGenerator } from "blockly/javascript";
 import type { Dispatch } from "react";
 import type { Sprite, SpriteAction } from "../sprites";
 import { getSpriteSize, resizeSpriteToPercent } from "../sprites";
+import penSurface from "../pen";
 import type { SpriteContext } from "../runtime";
 import "../../styles/editor.css";
 
@@ -202,6 +203,11 @@ function makeEditorSpriteContext(
                     changes: { [prop]: value } as Partial<Omit<Sprite, "id" | "type">>,
                     keepBaseSize: true,
                 });
+                if (prop === "x" || prop === "y") {
+                    const x = prop === "x" ? Number(value) : Number(latest.x);
+                    const y = prop === "y" ? Number(value) : Number(latest.y);
+                    penSurface.moveAxis(spriteId, prop, x, y);
+                }
                 return true;
             }
 

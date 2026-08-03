@@ -24,6 +24,7 @@ import { useProjectSettings } from "../../lib/settings";
 import * as Blockly from "blockly";
 import { javascriptGenerator } from "blockly/javascript";
 import runtime, { type SpriteContext } from "../../lib/runtime";
+import penSurface from "../../lib/pen";
 import ExportModal, { type ExportOptions } from "../ExportModal";
 import { isChromiumBrowser } from "../../lib/browser";
 import { Plyr } from "plyr-react";
@@ -517,6 +518,10 @@ export default function StageView() {
   const stageRef = useRef<Konva.Stage>(null);
   const layerRef = useRef<Konva.Layer>(null);
   const worldGroupRef = useRef<Konva.Group>(null);
+  const penImageRef = useRef<Konva.Image>(null);
+  const [penCanvas] = useState<HTMLCanvasElement | null>(() =>
+    typeof document === "undefined" ? null : document.createElement("canvas")
+  );
   const fpsRef = useRef<HTMLDivElement>(null);
   const fullScreenFpsRef = useRef<HTMLDivElement>(null);
   const spriteNodeRefs = useRef(new Map<string, Konva.Node>());
@@ -604,6 +609,18 @@ export default function StageView() {
     [virtualWidth, virtualHeight]
   );
   const scale = stageSize.width / virtualWidth;
+
+  useEffect(() => {
+    if (!penCanvas) return;
+    penSurface.attach(penCanvas, () => {
+      penImageRef.current?.getLayer()?.batchDraw();
+    });
+    return () => penSurface.detach();
+  }, [penCanvas]);
+
+  useEffect(() => {
+    penSurface.resize(virtualWidth, virtualHeight);
+  }, [virtualWidth, virtualHeight]);
 
   const hasBlocks = useMemo(() => {
     return state.sprites.some(
@@ -1307,6 +1324,7 @@ export default function StageView() {
 
     runtime.setFps(settings.fps);
     pendingPlaybackChangesRef.current.clear();
+    penSurface.reset();
     for (const ref of videoShouldPlayRefs.current.values()) ref.current = false;
     setIsPlayingWithRef(true);
     setIsPaused(false);
@@ -1896,6 +1914,14 @@ export default function StageView() {
               applyLiveSprite();
               queuePlaybackStateUpdate(sprite.id, { [property]: value });
             }
+            if (property === "x" || property === "y") {
+              penSurface.moveAxis(
+                sprite.id,
+                property,
+                Number(target.x ?? sprite.x),
+                Number(target.y ?? sprite.y)
+              );
+            }
           }
           return true;
         }
@@ -2028,6 +2054,17 @@ export default function StageView() {
           />
         )}
         {showROT && <StageROT width={virtualWidth} height={virtualHeight} />}
+        {penCanvas && (
+          <KonvaImage
+            ref={penImageRef}
+            image={penCanvas}
+            x={0}
+            y={0}
+            width={virtualWidth}
+            height={virtualHeight}
+            listening={false}
+          />
+        )}
         <Group ref={worldGroupRef}>
           {sorted.map(sprite => (
             <SpriteRenderer

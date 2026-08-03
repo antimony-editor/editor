@@ -5,6 +5,7 @@ import {
   type SpriteAction,
 } from "./sprites";
 import type { Dispatch } from "react";
+import penSurface from "./pen";
 import {
   applyTweenMode,
   readTweenProperty,
@@ -953,6 +954,26 @@ class Runtime {
 
   isVideoEnded() {
     return this.videoEnded;
+  }
+
+  penDown(spriteId: string, x: number, y: number) {
+    penSurface.setDown(spriteId, true, x, y);
+  }
+
+  penUp(spriteId: string, x: number, y: number) {
+    penSurface.setDown(spriteId, false, x, y);
+  }
+
+  setPenColor(spriteId: string, ...parts: unknown[]) {
+    penSurface.setColor(spriteId, ...parts);
+  }
+
+  setPenSize(spriteId: string, size: unknown) {
+    penSurface.setSize(spriteId, size);
+  }
+
+  clearPen() {
+    penSurface.clear();
   }
 
   onVideoEnd(listener: () => void): () => void {

@@ -28,6 +28,14 @@ export const extensions: ExtensionItem[] = [
     jsFile: "sets.js",
     img: "sets.svg",
   },
+  {
+    id: "pen",
+    name: "Pen",
+    desc: "Can someone else write a description I honestly have no idea what to put",
+    creator: "Antimony Team",
+    jsFile: "pen.js",
+    img: "pen.svg",
+  },
 ];
 
 export function getBuiltinExtension(id: string): ExtensionItem | undefined {
