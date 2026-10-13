@@ -142,7 +142,7 @@ export default function ExtensionMenu({
             }}
           />
 
-          <button className="file-menu-item" onClick={loadURL}>
+          <button disabled={!url.trim()} className="file-menu-item" onClick={loadURL}>
             Install
           </button>
         </div>

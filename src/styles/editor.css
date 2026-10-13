@@ -263,7 +263,6 @@ button {
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   padding: var(--space-xs);
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -274,12 +273,13 @@ button {
   border-radius: var(--radius-sm);
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background: var(--bg-surface);
   color: var(--text-primary);
+  cursor: pointer;
 }
 
-button:active {
+button:active:not(:disabled) {
   scale: 0.97;
 }
 
@@ -1461,7 +1461,6 @@ input#toolbox-search-input {
   font-size: 11px;
   font-weight: 500;
   text-align: left;
-  cursor: pointer;
   border-radius: var(--radius-sm);
   transition: background 0.12s;
   display: flex;
@@ -1469,8 +1468,13 @@ input#toolbox-search-input {
   gap: var(--space-sm);
 }
 
-.file-menu-item:hover {
+.file-menu-item:disabled {
+  opacity: 0.5;
+}
+
+.file-menu-item:hover:not(:disabled) {
   background: var(--bg-tertiary);
+  cursor: pointer;
 }
 
 .settings-modal {
@@ -2740,6 +2744,7 @@ dialog::backdrop {
 }
 
 .welcome-title span {
+  will-change: transform;
   display: inline-block;
   opacity: 0;
   transform: translateY(20px) scale(0.8);

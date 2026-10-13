@@ -4,7 +4,7 @@ import { javascriptGenerator, Order } from "blockly/javascript";
 Blockly.Blocks["on_start"] = {
   hat: "cap",
   init: function () {
-    this.appendDummyInput("NAME").appendField("on start of the video");
+    this.appendDummyInput("NAME").appendField("when video starts");
     this.appendStatementInput("DO").setCheck(null);
     this.setStyle("timing_blocks");
     this.setTooltip("Runs whatevers underneath when the video is started");
