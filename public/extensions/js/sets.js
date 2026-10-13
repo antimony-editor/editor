@@ -1,4 +1,4 @@
-(class SetsExtension {
+class SetsExtension {
   id = "sets";
 
   registerCategory() {
@@ -117,4 +117,4 @@
       },
     };
   }
-})
+}

@@ -10,7 +10,7 @@ const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath),
-  js.configs.recommended,
+  ...js.configs.recommended,
   ...ts.configs.recommended,
   {
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
@@ -32,5 +32,12 @@ export default defineConfig(
       },
     },
   },
-  prettierConfig
+  prettierConfig,
+  {
+    files: ["public/extensions/js/*.js"],
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off"
+    },
+  }
 );
