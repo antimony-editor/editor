@@ -1489,7 +1489,7 @@ input#toolbox-search-input {
 
 .transcription-modal {
   max-width: 440px;
-  width: 92%;
+  width: 90%;
 }
 
 .transcription-modal-body {
@@ -2734,6 +2734,7 @@ dialog::backdrop {
   padding: var(--space-md);
   cursor: pointer;
   width: 22rem;
+  min-height: 200px;
   flex-shrink: 0;
   box-sizing: border-box;
 }

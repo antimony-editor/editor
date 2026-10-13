@@ -105,7 +105,7 @@ export default function ExtensionMenu({
           onClick={() => fileInput.current?.click()}
 
         >
-          <Upload size={90} style={{ marginBottom: 10 }} />
+          <Upload size={64} style={{ marginBottom: 15 }} />
 
           <h2>Load Local Extension</h2>
 
@@ -122,12 +122,9 @@ export default function ExtensionMenu({
 
         <div
           className="extension-item"
-          style={{
-            minWidth: 250,
-            cursor: "default",
-          }}
+          style={{ cursor: "default" }}
         >
-          <Globe size={64} style={{ marginBottom: 10 }} />
+          <Globe size={64} style={{ marginBottom: 15 }} />
 
           <h2>Load From URL</h2>
 
