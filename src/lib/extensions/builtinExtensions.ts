@@ -31,7 +31,7 @@ export const extensions: ExtensionItem[] = [
   {
     id: "pen",
     name: "Pen",
-    desc: "Can someone else write a description I honestly have no idea what to put",
+    desc: "Draw on the video using a customizable digital pen.",
     creator: "Antimony Team",
     jsFile: "pen.js",
     img: "pen.svg",
